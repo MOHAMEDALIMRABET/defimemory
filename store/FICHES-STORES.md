@@ -49,8 +49,8 @@ Saurez-vous devenir Maître de DefiMemory ?
 | Sous-catégories | Réflexion, Cartes |
 | Âge | 4+ (répondre « Aucun » à toutes les questions) |
 | Copyright | `2026 <votre nom>` |
-| URL d'assistance | `https://<votre-pseudo-github>.github.io/defimemory/` |
-| URL de confidentialité | `https://<votre-pseudo-github>.github.io/defimemory/confidentialite.html` |
+| URL d'assistance | `https://mohamedalimrabet.github.io/defimemory/` |
+| URL de confidentialité | `https://mohamedalimrabet.github.io/defimemory/confidentialite.html` |
 | Confidentialité de l'app | « Aucune donnée collectée » |
 | Captures d'écran (iPhone 6,7"/6,9") | dossier `screenshots/iphone/` (1290 × 2796) |
 
@@ -67,7 +67,7 @@ Saurez-vous devenir Maître de DefiMemory ?
 | Icône (512 × 512) | `play-icon-512.png` |
 | Image de présentation (1024 × 500) | `play-feature-graphic-1024x500.png` |
 | Captures d'écran téléphone | dossier `screenshots/android/` (1080 × 1920) |
-| Règles de confidentialité | `https://<votre-pseudo-github>.github.io/defimemory/confidentialite.html` |
+| Règles de confidentialité | `https://mohamedalimrabet.github.io/defimemory/confidentialite.html` |
 | Sécurité des données | « Aucune donnée collectée ni partagée » |
 | Classification du contenu | Questionnaire IARC : catégorie « Jeu », répondre « Non » partout → PEGI 3 |
 | Public cible | 13 ans et plus (le plus simple ; choisir des tranches d'âge plus jeunes impose les règles « Familles » de Google) |
