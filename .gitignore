@@ -1,0 +1,5 @@
+node_modules/
+secrets/
+*.jks
+*.keystore
+.DS_Store

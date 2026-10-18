@@ -1,0 +1,11 @@
+{
+  "appId": "com.defimemory.app",
+  "appName": "DefiMemory",
+  "webDir": "www",
+  "backgroundColor": "#2B3580",
+  "ios": { "contentInset": "never", "scrollEnabled": false },
+  "android": { "allowMixedContent": false },
+  "plugins": {
+    "SplashScreen": { "launchAutoHide": false, "backgroundColor": "#2B3580", "showSpinner": false }
+  }
+}

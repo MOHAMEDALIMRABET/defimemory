@@ -1,0 +1,24 @@
+{
+  "name": "defimemory",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DefiMemory - jeu de mémoire",
+  "scripts": {
+    "assets": "capacitor-assets generate --iconBackgroundColor '#2B3580' --iconBackgroundColorDark '#111430' --splashBackgroundColor '#2B3580' --splashBackgroundColorDark '#111430'",
+    "sync": "cap sync"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/app": "8.1.2",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/haptics": "8.0.2",
+    "@capacitor/ios": "8.5.3",
+    "@capacitor/splash-screen": "8.0.2"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "3.0.5",
+    "@capacitor/cli": "8.5.3",
+    "@fontsource/bricolage-grotesque": "*",
+    "@fontsource/nunito-sans": "*"
+  }
+}

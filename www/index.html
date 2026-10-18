@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#2B3580">
+<title>DefiMemory</title>
+<style>
+@font-face { font-family: "Bricolage Grotesque"; font-weight: 600; font-display: swap; src: url(fonts/bricolage-grotesque-latin-600-normal.woff2) format("woff2"); }
+@font-face { font-family: "Bricolage Grotesque"; font-weight: 800; font-display: swap; src: url(fonts/bricolage-grotesque-latin-800-normal.woff2) format("woff2"); }
+@font-face { font-family: "Nunito Sans"; font-weight: 400; font-display: swap; src: url(fonts/nunito-sans-latin-400-normal.woff2) format("woff2"); }
+@font-face { font-family: "Nunito Sans"; font-weight: 600; font-display: swap; src: url(fonts/nunito-sans-latin-600-normal.woff2) format("woff2"); }
+@font-face { font-family: "Nunito Sans"; font-weight: 700; font-display: swap; src: url(fonts/nunito-sans-latin-700-normal.woff2) format("woff2"); }
+*, *::before, *::after { box-sizing: border-box; }
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box; height: 100%; }
+body { margin: 0; }
+[hidden] { display: none !important; }
+</style>
+<style>
+/* Layout: one-screen mobile app — top bar, board sized to fit the remaining height, bottom bar. Cards = playing-card backs on a cool slate table. */
+:root {
+  --bg: #E9ECF5;
+  --surface: #FFFFFF;
+  --ink: #1A1E3C;
+  --muted: #5B6185;
+  --line: #CDD2E4;
+  --back: #2B3580;
+  --back-2: #3C48A8;
+  --accent: #F0A93B;
+  --match: #23977A;
+  --miss: #D2475A;
+  --face: #FFFFFF;
+  --font-display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111430; --surface: #1C2045; --ink: #ECEEFA; --muted: #9CA2C8; --line: #2E3466;
+    --back: #3A47B5; --back-2: #5160D6; --accent: #F4B451; --match: #3CC29E; --miss: #F06A7C; --face: #F4F5FB;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111430; --surface: #1C2045; --ink: #ECEEFA; --muted: #9CA2C8; --line: #2E3466;
+  --back: #3A47B5; --back-2: #5160D6; --accent: #F4B451; --match: #3CC29E; --miss: #F06A7C; --face: #F4F5FB;
+  color-scheme: dark;
+}
+
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px;
+  -webkit-tap-highlight-color: transparent; overscroll-behavior: none; user-select: none; -webkit-user-select: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.app {
+  height: 100%; display: flex; flex-direction: column; max-width: 720px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px; box-sizing: border-box;
+}
+
+/* ---------- Accueil ---------- */
+.home { flex: 1; display: flex; flex-direction: column; gap: 22px; overflow-y: auto; padding-block: 8px 4px; }
+.brand { display: flex; align-items: center; gap: 14px; }
+.brand-cards { position: relative; width: 52px; height: 60px; flex: none; }
+.brand-cards span {
+  position: absolute; width: 38px; height: 52px; border-radius: 7px; top: 4px;
+  background: repeating-linear-gradient(45deg, var(--back) 0 5px, var(--back-2) 5px 10px);
+  border: 2px solid var(--surface); box-shadow: 0 2px 6px rgb(0 0 0 / .18);
+}
+.brand-cards span:first-child { left: 0; transform: rotate(-10deg); }
+.brand-cards span:last-child { left: 14px; transform: rotate(8deg); background: var(--face); display: grid; place-items: center; font-size: 22px; }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-height: 1; margin: 0; letter-spacing: -0.02em; }
+.tagline { margin: 4px 0 0; color: var(--muted); font-size: 15px; line-height: 1.4; }
+.rules { margin: 0; color: var(--muted); line-height: 1.5; max-width: 60ch; }
+.rules b { color: var(--ink); }
+.label { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 -10px; }
+
+.levels { display: grid; gap: 10px; }
+.level {
+  display: grid; grid-template-columns: 54px 1fr auto; align-items: center; gap: 14px; text-align: left;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; padding: 12px 14px;
+  transition: transform .12s, border-color .12s;
+}
+.level:active { transform: scale(.98); }
+.level:hover { border-color: var(--back-2); }
+.mini { display: grid; gap: 2px; width: 54px; }
+.mini i { display: block; aspect-ratio: 3/4; border-radius: 2px; background: var(--back); }
+.level-name { font-family: var(--font-display); font-weight: 800; font-size: 20px; display: block; }
+.level-meta { color: var(--muted); font-size: 13px; display: block; margin-top: 2px; }
+.level-best { text-align: right; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; line-height: 1.35; min-width: 64px; }
+.level-best strong { display: block; color: var(--ink); font-size: 14px; }
+.level.locked { cursor: not-allowed; background: transparent; border-style: dashed; }
+.level.locked:hover { border-color: var(--line); }
+.level.locked:active { transform: none; }
+.level.locked .mini i { background: var(--line); }
+.level.locked .level-name, .level.locked .level-meta { opacity: .55; }
+.lock { display: block; width: 22px; height: 22px; margin: 0 0 3px auto; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; }
+.unlock { color: var(--back-2); font-weight: 700; }
+.level-stars { color: var(--accent); letter-spacing: 1px; font-size: 13px; }
+
+/* ---------- Jeu ---------- */
+.game { flex: 1; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.topbar { display: flex; align-items: center; gap: 10px; }
+.icon-btn {
+  width: 42px; height: 42px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface);
+  display: grid; place-items: center; flex: none;
+}
+.icon-btn.muted { color: var(--miss); border-color: var(--miss); }
+.icon-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.game-title { flex: 1; min-width: 0; }
+.game-title strong { font-family: var(--font-display); font-weight: 800; font-size: 22px; display: block; line-height: 1.1; }
+.game-title span { color: var(--muted); font-size: 13px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; }
+.stat { padding: 8px 10px; text-align: center; }
+.stat + .stat { border-left: 1.5px solid var(--line); }
+.stat small { display: block; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.stat b { font-family: var(--font-display); font-size: 22px; font-variant-numeric: tabular-nums; }
+.stat.warn b { color: var(--miss); }
+
+.status { text-align: center; font-weight: 700; min-height: 22px; color: var(--muted); }
+.status.memo { color: var(--back-2); }
+.progress { height: 4px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.progress i { display: block; height: 100%; width: 0; background: var(--back-2); }
+
+.board-wrap { flex: 1; min-height: 0; display: grid; place-items: center; }
+.board { display: grid; gap: 8px; perspective: 900px; }
+.card { aspect-ratio: 3/4; border: 0; padding: 0; background: none; position: relative; border-radius: 10px; touch-action: manipulation; }
+.card .inner { position: absolute; inset: 0; transition: transform .38s cubic-bezier(.3,.7,.3,1.15); transform-style: preserve-3d; }
+.card.up .inner, .card.matched .inner { transform: rotateY(180deg); }
+.face, .back { position: absolute; inset: 0; border-radius: inherit; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.back {
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 22%, var(--back) 23% 26%, transparent 27%),
+    repeating-linear-gradient(45deg, var(--back) 0 6px, var(--back-2) 6px 12px);
+  border: 3px solid var(--surface); box-shadow: 0 2px 6px rgb(0 0 0 / .15); box-sizing: border-box;
+}
+.face {
+  transform: rotateY(180deg); background: var(--face); display: grid; place-items: center;
+  border: 2px solid var(--line); box-sizing: border-box; box-shadow: 0 2px 6px rgb(0 0 0 / .12);
+  font-size: var(--sym, 32px); line-height: 1;
+}
+.card.matched .face { border-color: var(--match); box-shadow: 0 0 0 3px color-mix(in srgb, var(--match) 30%, transparent); animation: pop .35s ease; }
+.card.wrong .face { border-color: var(--miss); animation: shake .35s ease; }
+.card.swapped { animation: wobble .65s ease; }
+.card.swapped .back { border-color: var(--accent); }
+@keyframes wobble { 30% { transform: scale(.86) rotate(-6deg); } 65% { transform: scale(.86) rotate(6deg); } }
+@keyframes pop { 50% { transform: rotateY(180deg) scale(1.08); } }
+@keyframes shake { 25% { translate: -4px 0; } 75% { translate: 4px 0; } }
+
+.bottombar { display: flex; gap: 10px; }
+.btn {
+  flex: 1; min-height: 48px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--surface);
+  font-weight: 700; font-size: 15px;
+}
+.btn.primary { background: var(--back); border-color: var(--back); color: #fff; }
+
+/* ---------- Résultat ---------- */
+.overlay {
+  position: fixed; inset: 0; background: rgb(10 12 30 / .55); display: grid; place-items: center; z-index: 20;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.sheet {
+  background: var(--surface); border-radius: 20px; padding: 24px 20px 20px; width: 100%; max-width: 380px; box-sizing: border-box;
+  text-align: center; display: grid; gap: 14px; animation: rise .35s ease;
+}
+@keyframes rise { from { transform: translateY(30px); opacity: .4; } }
+.sheet h2 { font-family: var(--font-display); font-weight: 800; font-size: 30px; margin: 0; text-wrap: balance; }
+.sheet p { margin: 0; color: var(--muted); }
+.big-stars { font-size: 40px; letter-spacing: 6px; color: var(--accent); }
+.big-stars .off { color: var(--line); }
+.result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.result-grid div { background: var(--bg); border-radius: 12px; padding: 10px; }
+.result-grid small { display: block; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.result-grid b { font-family: var(--font-display); font-size: 24px; font-variant-numeric: tabular-nums; }
+.record { color: var(--match); font-weight: 700; }
+.sheet .actions { display: grid; gap: 8px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .card .inner { transition-duration: .01s; }
+  .card.matched .face, .card.wrong .face, .card.swapped, .sheet { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <section class="home" id="home">
+    <div class="brand">
+      <div class="brand-cards" aria-hidden="true"><span></span><span>🧠</span></div>
+      <div>
+        <h1>DefiMemory</h1>
+        <p class="tagline">Retenez les cartes, puis retrouvez les paires.</p>
+      </div>
+    </div>
+    <p class="rules">Au début, toutes les cartes sont <b>visibles quelques secondes</b>, puis elles se retournent. Touchez deux cartes à la fois : si elles sont identiques, elles restent ouvertes. Trouvez <b>toutes les paires</b> en un minimum de coups. Gagnez un niveau pour <b>débloquer le suivant</b>.</p>
+    <p class="label">Choisissez un niveau</p>
+    <div class="levels" id="levels"></div>
+  </section>
+
+  <section class="game" id="game" hidden>
+    <div class="topbar">
+      <button class="icon-btn" id="back" aria-label="Retour aux niveaux">
+        <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <div class="game-title"><strong id="gName">Facile</strong><span id="gMeta"></span></div>
+      <button class="icon-btn" id="sound" aria-label="Son" aria-pressed="true">
+        <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><g id="soundOn"><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></g><g id="soundOff" style="display:none"><path d="M3 3l18 18" stroke-width="2.6"/></g></svg>
+      </button>
+      <button class="icon-btn" id="restart" aria-label="Recommencer">
+        <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v5h5"/></svg>
+      </button>
+    </div>
+    <div class="stats">
+      <div class="stat"><small>Coups</small><b id="sMoves">0</b></div>
+      <div class="stat"><small>Paires</small><b id="sPairs">0/6</b></div>
+      <div class="stat" id="timeBox"><small id="sTimeLabel">Temps</small><b id="sTime">0:00</b></div>
+    </div>
+    <div class="status" id="status" aria-live="polite"></div>
+    <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+    <div class="board-wrap" id="boardWrap"><div class="board" id="board"></div></div>
+  </section>
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="rTitle">
+    <div class="big-stars" id="rStars"></div>
+    <h2 id="rTitle">Bravo !</h2>
+    <p id="rText"></p>
+    <div class="result-grid">
+      <div><small>Coups</small><b id="rMoves">0</b></div>
+      <div><small>Temps</small><b id="rTime">0:00</b></div>
+    </div>
+    <p class="record" id="rRecord" hidden>Nouveau record pour ce niveau</p>
+    <p class="unlock" id="rUnlock" hidden></p>
+    <div class="actions">
+      <button class="btn primary" id="rNext">Niveau suivant</button>
+      <button class="btn" id="rAgain">Rejouer</button>
+      <button class="btn" id="rHome">Choisir un niveau</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const LEVELS = [
+  { id: 'facile',    name: 'Facile',    pairs: 6,  cols: 3, rows: 4, preview: 5000, miss: 1000 },
+  { id: 'moyen',     name: 'Moyen',     pairs: 8,  cols: 4, rows: 4, preview: 4000, miss: 850 },
+  { id: 'difficile', name: 'Difficile', pairs: 10, cols: 4, rows: 5, preview: 3000, miss: 700 },
+  { id: 'expert',    name: 'Expert',    pairs: 15, cols: 5, rows: 6, preview: 2500, miss: 550, limit: 150 },
+  { id: 'maitre',    name: 'Maître',    pairs: 18, cols: 6, rows: 6, preview: 2000, miss: 500, limit: 180, swap: true },
+];
+const SYMBOLS = ['🦊','🐼','🐙','🦉','🐢','🦋','🍉','🍋','🍓','🥑','🌵','🌻','🍄','⭐','🌙','🔥','⚓','🎈','🎲','🚀','🪁','🐳','🦜','🍒'];
+
+const $ = id => document.getElementById(id);
+const els = { home: $('home'), game: $('game'), board: $('board'), wrap: $('boardWrap'), overlay: $('overlay') };
+
+let best = {};
+try { best = JSON.parse(localStorage.getItem('memoire-best') || '{}') || {}; } catch (e) { best = {}; }
+function saveBest() { try { localStorage.setItem('memoire-best', JSON.stringify(best)); } catch (e) {} }
+
+let S = null;      // état de la partie
+let tick = null, timers = [];
+
+/* ---------- Sons (générés, aucun fichier audio) ---------- */
+let actx = null, muted = false;
+try { muted = localStorage.getItem('memoire-son') === 'off'; } catch (e) {}
+function audio() {
+  if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+  if (actx.state === 'suspended') actx.resume();
+  return actx;
+}
+function tone(freq, dur, { type = 'sine', at = 0, vol = 0.18, to } = {}) {
+  const c = audio(); if (!c) return;
+  const t = c.currentTime + at, o = c.createOscillator(), g = c.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t);
+  if (to) o.frequency.exponentialRampToValueAtTime(to, t + dur);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, t + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + 0.05);
+}
+const SOUNDS = {
+  flip:  () => tone(520, 0.07, { type: 'triangle', vol: 0.12, to: 880 }),
+  match: () => { tone(660, 0.14); tone(990, 0.25, { at: 0.11 }); },
+  miss:  () => { tone(240, 0.16, { type: 'square', vol: 0.05, to: 180 }); tone(180, 0.24, { type: 'square', at: 0.15, vol: 0.05, to: 120 }); },
+  win:   () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.25, { at: i * 0.12 })),
+  swap:  () => { tone(420, 0.12, { type: 'triangle', to: 840 }); tone(840, 0.14, { type: 'triangle', at: 0.13, to: 420 }); },
+  lose:  () => [392, 330, 262].forEach((f, i) => tone(f, 0.32, { type: 'triangle', at: i * 0.2 })),
+};
+let play = function (name) { if (!muted) SOUNDS[name](); }
+function renderSound() {
+  $('sound').setAttribute('aria-pressed', String(!muted));
+  $('sound').setAttribute('aria-label', muted ? 'Activer le son' : 'Couper le son');
+  $('soundOff').style.display = muted ? '' : 'none';
+  $('sound').classList.toggle('muted', muted);
+}
+
+const fmt = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const starsFor = (lv, moves) => moves <= Math.ceil(lv.pairs * 1.5) ? 3 : moves <= lv.pairs * 2.2 ? 2 : 1;
+const later = (fn, ms) => { const t = setTimeout(fn, ms); timers.push(t); return t; };
+function clearAll() { timers.forEach(clearTimeout); timers = []; clearInterval(tick); tick = null; }
+
+/* ---------- Accueil ---------- */
+function renderLevels() {
+  $('levels').innerHTML = LEVELS.map((lv, i) => {
+    const b = best[lv.id];
+    const locked = i > 0 && !best[LEVELS[i - 1].id];
+    const mini = Array.from({ length: lv.cols * lv.rows }, () => '<i></i>').join('');
+    const extra = (lv.limit ? ` · ${fmt(lv.limit)} max` : '') + (lv.swap ? ' · les cartes changent de place' : '');
+    const right = locked
+      ? `<svg class="lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Gagnez ${LEVELS[i - 1].name}`
+      : b
+      ? `<span class="level-stars">${'★'.repeat(b.stars)}${'☆'.repeat(3 - b.stars)}</span><strong>${b.moves} coups</strong>${fmt(b.time)}`
+      : 'Pas encore joué';
+    return `<button class="level${locked ? ' locked' : ''}" data-i="${i}"${locked ? ` disabled aria-label="${lv.name}, bloqué : gagnez le niveau ${LEVELS[i - 1].name} pour le débloquer"` : ''}>
+      <span class="mini" style="grid-template-columns:repeat(${lv.cols},1fr)">${mini}</span>
+      <span><span class="level-name">${lv.name}</span>
+      <span class="level-meta">${lv.pairs} paires · ${lv.cols}×${lv.rows} · ${lv.preview / 1000} s pour mémoriser${extra}</span></span>
+      <span class="level-best">${right}</span>
+    </button>`;
+  }).join('');
+}
+$('levels').addEventListener('click', e => { const b = e.target.closest('.level'); if (b && !b.disabled) start(+b.dataset.i); });
+
+function showHome() {
+  clearAll(); S = null;
+  els.overlay.hidden = true; els.game.hidden = true; els.home.hidden = false;
+  els.home.scrollTop = 0;
+  renderLevels();
+}
+
+/* ---------- Partie ---------- */
+function start(i) {
+  clearAll(); audio();
+  const lv = LEVELS[i];
+  const syms = shuffle(SYMBOLS.slice()).slice(0, lv.pairs);
+  S = { i, lv, deck: shuffle([...syms, ...syms]), open: [], found: 0, moves: 0, lock: true, t0: 0, elapsed: 0, over: false };
+
+  els.home.hidden = true; els.overlay.hidden = true; els.game.hidden = false;
+  $('gName').textContent = lv.name;
+  $('gMeta').textContent = `${lv.pairs} paires · ${lv.cols}×${lv.rows}`;
+  $('sTimeLabel').textContent = lv.limit ? 'Reste' : 'Temps';
+  $('timeBox').classList.remove('warn');
+
+  els.board.innerHTML = S.deck.map((s, k) =>
+    `<button class="card up" data-k="${k}" aria-label="Carte ${k + 1}"><span class="inner"><span class="back"></span><span class="face">${s}</span></span></button>`
+  ).join('');
+  S.cards = [...els.board.children];
+  updateStats(); fit();
+
+  // Phase de mémorisation : cartes visibles, puis retournées
+  const bar = $('bar'), status = $('status');
+  status.className = 'status memo';
+  bar.style.transition = 'none'; bar.style.width = '100%';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    bar.style.transition = `width ${lv.preview}ms linear`; bar.style.width = '0%';
+  }));
+  const tEnd = Date.now() + lv.preview;
+  const countdown = () => {
+    const r = Math.ceil((tEnd - Date.now()) / 1000);
+    if (r > 0) { status.textContent = `Mémorisez les cartes… ${r}`; later(countdown, 200); }
+  };
+  countdown();
+  later(() => {
+    S.cards.forEach(c => c.classList.remove('up'));
+    status.className = 'status'; status.textContent = 'À vous ! Touchez deux cartes.';
+    S.lock = false; S.t0 = Date.now();
+    tick = setInterval(updateTime, 250);
+  }, lv.preview);
+}
+
+function updateStats() {
+  $('sMoves').textContent = S.moves;
+  $('sPairs').textContent = `${S.found}/${S.lv.pairs}`;
+  updateTime();
+}
+function updateTime() {
+  if (!S) return;
+  if (S.t0 && !S.over) S.elapsed = (Date.now() - S.t0) / 1000;
+  if (S.lv.limit) {
+    const left = Math.max(0, S.lv.limit - S.elapsed);
+    $('sTime').textContent = fmt(Math.ceil(left));
+    $('timeBox').classList.toggle('warn', left <= 20);
+    if (left <= 0 && !S.over) finish(false);
+  } else {
+    $('sTime').textContent = fmt(S.elapsed);
+  }
+}
+
+els.board.addEventListener('click', e => {
+  const c = e.target.closest('.card');
+  if (!c || !S || S.lock || S.over || c.classList.contains('up') || c.classList.contains('matched')) return;
+  c.classList.add('up');
+  play('flip');
+  S.open.push(c);
+  if (S.open.length < 2) return;
+
+  S.moves++;
+  const [a, b] = S.open; S.open = [];
+  if (S.deck[a.dataset.k] === S.deck[b.dataset.k]) {
+    later(() => { a.classList.add('matched'); b.classList.add('matched'); if (S.found < S.lv.pairs) play('match'); }, 250);
+    S.found++;
+    $('status').textContent = S.found < S.lv.pairs ? 'Paire trouvée !' : '';
+    updateStats();
+    if (S.found === S.lv.pairs) later(() => finish(true), 650);
+  } else {
+    S.lock = true;
+    $('status').textContent = 'Pas pareilles…';
+    later(() => { a.classList.add('wrong'); b.classList.add('wrong'); play('miss'); }, 300);
+    later(() => {
+      a.classList.remove('up', 'wrong'); b.classList.remove('up', 'wrong');
+      if (S) { S.lock = false; $('status').textContent = ''; }
+      if (S && S.lv.swap && !S.over) swapCards(a, b);
+    }, S.lv.miss);
+    updateStats();
+  }
+});
+
+/* Niveau Maître : après chaque erreur, deux cartes cachées échangent leur place */
+function swapCards(a, b) {
+  const pool = S.cards.filter(c => c !== a && c !== b && !c.classList.contains('up') && !c.classList.contains('matched'));
+  if (pool.length < 2) return;
+  const x = pool.splice(Math.random() * pool.length | 0, 1)[0];
+  const y = pool[Math.random() * pool.length | 0];
+  const kx = x.dataset.k, ky = y.dataset.k;
+  [S.deck[kx], S.deck[ky]] = [S.deck[ky], S.deck[kx]];
+  x.querySelector('.face').textContent = S.deck[kx];
+  y.querySelector('.face').textContent = S.deck[ky];
+  [x, y].forEach(c => { c.classList.remove('swapped'); void c.offsetWidth; c.classList.add('swapped'); });
+  later(() => { x.classList.remove('swapped'); y.classList.remove('swapped'); }, 700);
+  play('swap');
+  $('status').textContent = 'Deux cartes ont changé de place !';
+}
+
+function finish(won) {
+  S.over = true; clearInterval(tick);
+  play(won ? 'win' : 'lose');
+  const lv = S.lv, time = Math.round(S.elapsed);
+  const next = LEVELS[S.i + 1];
+  let record = false, stars = 0;
+  const unlocked = won && next && !best[lv.id];
+  if (won) {
+    stars = starsFor(lv, S.moves);
+    const b = best[lv.id];
+    if (!b || S.moves < b.moves || (S.moves === b.moves && time < b.time)) {
+      best[lv.id] = { moves: S.moves, time, stars: Math.max(stars, b ? b.stars : 0) };
+      record = true; saveBest();
+    } else if (stars > b.stars) { b.stars = stars; saveBest(); }
+  } else {
+    S.cards.forEach(c => c.classList.add('up'));
+  }
+  $('rStars').innerHTML = won ? [1, 2, 3].map(n => `<span class="${n <= stars ? '' : 'off'}">★</span>`).join('') : '';
+  $('rStars').hidden = !won;
+  $('rTitle').textContent = won ? (stars === 3 ? 'Mémoire parfaite !' : 'Bravo !') : 'Temps écoulé';
+  $('rText').textContent = won
+    ? `Vous avez trouvé les ${lv.pairs} paires du niveau ${lv.name}.`
+    : `Vous avez trouvé ${S.found} paires sur ${lv.pairs}. Réessayez !`;
+  $('rMoves').textContent = S.moves;
+  $('rTime').textContent = fmt(time);
+  $('rRecord').hidden = !record;
+  $('rUnlock').hidden = !unlocked;
+  if (unlocked) $('rUnlock').textContent = `🔓 Niveau ${next.name} débloqué !`;
+  $('rNext').hidden = !(won && next);
+  later(() => { els.overlay.hidden = false; (won && next ? $('rNext') : $('rAgain')).focus(); }, won ? 0 : 900);
+}
+
+$('rNext').onclick = () => start(S.i + 1);
+$('rAgain').onclick = () => start(S.i);
+$('rHome').onclick = showHome;
+$('back').onclick = showHome;
+$('restart').onclick = () => S && start(S.i);
+$('sound').onclick = () => {
+  muted = !muted; renderSound();
+  try { localStorage.setItem('memoire-son', muted ? 'off' : 'on'); } catch (e) {}
+  play('flip');
+};
+renderSound();
+
+/* Ajuste la taille des cartes à l'écran (téléphone ou ordinateur) */
+function fit() {
+  if (!S || els.game.hidden) return;
+  const { cols, rows } = S.lv, gap = cols >= 6 ? 5 : cols >= 5 ? 6 : 8;
+  const W = els.wrap.clientWidth, H = els.wrap.clientHeight;
+  const w = Math.floor(Math.min((W - gap * (cols - 1)) / cols, ((H - gap * (rows - 1)) / rows) * 0.75, 130));
+  els.board.style.gap = gap + 'px';
+  els.board.style.gridTemplateColumns = `repeat(${cols}, ${w}px)`;
+  els.board.style.setProperty('--sym', Math.round(w * 0.52) + 'px');
+}
+addEventListener('resize', fit);
+
+
+/* ---------- Application native (iOS / Android via Capacitor) ---------- */
+const P = (window.Capacitor && window.Capacitor.Plugins) || {};
+function haptic(kind) {
+  try {
+    if (!P.Haptics) { if (navigator.vibrate) navigator.vibrate(kind === 'miss' ? [30, 40, 30] : 15); return; }
+    if (kind === 'flip') P.Haptics.impact({ style: 'LIGHT' });
+    else if (kind === 'miss') P.Haptics.notification({ type: 'ERROR' });
+    else P.Haptics.notification({ type: 'SUCCESS' });
+  } catch (e) {}
+}
+const playSound = play;
+play = name => { playSound(name); if (!muted && name !== 'lose') haptic(name); };
+if (P.App) P.App.addListener('backButton', () => {
+  if (!els.home.hidden) P.App.exitApp(); else showHome();
+});
+if (P.SplashScreen) P.SplashScreen.hide();
+
+renderLevels();
+</script>
+</body>
+</html>

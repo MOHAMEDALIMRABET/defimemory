@@ -1,0 +1,73 @@
+# Compilation automatique de DefiMemory sur Codemagic (codemagic.io)
+# - "Android (Google Play)" produit le fichier .aab à envoyer sur la Play Console
+# - "iOS (App Store)" compile sur un Mac de Codemagic et envoie l'app sur TestFlight / App Store Connect
+# Voir PUBLIER.md pour la configuration (étapes 3 à 6).
+
+workflows:
+  android:
+    name: Android (Google Play)
+    instance_type: linux_x2
+    max_build_duration: 30
+    environment:
+      node: 22
+      java: 21
+      android_signing:
+        - defimemory_keystore          # clé d'envoi ajoutée dans Codemagic (voir PUBLIER.md)
+    scripts:
+      - name: Installer les dépendances
+        script: npm ci
+      - name: Copier le jeu dans le projet Android
+        script: npx cap sync android
+      - name: Indiquer le SDK Android
+        script: echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/android/local.properties"
+      - name: Compiler le fichier .aab signé
+        script: |
+          cd android
+          chmod +x gradlew
+          ./gradlew bundleRelease
+    artifacts:
+      - android/app/build/outputs/**/*.aab
+    # Après le tout premier envoi manuel sur la Play Console, vous pouvez activer
+    # l'envoi automatique (test interne) en retirant les # ci-dessous :
+    # publishing:
+    #   google_play:
+    #     credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+    #     track: internal
+    #     submit_as_draft: true
+
+  ios:
+    name: iOS (App Store)
+    instance_type: mac_mini_m2
+    max_build_duration: 45
+    integrations:
+      app_store_connect: DefiMemory      # nom de la clé API App Store Connect ajoutée dans Codemagic
+    environment:
+      node: 22
+      xcode: latest
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.defimemory.app
+      vars:
+        APP_STORE_APPLE_ID: 0000000000   # À REMPLACER : "Identifiant Apple" de l'app dans App Store Connect
+    scripts:
+      - name: Installer les dépendances
+        script: npm ci
+      - name: Copier le jeu dans le projet iOS
+        script: npx cap sync ios
+      - name: Préparer la signature
+        script: xcode-project use-profiles
+      - name: Numéro de build suivant
+        script: |
+          LATEST=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
+          LATEST_TF=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
+          NEXT=$(( (LATEST > LATEST_TF ? LATEST : LATEST_TF) + 1 ))
+          echo "Build $NEXT"
+          sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = $NEXT;/g" ios/App/App.xcodeproj/project.pbxproj
+      - name: Compiler le fichier .ipa
+        script: xcode-project build-ipa --project "ios/App/App.xcodeproj" --scheme "App"
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
