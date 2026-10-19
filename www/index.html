@@ -137,6 +137,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 .pscore::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--pc); opacity: .35; }
 .pscore span { display: block; font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muted); }
 .pscore b { font-family: var(--font-display); font-size: 22px; font-variant-numeric: tabular-nums; }
+.pscore small { display: block; font-size: 11px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: -2px; }
 .pscore.active { border-color: var(--pc); background: color-mix(in srgb, var(--pc) 13%, var(--surface)); transform: translateY(-2px); }
 .pscore.active::before { opacity: 1; }
 .pscore.active span { color: var(--ink); }
@@ -256,12 +257,14 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
     </div>
 
     <div class="panel" id="multiPanel" role="tabpanel" aria-labelledby="tabMulti" hidden>
-      <p class="rules">De 2 à 4 joueurs sur le même téléphone. Chacun son tour, retournez deux cartes. <b>Une paire = 1 point, et vous rejouez.</b> Sinon, passez le téléphone au joueur suivant. Celui qui a le plus de paires gagne.</p>
+      <p class="rules">De 2 à 4 joueurs sur le même téléphone. Chacun son tour, retournez deux cartes. <b>Une paire = 1 point, et vous rejouez.</b> Sinon, passez le téléphone au joueur suivant. En <b>match équitable</b>, on joue une manche par joueur pour que chacun commence une fois, et les points s'additionnent.</p>
       <p class="label">Nombre de joueurs</p>
       <div class="count" id="pCount"></div>
       <div class="players" id="players"></div>
       <p class="label">Taille du plateau</p>
       <div class="sizes" id="sizes"></div>
+      <p class="label">Format</p>
+      <div class="count" id="formats"></div>
       <button class="btn primary start" id="startMulti">Commencer la partie</button>
     </div>
   </section>
@@ -413,10 +416,21 @@ $('tabMulti').onclick = () => setTab('multi');
 /* ---------- À plusieurs : réglages ---------- */
 const PCOLORS = ['var(--p1)', 'var(--p2)', 'var(--p3)', 'var(--p4)'];
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-let setup = { n: 2, names: ['Joueur 1', 'Joueur 2', 'Joueur 3', 'Joueur 4'], size: 1 };
+const pl = (n, w) => `${n} ${w}${n > 1 ? 's' : ''}`;
+let setup = { n: 2, names: ['Joueur 1', 'Joueur 2', 'Joueur 3', 'Joueur 4'], size: 1, format: 'match' };
 try { Object.assign(setup, JSON.parse(localStorage.getItem('memoire-joueurs') || '{}')); } catch (e) {}
 function saveSetup() { try { localStorage.setItem('memoire-joueurs', JSON.stringify(setup)); } catch (e) {} }
-let mpRound = 0;   // fait tourner le premier joueur à chaque revanche
+
+/* Match : une manche par joueur (chacun commence une fois), les paires s'additionnent */
+let match = null;
+let againAction = null;   // action du bouton principal de l'écran de résultat
+function newMatch(offset = 0) {
+  match = {
+    rounds: setup.format === 'single' ? 1 : setup.n, round: 1, offset,
+    players: setup.names.slice(0, setup.n).map((n, k) => ({ name: n.trim() || `Joueur ${k + 1}`, color: PCOLORS[k], total: 0, wins: 0 })),
+  };
+}
+const starter = () => (match.offset + match.round - 1) % match.players.length;
 
 function renderSetup() {
   $('pCount').innerHTML = [2, 3, 4].map(n =>
@@ -425,18 +439,23 @@ function renderSetup() {
     `<label class="player" style="--pc:${PCOLORS[i]}"><i></i><input id="pName${i}" data-i="${i}" maxlength="12" value="${esc(name)}" aria-label="Nom du joueur ${i + 1}" autocomplete="off" enterkeyhint="done"></label>`).join('');
   $('sizes').innerHTML = LEVELS.map((lv, i) =>
     `<button class="chip" data-s="${i}" aria-pressed="${i === setup.size}">${lv.pairs}<small>${lv.name}</small></button>`).join('');
+  $('formats').innerHTML =
+    `<button class="chip" data-f="match" aria-pressed="${setup.format === 'match'}">Match équitable<small>${setup.n} manches, 1 par joueur</small></button>` +
+    `<button class="chip" data-f="single" aria-pressed="${setup.format === 'single'}">Partie unique<small>1 manche</small></button>`;
 }
+$('formats').onclick = e => { const b = e.target.closest('[data-f]'); if (b) { setup.format = b.dataset.f; saveSetup(); renderSetup(); } };
 $('pCount').onclick = e => { const b = e.target.closest('[data-n]'); if (b) { setup.n = +b.dataset.n; saveSetup(); renderSetup(); } };
 $('sizes').onclick = e => { const b = e.target.closest('[data-s]'); if (b) { setup.size = +b.dataset.s; saveSetup(); renderSetup(); } };
 $('players').oninput = e => { const i = e.target.dataset.i; if (i != null) { setup.names[i] = e.target.value; saveSetup(); } };
 $('players').onkeydown = e => { if (e.key === 'Enter') e.target.blur(); };
-$('startMulti').onclick = () => { mpRound = 0; start(setup.size, true); };
+$('startMulti').onclick = () => { newMatch(); start(setup.size, true); };
 
 function renderScores() {
-  const m = S.mp, box = $('scores');
+  const m = S.mp, box = $('scores'), multiRound = match.rounds > 1;
   box.style.gridTemplateColumns = `repeat(${m.players.length}, 1fr)`;
   box.innerHTML = m.players.map((p, k) =>
-    `<div class="pscore${k === m.turn ? ' active' : ''}" style="--pc:${p.color}"><span>${esc(p.name)}</span><b>${p.score}</b></div>`).join('');
+    `<div class="pscore${k === m.turn ? ' active' : ''}" style="--pc:${p.color}"><span>${esc(p.name)}</span><b>${p.score}</b>` +
+    (multiRound ? `<small>Total ${p.ref.total + p.score}</small>` : '') + `</div>`).join('');
 }
 function announceTurn(msg) {
   const p = S.mp.players[S.mp.turn], st = $('status');
@@ -452,12 +471,11 @@ function start(i, multi = false) {
   S = { i, lv, deck: shuffle([...syms, ...syms]), open: [], found: 0, moves: 0, lock: true, t0: 0, elapsed: 0, over: false,
         limit: multi ? 0 : lv.limit, mp: null };
   if (multi) {
-    const players = setup.names.slice(0, setup.n).map((n, k) => ({ name: n.trim() || `Joueur ${k + 1}`, color: PCOLORS[k], score: 0 }));
-    S.mp = { players, turn: mpRound % players.length };
+    S.mp = { players: match.players.map(p => ({ ref: p, name: p.name, color: p.color, score: 0 })), turn: starter() };
   }
 
   els.home.hidden = true; els.overlay.hidden = true; els.game.hidden = false;
-  $('gName').textContent = multi ? 'À plusieurs' : lv.name;
+  $('gName').textContent = !multi ? lv.name : match.rounds > 1 ? `Manche ${match.round}/${match.rounds}` : 'À plusieurs';
   $('gMeta').textContent = multi ? `${lv.name} · ${lv.pairs} paires` : `${lv.pairs} paires · ${lv.cols}×${lv.rows}`;
   $('sTimeLabel').textContent = S.limit ? 'Reste' : 'Temps';
   $('timeBox').classList.remove('warn');
@@ -486,7 +504,7 @@ function start(i, multi = false) {
   countdown();
   later(() => {
     S.cards.forEach(c => c.classList.remove('up'));
-    if (S.mp) announceTurn(`${S.mp.players[S.mp.turn].name} commence !`);
+    if (S.mp) announceTurn(`${match.rounds > 1 ? `Manche ${match.round} : ` : ''}${S.mp.players[S.mp.turn].name} commence !`);
     else { status.className = 'status'; status.textContent = 'À vous ! Touchez deux cartes.'; }
     S.lock = false; S.t0 = Date.now();
     tick = setInterval(updateTime, 250);
@@ -566,25 +584,63 @@ function swapCards(a, b) {
   else $('status').textContent = 'Deux cartes ont changé de place !';
 }
 
-/* Fin d'une partie à plusieurs : classement */
+/* Fin d'une manche à plusieurs : points ajoutés au total, puis manche suivante ou classement final */
+const joinNames = ns => ns.length > 1 ? `${ns.slice(0, -1).join(', ')} et ${ns[ns.length - 1]}` : ns[0];
 function finishMulti() {
   S.over = true; clearInterval(tick);
   play('win');
-  const ps = S.mp.players.slice().sort((x, y) => y.score - x.score);
-  const top = ps[0].score, winners = ps.filter(p => p.score === top);
-  const names = winners.map(w => w.name);
-  $('rTitle').textContent = winners.length > 1 ? 'Égalité !' : `${winners[0].name} gagne !`;
-  $('rText').textContent = winners.length > 1
-    ? `${names.slice(0, -1).join(', ')} et ${names[names.length - 1]} sont ex æquo avec ${top} paires.`
-    : `${top} paires sur ${S.lv.pairs}, en ${fmt(Math.round(S.elapsed))}.`;
-  $('rRank').innerHTML = ps.map(p => {
-    const pos = 1 + ps.filter(q => q.score > p.score).length;
-    return `<li class="${p.score === top ? 'first' : ''}" style="--pc:${p.color}"><i></i><span>${pos}. ${esc(p.name)}</span><em>${p.score} paire${p.score > 1 ? 's' : ''}</em></li>`;
-  }).join('');
+  const sp = S.mp.players, best = Math.max(...sp.map(p => p.score));
+  const roundWinners = sp.filter(p => p.score === best);
+  sp.forEach(p => { p.ref.total += p.score; });
+  if (roundWinners.length === 1) roundWinners[0].ref.wins++;
+  const last = match.round >= match.rounds;
+
+  if (!last) {
+    // Bilan de la manche, classement provisoire au total
+    const next = match.players[(match.offset + match.round) % match.players.length];
+    $('rTitle').textContent = `Fin de la manche ${match.round}/${match.rounds}`;
+    $('rText').textContent = roundWinners.length > 1
+      ? `${joinNames(roundWinners.map(p => p.name))} sont ex æquo dans cette manche avec ${pl(best, 'paire')}.`
+      : `${roundWinners[0].name} gagne la manche avec ${pl(best, 'paire')}.`;
+    const ps = match.players.slice().sort((x, y) => y.total - x.total);
+    $('rRank').innerHTML = ps.map(p => {
+      const pos = 1 + ps.filter(q => q.total > p.total).length;
+      const gain = sp.find(q => q.ref === p).score;
+      return `<li style="--pc:${p.color}"><i></i><span>${pos}. ${esc(p.name)}</span><em>+${gain} · total ${p.total}</em></li>`;
+    }).join('');
+    $('rAgain').textContent = `Manche ${match.round + 1} : ${next.name} commence`;
+    $('rHome').textContent = 'Arrêter le match';
+    againAction = () => { match.round++; start(S.i, true); };
+  } else {
+    // Classement final : total des paires, puis nombre de manches gagnées
+    const better = (x, y) => y.total - x.total || y.wins - x.wins;
+    const ps = match.players.slice().sort(better);
+    const top = ps[0], sameTotal = ps.filter(p => p.total === top.total), winners = sameTotal.filter(p => p.wins === top.wins);
+    const multiRound = match.rounds > 1;
+    if (winners.length > 1) {
+      $('rTitle').textContent = 'Égalité !';
+      $('rText').textContent = `${joinNames(winners.map(p => p.name))} sont ex æquo avec ${pl(top.total, 'paire')}` +
+        (multiRound ? ` et ${pl(top.wins, 'manche')} gagnée${top.wins > 1 ? 's' : ''}.` : '.');
+    } else {
+      $('rTitle').textContent = multiRound ? `${top.name} remporte le match !` : `${top.name} gagne !`;
+      $('rText').textContent = !multiRound
+        ? `${pl(top.total, 'paire')} sur ${S.lv.pairs}, en ${fmt(Math.round(S.elapsed))}.`
+        : sameTotal.length > 1
+        ? `Égalité à ${pl(top.total, 'paire')} : ${top.name} l'emporte grâce à ${pl(top.wins, 'manche')} gagnée${top.wins > 1 ? 's' : ''}.`
+        : `${pl(top.total, 'paire')} au total sur ${match.rounds} manches.`;
+    }
+    $('rRank').innerHTML = ps.map(p => {
+      const pos = 1 + ps.filter(q => better(q, p) < 0).length;
+      const detail = multiRound ? `${pl(p.total, 'paire')} · ${pl(p.wins, 'manche')}` : pl(p.total, 'paire');
+      return `<li class="${pos === 1 ? 'first' : ''}" style="--pc:${p.color}"><i></i><span>${pos}. ${esc(p.name)}</span><em>${detail}</em></li>`;
+    }).join('');
+    $('rAgain').textContent = multiRound ? 'Nouveau match' : 'Revanche';
+    $('rHome').textContent = 'Changer les joueurs';
+    // Partie unique : le premier joueur change à chaque revanche
+    againAction = () => { newMatch(multiRound ? 0 : match.offset + 1); start(S.i, true); };
+  }
   $('rRank').hidden = false; $('rGrid').hidden = true; $('rStars').hidden = true;
   $('rRecord').hidden = true; $('rUnlock').hidden = true; $('rNext').hidden = true;
-  $('rAgain').textContent = 'Revanche';
-  $('rHome').textContent = 'Changer les joueurs';
   els.overlay.hidden = false; $('rAgain').focus();
 }
 
@@ -620,11 +676,12 @@ function finish(won) {
   $('rRank').hidden = true; $('rGrid').hidden = false;
   $('rAgain').textContent = 'Rejouer';
   $('rHome').textContent = 'Choisir un niveau';
+  againAction = () => start(S.i);
   later(() => { els.overlay.hidden = false; (won && next ? $('rNext') : $('rAgain')).focus(); }, won ? 0 : 900);
 }
 
 $('rNext').onclick = () => start(S.i + 1);
-$('rAgain').onclick = () => { if (S.mp) mpRound++; start(S.i, !!S.mp); };
+$('rAgain').onclick = () => againAction && againAction();
 $('rHome').onclick = showHome;
 $('back').onclick = showHome;
 $('restart').onclick = () => S && start(S.i, !!S.mp);
