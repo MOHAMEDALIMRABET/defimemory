@@ -244,10 +244,16 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 .result-grid b { font-family: var(--font-display); font-size: 24px; font-variant-numeric: tabular-nums; }
 .record { color: var(--match); font-weight: 700; }
 .sheet .actions { display: grid; gap: 8px; }
+/* Compte à rebours entre deux manches */
+.countdown { display: grid; justify-items: center; gap: 2px; padding-top: 2px; }
+.countdown small { font-size: 14px; font-weight: 700; color: var(--pc, var(--ink)); }
+.countdown b { font-family: var(--font-display); font-weight: 800; font-size: 64px; line-height: 1; height: 64px; color: var(--pc, var(--ink)); font-variant-numeric: tabular-nums; }
+.countdown b.go { animation: count .9s cubic-bezier(.2,.8,.3,1); }
+@keyframes count { 0% { transform: scale(1.8); opacity: 0; } 30% { transform: scale(1); opacity: 1; } }
 
 @media (prefers-reduced-motion: reduce) {
   .card .inner { transition-duration: .01s; }
-  .card.matched .face, .card.wrong .face, .card.swapped, .pscore.chosen, .sheet { animation: none; }
+  .card.matched .face, .card.wrong .face, .card.swapped, .pscore.chosen, .sheet, .countdown b.go { animation: none; }
 }
 </style>
 </head>
@@ -323,6 +329,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
     </div>
     <p class="record" id="rRecord" hidden data-t="newRecord">Nouveau record pour ce niveau</p>
     <p class="unlock" id="rUnlock" hidden></p>
+    <div class="countdown" id="rCount" hidden aria-live="assertive"><small id="rCountLabel"></small><b id="rCountNum"></b></div>
     <div class="actions">
       <button class="btn primary" id="rNext" data-t="nextLevel">Niveau suivant</button>
       <button class="btn" id="rAgain">Rejouer</button>
@@ -370,6 +377,7 @@ const I18N = {
     roundTie: (names, p) => `${names} sont ex æquo dans cette manche avec ${p}.`,
     roundWin: (n, p) => `${n} gagne la manche avec ${p}.`,
     nextRound: (r, n) => `Manche ${r} : ${n} commence`, stopMatch: 'Arrêter le match',
+    nextRoundIn: (r, n) => `Manche ${r} · ${n} commence dans…`,
     tie: 'Égalité !', tieText: (names, p, won) => `${names} sont ex æquo avec ${p}${won ? ` et ${won}` : ''}.`,
     matchWinner: n => `${n} remporte le match !`, winner: n => `${n} gagne !`,
     singleText: (p, total, t) => `${p} sur ${total}, en ${t}.`,
@@ -414,6 +422,7 @@ const I18N = {
     roundTie: (names, p) => `${names} tie this round with ${p}.`,
     roundWin: (n, p) => `${n} wins the round with ${p}.`,
     nextRound: (r, n) => `Round ${r}: ${n} goes first`, stopMatch: 'End the match',
+    nextRoundIn: (r, n) => `Round ${r} · ${n} goes first in…`,
     tie: 'It\'s a tie!', tieText: (names, p, won) => `${names} are tied with ${p}${won ? ` and ${won}` : ''}.`,
     matchWinner: n => `${n} wins the match!`, winner: n => `${n} wins!`,
     singleText: (p, total, t) => `${p} out of ${total}, in ${t}.`,
@@ -473,6 +482,7 @@ const SOUNDS = {
   miss:  () => { tone(240, 0.16, { type: 'square', vol: 0.05, to: 180 }); tone(180, 0.24, { type: 'square', at: 0.15, vol: 0.05, to: 120 }); },
   win:   () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.25, { at: i * 0.12 })),
   tick:  () => tone(1100, 0.035, { type: 'square', vol: 0.035 }),
+  count: () => tone(740, 0.14, { type: 'triangle', vol: 0.16 }),
   pick:  () => { tone(660, 0.12); tone(880, 0.12, { at: 0.1 }); tone(1320, 0.3, { at: 0.2 }); },
   swap:  () => { tone(420, 0.12, { type: 'triangle', to: 840 }); tone(840, 0.14, { type: 'triangle', at: 0.13, to: 420 }); },
   lose:  () => [392, 330, 262].forEach((f, i) => tone(f, 0.32, { type: 'triangle', at: i * 0.2 })),
@@ -771,9 +781,19 @@ function finishMulti() {
       const gain = sp.find(q => q.ref === p).score;
       return `<li style="--pc:${p.color}"><i></i><span>${pos}. ${esc(p.name)}</span><em>+${gain} · total ${p.total}</em></li>`;
     }).join('');
-    $('rAgain').textContent = T.nextRound(match.round + 1, next.name);
     $('rHome').textContent = T.stopMatch;
     againAction = () => { match.round++; start(S.i, true); };
+    // La manche suivante démarre toute seule : bilan, puis 3… 2… 1…
+    $('rAgain').hidden = true;
+    const box = $('rCount'), num = $('rCountNum');
+    box.style.setProperty('--pc', next.color);
+    $('rCountLabel').textContent = T.nextRoundIn(match.round + 1, next.name);
+    num.textContent = ''; box.hidden = false;
+    [3, 2, 1].forEach((n, k) => later(() => {
+      num.textContent = n; num.classList.remove('go'); void num.offsetWidth; num.classList.add('go');
+      play('count');
+    }, 1800 + k * 1000));
+    later(() => againAction(), 4800);
   } else {
     // Classement final : total des paires, puis nombre de manches gagnées
     const better = (x, y) => y.total - x.total || y.wins - x.wins;
@@ -802,7 +822,8 @@ function finishMulti() {
   }
   $('rRank').hidden = false; $('rGrid').hidden = true; $('rStars').hidden = true;
   $('rRecord').hidden = true; $('rUnlock').hidden = true; $('rNext').hidden = true;
-  els.overlay.hidden = false; $('rAgain').focus();
+  if (last) { $('rCount').hidden = true; $('rAgain').hidden = false; }
+  els.overlay.hidden = false; (last ? $('rAgain') : $('rHome')).focus();
 }
 
 function finish(won) {
@@ -835,6 +856,7 @@ function finish(won) {
   if (unlocked) $('rUnlock').textContent = T.unlocked(next.name);
   $('rNext').hidden = !(won && next);
   $('rRank').hidden = true; $('rGrid').hidden = false;
+  $('rCount').hidden = true; $('rAgain').hidden = false;
   $('rAgain').textContent = T.replay;
   $('rHome').textContent = T.chooseLevelBtn;
   againAction = () => start(S.i);
@@ -872,6 +894,7 @@ function haptic(kind) {
   try {
     if (!P.Haptics) { if (navigator.vibrate) navigator.vibrate(kind === 'miss' ? [30, 40, 30] : kind === 'tick' ? 5 : 15); return; }
     if (kind === 'flip' || kind === 'tick') P.Haptics.impact({ style: 'LIGHT' });
+    else if (kind === 'count') P.Haptics.impact({ style: 'MEDIUM' });
     else if (kind === 'miss') P.Haptics.notification({ type: 'ERROR' });
     else P.Haptics.notification({ type: 'SUCCESS' });
   } catch (e) {}
