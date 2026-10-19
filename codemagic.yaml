@@ -6,7 +6,7 @@
 workflows:
   android:
     name: Android (Google Play)
-    instance_type: linux_x2
+    instance_type: mac_mini_m2         # seule machine incluse dans l'offre gratuite
     max_build_duration: 30
     environment:
       node: 22
