@@ -208,6 +208,9 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 @keyframes chosen { 50% { transform: translateY(-2px) scale(1.08); } }
 .pscore.active span { color: var(--ink); }
 .status.turn { color: var(--pc, var(--ink)); }
+.status.hunt { color: var(--ink); display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; font-size: 16px; }
+.hunt-sym { font-size: 34px; line-height: 1; animation: pop .4s ease; }
+.hunt-pen { color: var(--miss); }
 .card.matched[style*="--owner"] .face { border-color: var(--owner); box-shadow: 0 0 0 3px color-mix(in srgb, var(--owner) 30%, transparent); }
 
 .rank { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; text-align: left; }
@@ -662,6 +665,12 @@ const I18N = {
     you: 'vous', lostConn: (n, s) => `Connexion perdue avec ${n}… ${s} s`, youWin: 'Vous avez gagné !',
     forfeitText: n => `${n} a quitté la partie.`, rematchWait: n => `En attente de ${n}…`, quit: 'Quitter',
     oppLeft: n => `${n} a quitté le salon.`, vsText: n => `Partie contre ${n} !`, turnTimeout: 'Temps écoulé, au tour suivant !', scoreLine: (a, b) => `${a} à ${b}`,
+    prolong: 'Prolongation', huntTitle: 'Égalité ! Prolongation',
+    huntRules: 'Chasse au symbole : trouvez toutes les cartes du symbole demandé. 20 secondes, −2 s par erreur. Le plus de cartes gagne, puis le plus rapide.',
+    huntPass: n => `Passez le téléphone à ${n}`, huntStartsIn: s => `La prolongation commence dans ${s}…`,
+    huntFind: (a, b) => `trouvez-les : ${a}/${b}`, huntDone: n => `Terminé : ${plural(n, 'carte trouvée', 'cartes trouvées')} !`,
+    huntLine: r => `${plural(r.found || 0, 'carte', 'cartes')}${r.found ? ` en ${secs(r.ms)} s` : ''}`,
+    huntWinner: n => `${n} remporte la prolongation !`, huntWatch: n => `Prolongation entre ${n}…`,
     winnerCup: 'Vainqueur', champTitle: 'Champion !', champFirst: 'Vous avez terminé tous les niveaux de DefiMemory !',
     champAgain: lv => `Vous avez encore vaincu le niveau ${lv} !`, newLevel: 'Nouveau niveau', lvUnlocked: lv => `Niveau ${lv} débloqué !`, newBadge: 'Nouveau',
   },
@@ -729,12 +738,18 @@ const I18N = {
     you: 'you', lostConn: (n, s) => `Lost connection with ${n}… ${s} s`, youWin: 'You win!',
     forfeitText: n => `${n} left the game.`, rematchWait: n => `Waiting for ${n}…`, quit: 'Leave',
     oppLeft: n => `${n} left the room.`, vsText: n => `Playing against ${n}!`, turnTimeout: 'Time\'s up, next turn!', scoreLine: (a, b) => `${a} to ${b}`,
+    prolong: 'Overtime', huntTitle: 'Tie! Overtime',
+    huntRules: 'Symbol hunt: find every card of the requested symbol. 20 seconds, −2 s per mistake. Most cards wins, then the fastest.',
+    huntPass: n => `Pass the phone to ${n}`, huntStartsIn: s => `Overtime starts in ${s}…`,
+    huntFind: (a, b) => `find them: ${a}/${b}`, huntDone: n => `Done: ${plural(n, 'card found', 'cards found')}!`,
+    huntLine: r => `${plural(r.found || 0, 'card', 'cards')}${r.found ? ` in ${secs(r.ms)} s` : ''}`,
+    huntWinner: n => `${n} wins overtime!`, huntWatch: n => `Overtime between ${n}…`,
     winnerCup: 'Winner', champTitle: 'Champion!', champFirst: 'You beat every level of DefiMemory!',
     champAgain: lv => `You beat the ${lv} level again!`, newLevel: 'New level', lvUnlocked: lv => `${lv} unlocked!`, newBadge: 'New',
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 20;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 21;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${APP_BUILD})`;
@@ -1026,6 +1041,7 @@ function updateTime() {
 
 els.board.addEventListener('click', e => {
   const c = e.target.closest('.card');
+  if (S && S.hunt) { if (c) huntClick(c); return; }
   if (S && S.online) { if (c) Online.click(c); return; }
   if (!c || !S || S.lock || S.over || c.classList.contains('up') || c.classList.contains('matched')) return;
   c.classList.add('up');
@@ -1128,6 +1144,7 @@ function finishMulti() {
     const ps = match.players.slice().sort(better);
     const top = ps[0], sameTotal = ps.filter(p => p.total === top.total), winners = sameTotal.filter(p => p.wins === top.wins);
     const multiRound = match.rounds > 1;
+    if (winners.length > 1 && !finishMulti.noHunt) { prolongLocal(winners, ps, multiRound); return; }
     if (winners.length > 1) {
       $('rTitle').textContent = T.tie;
       $('rText').textContent = T.tieText(joinNames(winners.map(p => p.name)), T.pairs(top.total), multiRound ? T.wonRounds(top.wins) : '');
@@ -1194,6 +1211,164 @@ function finish(won) {
   if (unlocked) { justUnlocked = next.id; playUnlock(next.name, showSheet); }
   else if (champion) playChampion(firstClear, showSheet);
   else later(showSheet, won ? 0 : 900);
+}
+
+/* ---------- Prolongation : la chasse au symbole ----------
+   16 cartes et 5 symboles répétés ; on affiche au hasard le symbole à chercher.
+   Le meilleur trouve le plus de cartes en 20 s (−2 s par erreur) ; à égalité, le plus rapide. */
+const HUNT = { cols: 4, rows: 4, counts: [4, 4, 3, 3, 2], memo: 5000, dur: 20000, penalty: 2000 };
+function makeHunt() {
+  const syms = shuffle(SYMBOLS.slice()).slice(0, HUNT.counts.length);
+  return { deck: shuffle(syms.flatMap((s, i) => Array(HUNT.counts[i]).fill(s))), targets: shuffle(syms.slice()) };
+}
+// Même difficulté pour chacun : mêmes symboles et mêmes doublons, disposition différente
+const reshuffleHunt = h => ({ deck: shuffle(h.deck.slice()), targets: shuffle(h.targets.slice()) });
+const huntBetter = (a, b) => (b.found || 0) - (a.found || 0) || (a.ms ?? 1e9) - (b.ms ?? 1e9);
+const secs = ms => (ms / 1000).toLocaleString(LANG, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+// Joue une chasse sur le plateau ; startAt/now permettent de démarrer en même temps sur plusieurs téléphones
+function playHunt(h, o) {
+  clearAll(); audio();
+  const now = o.now || Date.now, startAt = o.startAt || now() + 3000;
+  const playStart = startAt + HUNT.memo;
+  S = { hunt: true, lv: { cols: HUNT.cols, rows: HUNT.rows }, cards: [], lock: true, over: false, mp: null,
+        h, now, deadline: playStart + HUNT.dur, ti: 0, inTarget: 0, found: 0, ms: null, o, playStart, startAt, phase: 'wait' };
+  els.home.hidden = true; els.overlay.hidden = true; $('lobby').hidden = true; els.game.hidden = false;
+  $('gName').textContent = T.prolong; $('gMeta').textContent = o.who || '';
+  document.querySelector('.stats').hidden = true; $('restart').hidden = true;
+  $('scores').hidden = !o.board; if (o.board) o.board();
+  els.board.innerHTML = h.deck.map((sym, k) =>
+    `<button class="card" data-k="${k}" aria-label="${T.card(k + 1)}"><span class="inner"><span class="back"></span><span class="face">${sym}</span></span></button>`).join('');
+  S.cards = [...els.board.children];
+  fit();
+  tick = setInterval(huntTick, 100); huntTick();
+}
+
+function huntTarget() { return S.h.targets[S.ti]; }
+function huntCount(sym) { return S.h.deck.filter(x => x === sym).length; }
+
+function huntTick() {
+  if (!S || !S.hunt || S.over) return;
+  const t = S.now(), st = $('status'), bar = $('bar');
+  bar.style.transition = 'none';
+  if (t < S.startAt) {
+    st.className = 'status memo'; st.textContent = T.huntStartsIn(Math.ceil((S.startAt - t) / 1000)); bar.style.width = '0%';
+  } else if (t < S.playStart) {
+    if (S.phase !== 'memo') { S.phase = 'memo'; S.cards.forEach(c => c.classList.add('up')); }
+    st.className = 'status memo'; st.textContent = T.memorize(Math.ceil((S.playStart - t) / 1000));
+    bar.style.background = ''; bar.style.width = `${100 * (S.playStart - t) / HUNT.memo}%`;
+  } else {
+    if (S.phase !== 'play') {
+      S.phase = 'play'; S.lock = false;
+      S.cards.forEach(c => c.classList.remove('up'));
+      play('pick');
+    }
+    const left = Math.max(0, S.deadline - t);
+    bar.style.background = 'var(--accent)'; bar.style.width = `${100 * left / HUNT.dur}%`;
+    huntStatus(left);
+    if (left <= 0) huntEnd();
+  }
+}
+function huntStatus(left) {
+  const sym = huntTarget(), st = $('status');
+  st.className = 'status hunt';
+  st.innerHTML = `<span class="hunt-sym">${sym}</span> ${T.huntFind(S.inTarget, huntCount(sym))} · ${Math.ceil(left / 1000)} s` +
+    (S.flash && S.now() < S.flash ? ' <b class="hunt-pen">−2 s</b>' : '');
+}
+
+function huntClick(c) {
+  if (S.lock || S.phase !== 'play' || c.classList.contains('up')) return;
+  const k = +c.dataset.k, sym = huntTarget();
+  if (S.h.deck[k] === sym) {
+    c.classList.add('up', 'matched'); c.style.setProperty('--owner', 'var(--accent)');
+    S.found++; S.inTarget++; S.ms = S.now() - S.playStart;
+    play('flip');
+    if (S.inTarget >= huntCount(sym)) {
+      S.ti++; S.inTarget = 0;
+      if (S.ti >= S.h.targets.length) { play('win'); return huntEnd(); }
+      play('match');
+    }
+    if (S.o.onProgress) S.o.onProgress({ found: S.found, ms: S.ms });
+  } else {
+    c.classList.add('up', 'wrong'); play('miss');
+    S.deadline -= HUNT.penalty; S.flash = S.now() + 900;
+    later(() => c.classList.remove('up', 'wrong'), 600);
+  }
+  huntStatus(Math.max(0, S.deadline - S.now()));
+}
+
+function huntEnd() {
+  if (S.over) return;
+  S.over = true; S.lock = true; clearInterval(tick);
+  $('bar').style.width = '0%';
+  const st = $('status'); st.className = 'status'; st.textContent = T.huntDone(S.found);
+  const r = { found: S.found, ms: S.ms, done: true }, o = S.o;
+  S.cards.forEach(c => c.classList.add('up'));
+  if (o.onProgress) o.onProgress(r);
+  later(() => o.onDone(r), 1600);
+}
+
+/* Prolongation « À plusieurs » : les joueurs à égalité jouent l'un après l'autre */
+function prolongLocal(tied, ranked, multiRound) {
+  const lvIndex = S.i, base = makeHunt(), results = [];
+  let i = 0;
+  const next = () => {
+    if (i >= tied.length) return prolongEnd();
+    const p = tied[i];
+    passOverlay(p, () => playHunt(reshuffleHunt(base), {
+      who: p.name, startAt: Date.now() + 600,
+      board: () => huntBoard(tied, results, p),
+      onProgress: r => { results[i] = { ...r, live: true }; huntBoard(tied, results, p); },
+      onDone: r => { results[i] = r; i++; next(); },
+    }));
+  };
+  // Annonce, puis « passez le téléphone à … » 5… 1
+  function passOverlay(p, go) {
+    clearAll();
+    els.game.hidden = false;
+    $('rTitle').textContent = T.huntTitle;
+    $('rText').textContent = T.huntRules;
+    $('rRank').innerHTML = tied.map((q, k) => `<li style="--pc:${q.color}"><i></i><span>${esc(q.name)}</span><em>${results[k] && !results[k].live ? T.huntLine(results[k]) : ''}</em></li>`).join('');
+    $('rRank').hidden = false; $('rGrid').hidden = true; $('rStars').hidden = true; $('rRecord').hidden = true;
+    $('rUnlock').hidden = true; $('rNext').hidden = true; $('rAgain').hidden = true;
+    $('rHome').textContent = T.stopMatch;
+    const box = $('rCount'), num = $('rCountNum');
+    box.style.setProperty('--pc', p.color);
+    $('rCountLabel').textContent = T.huntPass(p.name);
+    num.textContent = ''; box.hidden = false;
+    els.overlay.hidden = false;
+    if (i === 0) play('pick');
+    [5, 4, 3, 2, 1].forEach((n, k) => later(() => {
+      num.textContent = n; num.classList.remove('go'); void num.offsetWidth; num.classList.add('go'); play('count');
+    }, 1200 + k * 1000));
+    later(() => { els.overlay.hidden = true; box.hidden = true; go(); }, 6200);
+  }
+  function prolongEnd() {
+    clearAll();
+    const order = tied.map((p, k) => ({ p, r: results[k] })).sort((a, b) => huntBetter(a.r, b.r));
+    const bestR = order[0].r, wins = order.filter(x => huntBetter(x.r, bestR) === 0);
+    play('win');
+    $('rTitle').textContent = wins.length > 1 ? T.tie : T.huntWinner(wins[0].p.name);
+    $('rText').textContent = order.map(x => `${x.p.name} : ${T.huntLine(x.r)}`).join(' · ');
+    const others = ranked.filter(p => !tied.includes(p));
+    $('rRank').innerHTML = order.map((x, k) => {
+      const win = wins.includes(x), pos = 1 + order.filter(y => huntBetter(y.r, x.r) < 0).length;
+      const cup = win ? `<b class="trophy" role="img" aria-label="${T.winnerCup}">🏆</b>` : '';
+      return `<li class="${win ? 'first' : ''}" style="--pc:${x.p.color}"><i></i><span>${pos}. ${esc(x.p.name)}</span>${cup}<em>${T.huntLine(x.r)}</em></li>`;
+    }).join('') + others.map((p, k) => `<li style="--pc:${p.color}"><i></i><span>${tied.length + 1 + k}. ${esc(p.name)}</span><em>${T.pairs(p.total)}</em></li>`).join('');
+    $('rRank').hidden = false; $('rCount').hidden = true; $('rAgain').hidden = false;
+    $('rAgain').textContent = multiRound ? T.newMatch : T.rematch;
+    $('rHome').textContent = T.changePlayers;
+    againAction = () => { newMatch(); start(lvIndex, true); };
+    els.overlay.hidden = false; $('rAgain').focus();
+  }
+  next();
+}
+// Scores pendant une prolongation locale : résultats déjà joués, joueur en cours mis en valeur
+function huntBoard(tied, results, current) {
+  const box = $('scores');
+  box.style.gridTemplateColumns = `repeat(${tied.length}, 1fr)`;
+  box.innerHTML = tied.map((p, k) => `<div class="pscore${p === current ? ' active' : ''}" style="--pc:${p.color}"><span>${esc(p.name)}</span><b>${results[k] ? results[k].found : '–'}</b></div>`).join('');
 }
 
 /* Cadenas qui s'ouvre quand un niveau est débloqué (toucher l'écran pour passer) */

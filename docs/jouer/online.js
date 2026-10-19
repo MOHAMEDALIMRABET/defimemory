@@ -109,7 +109,7 @@
   /* ---------- État local ---------- */
   const MAX = 4;
   let code = null, room = null, unsub = null, stopPresence = null, loop = null;
-  let shownN = 0, prev = null, endShown = 0, known = new Set(), lastNames = {}, starting = 0;
+  let huntN = 0, shownN = 0, prev = null, endShown = 0, known = new Set(), lastNames = {}, starting = 0;
   let size = 1;
   try { size = +(localStorage.getItem('dm-online-size') ?? 1); } catch (e) {}
   const msg = (text, ok) => { const m = $('onMsg'); m.textContent = text || ''; m.className = 'on-msg' + (ok ? ' ok' : ''); };
@@ -316,7 +316,12 @@
     const g = room.g;
     if (!arr(g.order).includes(api.uid)) { endWith(T.roomFull); return; }   // salon déjà en jeu sans nous
     if (g.n !== shownN) buildBoard(g, lv);
-    if (g.over && endShown !== g.n) showEnd(g);
+    if (g.over && endShown !== g.n) {
+      // Égalité : prolongation « chasse au symbole », tous les joueurs à égalité en même temps
+      const tied = matchWinners(g);
+      if (tied.length > 1 && g.ended === 'done' && !huntOver(g)) { renderHunt(g, tied, host); return; }
+      showEnd(g);
+    }
     if (!g.over && !els.overlay.hidden) els.overlay.hidden = true;
     if (g.over) {
       // Revanche : quand tous les joueurs encore là l'ont demandée, l'hôte relance
@@ -414,6 +419,7 @@
     if (!room || !room.g) return;
     paint();
     const g = room.g, t = api.now();
+    if (g.over && g.hunt && endShown !== g.n && huntOver(g)) render();
     if (g.over) return;
     if (g.res && t >= g.res.at) resolve(g.res.at);
     else if (!g.res && t >= g.previewEnd && t - g.turnStart > TURN_MS + 400) timeout(g.turnStart);
@@ -468,24 +474,91 @@
     });
   }
 
+  /* ---------- Prolongation en ligne ---------- */
+  function matchWinners(g) {
+    const sc = id => (g.scores && g.scores[id]) || 0;
+    const stay = arr(g.order).filter(id => !outOf(g)[id]);
+    const top = Math.max(...stay.map(sc));
+    return stay.filter(id => sc(id) === top);
+  }
+  // Terminée quand chaque joueur a fini, ou après le temps prévu (+5 s de marge si quelqu'un est déconnecté)
+  function huntOver(g) {
+    const h = g.hunt; if (!h) return false;
+    const res = h.res || {};
+    return arr(h.tied).every(id => res[id] && res[id].done) || api.now() > h.start + HUNT.memo + HUNT.dur + 5000;
+  }
+  function renderHunt(g, tied, host) {
+    if (!g.hunt) {
+      if (host) {
+        const h = makeHunt();
+        api.transaction(gPath(), x => (x && x.over && !x.hunt ? { ...x, hunt: { ...h, tied, start: api.now() + COUNTDOWN_MS + 2500 } } : undefined));
+      }
+      return;
+    }
+    const h = g.hunt, res = h.res || {}, names = arr(h.tied).map(id => playerById(id).name);
+    if (arr(h.tied).includes(api.uid)) {
+      if (huntN !== g.n) {
+        huntN = g.n;
+        playHunt({ deck: arr(h.deck), targets: arr(h.targets) }, {
+          now: api.now, startAt: h.start, who: T.huntWatch(joinNames(names)),
+          board: () => huntBoardOnline(),
+          onProgress: r => api.update(`${gPath()}/hunt/res/${api.uid}`, r),
+          onDone: () => {},
+        });
+        $('rTitle').textContent = T.huntTitle;
+      }
+      huntBoardOnline();
+    } else {
+      // Les autres joueurs regardent la prolongation en direct
+      $('rTitle').textContent = T.huntTitle;
+      $('rText').textContent = T.huntWatch(joinNames(names));
+      $('rRank').innerHTML = arr(h.tied).map(id => { const p = playerById(id); return `<li style="--pc:${colorOf(p)}"><i></i><span>${esc(p.name)}</span><em>${res[id] ? T.huntLine(res[id]) : '…'}</em></li>`; }).join('');
+      $('rRank').hidden = false; $('rGrid').hidden = true; $('rStars').hidden = true; $('rCount').hidden = true;
+      $('rRecord').hidden = true; $('rUnlock').hidden = true; $('rNext').hidden = true; $('rAgain').hidden = true;
+      $('rHome').textContent = T.quit;
+      els.overlay.hidden = false;
+    }
+  }
+  function huntBoardOnline() {
+    const g = room && room.g; if (!g || !g.hunt || !S || !S.hunt) return;
+    const res = g.hunt.res || {}, ids = arr(g.hunt.tied), box = $('scores');
+    box.hidden = false;
+    box.style.gridTemplateColumns = `repeat(${ids.length}, 1fr)`;
+    box.innerHTML = ids.map(id => { const p = playerById(id); return `<div class="pscore${id === api.uid ? ' active' : ''}" style="--pc:${colorOf(p)}"><span>${esc(p.name)}</span><b>${res[id] ? res[id].found : 0}</b>${id === api.uid ? `<small class="you">${T.you}</small>` : ''}</div>`; }).join('');
+  }
+  const joinNames = ns => ns.length > 1 ? `${ns.slice(0, -1).join(', ')} ${T.and} ${ns[ns.length - 1]}` : (ns[0] || '');
+
   /* ---------- Fin de partie et revanche ---------- */
   function showEnd(g) {
     endShown = g.n;
     const ps = arr(g.order).map(playerById), sc = id => (g.scores && g.scores[id]) || 0;
     const stay = ps.filter(p => !outOf(g)[p.id]);
     const top = Math.max(...stay.map(p => sc(p.id)));
-    const winners = stay.filter(p => sc(p.id) === top);
+    let winners = stay.filter(p => sc(p.id) === top);
+    const gone = ps.filter(p => outOf(g)[p.id]);
+    let text = gone.map(p => T.forfeitText(p.name)).join(' ');
+    let ranked = ps.slice().sort((a, b) => (!!outOf(g)[a.id] - !!outOf(g)[b.id]) || sc(b.id) - sc(a.id));
+    let detail = p => T.pairs(sc(p.id)), posOf = p => 1 + stay.filter(q => sc(q.id) > sc(p.id)).length;
+    const h = g.hunt;
+    if (h && winners.length > 1) {
+      // Prolongation : classement des joueurs à égalité selon la chasse au symbole
+      const res = h.res || {}, rOf = p => res[p.id] || { found: 0 };
+      const tied = winners.slice().sort((a, b) => huntBetter(rOf(a), rOf(b)));
+      winners = tied.filter(p => huntBetter(rOf(p), rOf(tied[0])) === 0);
+      text = tied.map(p => `${p.name} : ${T.huntLine(rOf(p))}`).join(' · ');
+      ranked = tied.concat(ranked.filter(p => !tied.includes(p)));
+      detail = p => (tied.includes(p) ? T.huntLine(rOf(p)) : T.pairs(sc(p.id)));
+      posOf = p => (tied.includes(p) ? 1 + tied.filter(q => huntBetter(rOf(q), rOf(p)) < 0).length : tied.length + 1 + stay.filter(q => !tied.includes(q) && sc(q.id) > sc(p.id)).length);
+    }
     const iWin = winners.some(p => p.id === api.uid), tie = winners.length > 1;
     play(iWin ? 'win' : 'lose');
-    $('rTitle').textContent = tie ? T.tie : iWin ? T.youWin : T.winner(winners[0].name);
-    const gone = ps.filter(p => outOf(g)[p.id]);
-    $('rText').textContent = gone.map(p => T.forfeitText(p.name)).join(' ');
-    const ranked = ps.slice().sort((a, b) => (!!outOf(g)[a.id] - !!outOf(g)[b.id]) || sc(b.id) - sc(a.id));
+    $('rTitle').textContent = tie ? T.tie : iWin ? T.youWin : (h ? T.huntWinner(winners[0].name) : T.winner(winners[0].name));
+    $('rText').textContent = text;
     $('rRank').innerHTML = ranked.map(p => {
       const out = outOf(g)[p.id], win = winners.includes(p);
-      const pos = out ? '–' : `${1 + stay.filter(q => sc(q.id) > sc(p.id)).length}.`;
+      const pos = out ? '–' : `${posOf(p)}.`;
       const cup = win ? `<b class="trophy" role="img" aria-label="${T.winnerCup}">🏆</b>` : '';
-      return `<li class="${win ? 'first' : ''}" style="--pc:${colorOf(p)}${out ? ';opacity:.55' : ''}"><i></i><span>${pos} ${esc(p.name)}</span>${cup}<em>${T.pairs(sc(p.id))}</em></li>`;
+      return `<li class="${win ? 'first' : ''}" style="--pc:${colorOf(p)}${out ? ';opacity:.55' : ''}"><i></i><span>${pos} ${esc(p.name)}</span>${cup}<em>${detail(p)}</em></li>`;
     }).join('');
     $('rRank').hidden = false; $('rGrid').hidden = true; $('rStars').hidden = true; $('rCount').hidden = true;
     $('rRecord').hidden = true; $('rUnlock').hidden = true; $('rNext').hidden = true; $('rAgain').hidden = false;
