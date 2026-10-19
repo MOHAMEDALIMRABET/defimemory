@@ -126,8 +126,13 @@ Cliquez ensuite sur **Ajouter pour vérification**, puis sur **Soumettre**. La r
 
 ---
 
+## Version web installable
+Le jeu est aussi publié sur **https://mohamedalimrabet.github.io/defimemory/jouer/** (GitHub Pages, dossier `docs/jouer/`).
+Sur téléphone, il s'installe comme une application (« Ajouter à l'écran d'accueil ») et fonctionne sans Internet.
+Après chaque modification de `www/`, lancez `npm run web` pour mettre à jour `docs/jouer/`, puis enregistrez sur GitHub.
+
 ## Publier une mise à jour plus tard
-1. Modifiez le jeu dans `www/index.html`.
+1. Modifiez le jeu dans `www/index.html`, puis lancez `npm run web` pour la version web.
 2. Augmentez la version, par exemple `1.0.0` → `1.1.0` :
    - Android : `versionName` dans `android/app/build.gradle` ;
    - iPhone : `MARKETING_VERSION` dans `ios/App/App.xcodeproj/project.pbxproj` (2 lignes).

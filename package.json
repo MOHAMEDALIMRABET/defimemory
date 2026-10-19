@@ -4,8 +4,9 @@
   "private": true,
   "description": "DefiMemory - jeu de mémoire",
   "scripts": {
-    "assets": "capacitor-assets generate --iconBackgroundColor '#2B3580' --iconBackgroundColorDark '#111430' --splashBackgroundColor '#2B3580' --splashBackgroundColorDark '#111430'",
-    "sync": "cap sync"
+    "assets": "capacitor-assets generate --ios --android --iconBackgroundColor '#2B3580' --iconBackgroundColorDark '#111430' --splashBackgroundColor '#2B3580' --splashBackgroundColorDark '#111430'",
+    "sync": "cap sync",
+    "web": "node scripts/build-web.mjs"
   },
   "dependencies": {
     "@capacitor/android": "8.5.3",

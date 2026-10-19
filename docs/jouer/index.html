@@ -1,0 +1,896 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#2B3580">
+<title>DefiMemory</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="DefiMemory">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+@font-face { font-family: "Bricolage Grotesque"; font-weight: 600; font-display: swap; src: url(fonts/bricolage-grotesque-latin-600-normal.woff2) format("woff2"); }
+@font-face { font-family: "Bricolage Grotesque"; font-weight: 800; font-display: swap; src: url(fonts/bricolage-grotesque-latin-800-normal.woff2) format("woff2"); }
+@font-face { font-family: "Nunito Sans"; font-weight: 400; font-display: swap; src: url(fonts/nunito-sans-latin-400-normal.woff2) format("woff2"); }
+@font-face { font-family: "Nunito Sans"; font-weight: 600; font-display: swap; src: url(fonts/nunito-sans-latin-600-normal.woff2) format("woff2"); }
+@font-face { font-family: "Nunito Sans"; font-weight: 700; font-display: swap; src: url(fonts/nunito-sans-latin-700-normal.woff2) format("woff2"); }
+*, *::before, *::after { box-sizing: border-box; }
+:root { color-scheme: light; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box; height: 100%; }
+body { margin: 0; }
+[hidden] { display: none !important; }
+</style>
+<style>
+/* Layout: one-screen mobile app — top bar, board sized to fit the remaining height, bottom bar. Cards = playing-card backs on a cool slate table. */
+:root {
+  --bg: #E9ECF5;
+  --surface: #FFFFFF;
+  --ink: #1A1E3C;
+  --muted: #5B6185;
+  --line: #CDD2E4;
+  --back: #2B3580;
+  --back-2: #3C48A8;
+  --accent: #F0A93B;
+  --match: #23977A;
+  --miss: #D2475A;
+  --face: #FFFFFF;
+  --p1: #E0533D; --p2: #1C9A8C; --p3: #D9920F; --p4: #8150E0;
+  --font-display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --font-body: "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111430; --surface: #1C2045; --ink: #ECEEFA; --muted: #9CA2C8; --line: #2E3466;
+    --back: #3A47B5; --back-2: #5160D6; --accent: #F4B451; --match: #3CC29E; --miss: #F06A7C; --face: #F4F5FB;
+    --p1: #FF7A63; --p2: #3CC7B6; --p3: #F2B33D; --p4: #A57EFF;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111430; --surface: #1C2045; --ink: #ECEEFA; --muted: #9CA2C8; --line: #2E3466;
+  --back: #3A47B5; --back-2: #5160D6; --accent: #F4B451; --match: #3CC29E; --miss: #F06A7C; --face: #F4F5FB;
+  --p1: #FF7A63; --p2: #3CC7B6; --p3: #F2B33D; --p4: #A57EFF;
+  color-scheme: dark;
+}
+
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px;
+  -webkit-tap-highlight-color: transparent; overscroll-behavior: none; user-select: none; -webkit-user-select: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.app {
+  height: 100%; display: flex; flex-direction: column; max-width: 720px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px; box-sizing: border-box;
+}
+
+/* ---------- Accueil ---------- */
+.home { flex: 1; display: flex; flex-direction: column; gap: 22px; overflow-y: auto; padding-block: 8px 4px; }
+.brand { display: flex; align-items: center; gap: 14px; }
+.brand-cards { position: relative; width: 52px; height: 60px; flex: none; }
+.brand-cards span {
+  position: absolute; width: 38px; height: 52px; border-radius: 7px; top: 4px;
+  background: repeating-linear-gradient(45deg, var(--back) 0 5px, var(--back-2) 5px 10px);
+  border: 2px solid var(--surface); box-shadow: 0 2px 6px rgb(0 0 0 / .18);
+}
+.brand-cards span:first-child { left: 0; transform: rotate(-10deg); }
+.brand-cards span:last-child { left: 14px; transform: rotate(8deg); background: var(--face); display: grid; place-items: center; font-size: 22px; }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-height: 1; margin: 0; letter-spacing: -0.02em; }
+.tagline { margin: 4px 0 0; color: var(--muted); font-size: 15px; line-height: 1.4; }
+.rules { margin: 0; color: var(--muted); line-height: 1.5; max-width: 60ch; }
+.rules b { color: var(--ink); }
+.label { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 -10px; }
+
+.levels { display: grid; gap: 10px; }
+.level {
+  display: grid; grid-template-columns: 54px 1fr auto; align-items: center; gap: 14px; text-align: left;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; padding: 12px 14px;
+  transition: transform .12s, border-color .12s;
+}
+.level:active { transform: scale(.98); }
+.level:hover { border-color: var(--back-2); }
+.mini { display: grid; gap: 2px; width: 54px; }
+.mini i { display: block; aspect-ratio: 3/4; border-radius: 2px; background: var(--back); }
+.level-name { font-family: var(--font-display); font-weight: 800; font-size: 20px; display: block; }
+.level-meta { color: var(--muted); font-size: 13px; display: block; margin-top: 2px; }
+.level-best { text-align: right; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; line-height: 1.35; min-width: 64px; }
+.level-best strong { display: block; color: var(--ink); font-size: 14px; }
+.level.locked { cursor: not-allowed; background: transparent; border-style: dashed; }
+.level.locked:hover { border-color: var(--line); }
+.level.locked:active { transform: none; }
+.level.locked .mini i { background: var(--line); }
+.level.locked .level-name, .level.locked .level-meta { opacity: .55; }
+.lock { display: block; width: 22px; height: 22px; margin: 0 0 3px auto; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; }
+.unlock { color: var(--back-2); font-weight: 700; }
+.level-stars { color: var(--accent); letter-spacing: 1px; font-size: 13px; }
+
+/* ---------- Onglets Solo / À plusieurs ---------- */
+.tabs { display: grid; grid-template-columns: 1fr 1fr; background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; padding: 4px; gap: 4px; }
+.tab { border: 0; background: none; border-radius: 10px; min-height: 42px; font-weight: 700; color: var(--muted); }
+.tab[aria-selected="true"] { background: var(--back); color: #fff; }
+.panel { display: flex; flex-direction: column; gap: 22px; }
+
+/* ---------- Réglages à plusieurs ---------- */
+.count { display: flex; gap: 8px; }
+.chip {
+  flex: 1; min-height: 44px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface);
+  font-weight: 700; font-size: 15px; display: grid; place-items: center; gap: 0; line-height: 1.15; padding: 6px 4px;
+}
+.chip small { font-weight: 600; font-size: 11px; color: var(--muted); }
+.chip[aria-pressed="true"] { border-color: var(--back-2); background: color-mix(in srgb, var(--back-2) 12%, var(--surface)); }
+.sizes { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.players { display: grid; gap: 8px; }
+.player { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px; padding: 4px 6px 4px 12px; }
+.player i { width: 14px; height: 14px; border-radius: 50%; background: var(--pc); flex: none; }
+.player input {
+  flex: 1; min-width: 0; border: 0; background: none; color: var(--ink); font: inherit; font-weight: 700; font-size: 16px;
+  padding: 10px 4px; user-select: text; -webkit-user-select: text; outline: none;
+}
+.player:focus-within { border-color: var(--pc); }
+.btn.start { flex: none; }
+.player input::placeholder { color: var(--muted); font-weight: 600; opacity: .8; }
+.clear {
+  width: 36px; height: 36px; flex: none; border: 0; border-radius: 50%; background: none; color: var(--muted);
+  display: grid; place-items: center; padding: 0;
+}
+.clear span { width: 22px; height: 22px; border-radius: 50%; background: var(--line); display: grid; place-items: center; }
+.clear svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; fill: none; }
+.player:not(.filled) .clear { visibility: hidden; }
+
+/* ---------- Scores pendant la partie ---------- */
+.scores { display: grid; gap: 6px; }
+.pscore {
+  border: 1.5px solid var(--line); background: var(--surface); border-radius: 12px; padding: 6px 8px 7px; min-width: 0;
+  text-align: center; position: relative; overflow: hidden; transition: border-color .2s, background .2s, transform .2s;
+}
+.pscore::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--pc); opacity: .35; }
+.pscore span { display: block; font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muted); }
+.pscore b { font-family: var(--font-display); font-size: 22px; font-variant-numeric: tabular-nums; }
+.pscore small { display: block; font-size: 11px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: -2px; }
+.pscore.active { border-color: var(--pc); background: color-mix(in srgb, var(--pc) 13%, var(--surface)); transform: translateY(-2px); }
+.pscore.active::before { opacity: 1; }
+.pscore.chosen { animation: chosen .45s ease 3; }
+@keyframes chosen { 50% { transform: translateY(-2px) scale(1.08); } }
+.pscore.active span { color: var(--ink); }
+.status.turn { color: var(--pc, var(--ink)); }
+.card.matched[style*="--owner"] .face { border-color: var(--owner); box-shadow: 0 0 0 3px color-mix(in srgb, var(--owner) 30%, transparent); }
+
+.rank { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; text-align: left; }
+.rank li { display: flex; align-items: center; gap: 10px; background: var(--bg); border-radius: 12px; padding: 10px 12px; font-weight: 700; }
+.rank li i { width: 12px; height: 12px; border-radius: 50%; background: var(--pc); flex: none; }
+.rank li span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rank li em { font-style: normal; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.rank li.first { background: color-mix(in srgb, var(--accent) 22%, var(--bg)); }
+
+/* ---------- Jeu ---------- */
+.game { flex: 1; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.topbar { display: flex; align-items: center; gap: 10px; }
+.icon-btn {
+  width: 42px; height: 42px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface);
+  display: grid; place-items: center; flex: none;
+}
+.icon-btn.muted { color: var(--miss); border-color: var(--miss); }
+.icon-btn svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.game-title { flex: 1; min-width: 0; }
+.game-title strong { font-family: var(--font-display); font-weight: 800; font-size: 22px; display: block; line-height: 1.1; }
+.game-title span { color: var(--muted); font-size: 13px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; }
+.stat { padding: 8px 10px; text-align: center; }
+.stat + .stat { border-left: 1.5px solid var(--line); }
+.stat small { display: block; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.stat b { font-family: var(--font-display); font-size: 22px; font-variant-numeric: tabular-nums; }
+.stat.warn b { color: var(--miss); }
+
+.status { text-align: center; font-weight: 700; min-height: 22px; color: var(--muted); }
+.status.memo { color: var(--back-2); }
+.progress { height: 4px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.progress i { display: block; height: 100%; width: 0; background: var(--back-2); }
+
+.board-wrap { flex: 1; min-height: 0; display: grid; place-items: center; }
+.board { display: grid; gap: 8px; perspective: 900px; }
+.card { aspect-ratio: 3/4; border: 0; padding: 0; background: none; position: relative; border-radius: 10px; touch-action: manipulation; }
+.card .inner { position: absolute; inset: 0; transition: transform .38s cubic-bezier(.3,.7,.3,1.15); transform-style: preserve-3d; }
+.card.up .inner, .card.matched .inner { transform: rotateY(180deg); }
+.face, .back { position: absolute; inset: 0; border-radius: inherit; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.back {
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 22%, var(--back) 23% 26%, transparent 27%),
+    repeating-linear-gradient(45deg, var(--back) 0 6px, var(--back-2) 6px 12px);
+  border: 3px solid var(--surface); box-shadow: 0 2px 6px rgb(0 0 0 / .15); box-sizing: border-box;
+}
+.face {
+  transform: rotateY(180deg); background: var(--face); display: grid; place-items: center;
+  border: 2px solid var(--line); box-sizing: border-box; box-shadow: 0 2px 6px rgb(0 0 0 / .12);
+  font-size: var(--sym, 32px); line-height: 1;
+}
+.card.matched .face { border-color: var(--match); box-shadow: 0 0 0 3px color-mix(in srgb, var(--match) 30%, transparent); animation: pop .35s ease; }
+.card.wrong .face { border-color: var(--miss); animation: shake .35s ease; }
+.card.swapped { animation: wobble .65s ease; }
+.card.swapped .back { border-color: var(--accent); }
+@keyframes wobble { 30% { transform: scale(.86) rotate(-6deg); } 65% { transform: scale(.86) rotate(6deg); } }
+@keyframes pop { 50% { transform: rotateY(180deg) scale(1.08); } }
+@keyframes shake { 25% { translate: -4px 0; } 75% { translate: 4px 0; } }
+
+.bottombar { display: flex; gap: 10px; }
+.btn {
+  flex: 1; min-height: 48px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--surface);
+  font-weight: 700; font-size: 15px;
+}
+.btn.primary { background: var(--back); border-color: var(--back); color: #fff; }
+
+/* ---------- Résultat ---------- */
+.overlay {
+  position: fixed; inset: 0; background: rgb(10 12 30 / .55); display: grid; place-items: center; z-index: 20;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.sheet {
+  background: var(--surface); border-radius: 20px; padding: 24px 20px 20px; width: 100%; max-width: 380px; box-sizing: border-box;
+  text-align: center; display: grid; gap: 14px; animation: rise .35s ease;
+}
+@keyframes rise { from { transform: translateY(30px); opacity: .4; } }
+.sheet h2 { font-family: var(--font-display); font-weight: 800; font-size: 30px; margin: 0; text-wrap: balance; }
+.sheet p { margin: 0; color: var(--muted); }
+.big-stars { font-size: 40px; letter-spacing: 6px; color: var(--accent); }
+.big-stars .off { color: var(--line); }
+.result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.result-grid div { background: var(--bg); border-radius: 12px; padding: 10px; }
+.result-grid small { display: block; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.result-grid b { font-family: var(--font-display); font-size: 24px; font-variant-numeric: tabular-nums; }
+.record { color: var(--match); font-weight: 700; }
+.sheet .actions { display: grid; gap: 8px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .card .inner { transition-duration: .01s; }
+  .card.matched .face, .card.wrong .face, .card.swapped, .pscore.chosen, .sheet { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <section class="home" id="home">
+    <div class="brand">
+      <div class="brand-cards" aria-hidden="true"><span></span><span>🧠</span></div>
+      <div>
+        <h1>DefiMemory</h1>
+        <p class="tagline" data-t="tagline">Retenez les cartes, puis retrouvez les paires.</p>
+      </div>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Mode de jeu" data-ta="gameMode">
+      <button class="tab" role="tab" id="tabSolo" aria-selected="true" aria-controls="soloPanel" data-t="solo">Solo</button>
+      <button class="tab" role="tab" id="tabMulti" aria-selected="false" aria-controls="multiPanel" data-t="multi">À plusieurs</button>
+    </div>
+
+    <div class="panel" id="soloPanel" role="tabpanel" aria-labelledby="tabSolo">
+      <p class="rules" data-t="rulesSolo">Au début, toutes les cartes sont <b>visibles quelques secondes</b>, puis elles se retournent. Touchez deux cartes à la fois : si elles sont identiques, elles restent ouvertes. Trouvez <b>toutes les paires</b> en un minimum de coups. Gagnez un niveau pour <b>débloquer le suivant</b>.</p>
+      <p class="label" data-t="chooseLevel">Choisissez un niveau</p>
+      <div class="levels" id="levels"></div>
+    </div>
+
+    <div class="panel" id="multiPanel" role="tabpanel" aria-labelledby="tabMulti" hidden>
+      <p class="rules" data-t="rulesMulti">De 2 à 4 joueurs sur le même téléphone. Chacun son tour, retournez deux cartes. <b>Une paire = 1 point, et vous rejouez.</b> Sinon, passez le téléphone au joueur suivant. En <b>match équitable</b>, on joue une manche par joueur pour que chacun commence une fois, et les points s'additionnent.</p>
+      <p class="label" data-t="nbPlayers">Nombre de joueurs</p>
+      <div class="count" id="pCount"></div>
+      <div class="players" id="players"></div>
+      <p class="label" data-t="boardSize">Taille du plateau</p>
+      <div class="sizes" id="sizes"></div>
+      <p class="label" data-t="format">Format</p>
+      <div class="count" id="formats"></div>
+      <button class="btn primary start" id="startMulti" data-t="startGame">Commencer la partie</button>
+    </div>
+  </section>
+
+  <section class="game" id="game" hidden>
+    <div class="topbar">
+      <button class="icon-btn" id="back" aria-label="Retour à l'accueil" data-ta="backHome">
+        <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <div class="game-title"><strong id="gName">Facile</strong><span id="gMeta"></span></div>
+      <button class="icon-btn" id="sound" aria-label="Son" aria-pressed="true">
+        <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><g id="soundOn"><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></g><g id="soundOff" style="display:none"><path d="M3 3l18 18" stroke-width="2.6"/></g></svg>
+      </button>
+      <button class="icon-btn" id="restart" aria-label="Recommencer" data-ta="restart">
+        <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v5h5"/></svg>
+      </button>
+    </div>
+    <div class="stats">
+      <div class="stat"><small data-t="moves">Coups</small><b id="sMoves">0</b></div>
+      <div class="stat"><small data-t="pairsLabel">Paires</small><b id="sPairs">0/6</b></div>
+      <div class="stat" id="timeBox"><small id="sTimeLabel">Temps</small><b id="sTime">0:00</b></div>
+    </div>
+    <div class="scores" id="scores" hidden></div>
+    <div class="status" id="status" aria-live="polite"></div>
+    <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+    <div class="board-wrap" id="boardWrap"><div class="board" id="board"></div></div>
+  </section>
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="rTitle">
+    <div class="big-stars" id="rStars"></div>
+    <h2 id="rTitle">Bravo !</h2>
+    <p id="rText"></p>
+    <ol class="rank" id="rRank" hidden></ol>
+    <div class="result-grid" id="rGrid">
+      <div><small data-t="moves">Coups</small><b id="rMoves">0</b></div>
+      <div><small data-t="time">Temps</small><b id="rTime">0:00</b></div>
+    </div>
+    <p class="record" id="rRecord" hidden data-t="newRecord">Nouveau record pour ce niveau</p>
+    <p class="unlock" id="rUnlock" hidden></p>
+    <div class="actions">
+      <button class="btn primary" id="rNext" data-t="nextLevel">Niveau suivant</button>
+      <button class="btn" id="rAgain">Rejouer</button>
+      <button class="btn" id="rHome">Choisir un niveau</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- Langue : français si le téléphone est en français, anglais sinon ---------- */
+const LANG = /^fr\b/i.test((navigator.languages && navigator.languages[0]) || navigator.language || 'fr') ? 'fr' : 'en';
+document.documentElement.lang = LANG;
+const plural = (n, one, many) => `${n} ${(LANG === 'fr' ? n > 1 : n !== 1) ? many : one}`;
+const I18N = {
+  fr: {
+    tagline: 'Retenez les cartes, puis retrouvez les paires.',
+    gameMode: 'Mode de jeu', solo: 'Solo', multi: 'À plusieurs',
+    rulesSolo: 'Au début, toutes les cartes sont <b>visibles quelques secondes</b>, puis elles se retournent. Touchez deux cartes à la fois : si elles sont identiques, elles restent ouvertes. Trouvez <b>toutes les paires</b> en un minimum de coups. Gagnez un niveau pour <b>débloquer le suivant</b>.',
+    chooseLevel: 'Choisissez un niveau',
+    rulesMulti: 'De 2 à 4 joueurs sur le même téléphone. Chacun son tour, retournez deux cartes. <b>Une paire = 1 point, et vous rejouez.</b> Sinon, passez le téléphone au joueur suivant. En <b>match équitable</b>, on joue une manche par joueur pour que chacun commence une fois, et les points s\'additionnent.',
+    nbPlayers: 'Nombre de joueurs', boardSize: 'Taille du plateau', format: 'Format', startGame: 'Commencer la partie',
+    backHome: 'Retour à l\'accueil', restart: 'Recommencer', soundOn: 'Activer le son', soundOff: 'Couper le son',
+    moves: 'Coups', pairsLabel: 'Paires', time: 'Temps', left: 'Reste',
+    newRecord: 'Nouveau record pour ce niveau', nextLevel: 'Niveau suivant', replay: 'Rejouer', chooseLevelBtn: 'Choisir un niveau',
+    levels: { facile: 'Facile', moyen: 'Moyen', difficile: 'Difficile', expert: 'Expert', maitre: 'Maître' },
+    cardsSwap: 'les cartes changent de place',
+    winToUnlock: n => `Gagnez ${n}`,
+    lockedAria: (lv, prev) => `${lv}, bloqué : gagnez le niveau ${prev} pour le débloquer`,
+    nMoves: n => plural(n, 'coup', 'coups'), notPlayed: 'Pas encore joué',
+    levelMeta: (p, c, r, sec) => `${p} paires · ${c}×${r} · ${sec} s pour mémoriser`,
+    nPlayers: n => `${n} joueurs`, player: k => `Joueur ${k}`,
+    playerAria: k => `Nom du joueur ${k}`, clearAria: k => `Effacer le nom du joueur ${k}`,
+    fairMatch: 'Match équitable', fairSub: n => `${n} manches, 1 par joueur`,
+    singleGame: 'Partie unique', singleSub: '1 manche, 1er joueur tiré au sort',
+    total: n => `Total ${n}`, turnOf: n => `Au tour de ${n}`,
+    roundTitle: (r, n) => `Manche ${r}/${n}`, multiTitle: 'À plusieurs',
+    metaMulti: (lv, p) => `${lv} · ${p} paires`, metaSolo: (p, c, r) => `${p} paires · ${c}×${r}`,
+    memorize: r => `Mémorisez les cartes… ${r}`, roundPrefix: r => `Manche ${r} : `, starts: n => `${n} commence !`,
+    yourTurn: 'À vous ! Touchez deux cartes.', drawing: 'Tirage au sort du premier joueur…',
+    pairFor: n => `Paire pour ${n}, qui rejoue !`, pairFound: 'Paire trouvée !', notSame: 'Pas pareilles…',
+    movedTurn: n => `Deux cartes ont bougé ! Au tour de ${n}`, swapped: 'Deux cartes ont changé de place !',
+    and: 'et', pairs: n => plural(n, 'paire', 'paires'),
+    wonRounds: n => `${plural(n, 'manche', 'manches')} gagnée${n > 1 ? 's' : ''}`, winsShort: n => plural(n, 'manche', 'manches'),
+    roundEnd: (r, n) => `Fin de la manche ${r}/${n}`,
+    roundTie: (names, p) => `${names} sont ex æquo dans cette manche avec ${p}.`,
+    roundWin: (n, p) => `${n} gagne la manche avec ${p}.`,
+    nextRound: (r, n) => `Manche ${r} : ${n} commence`, stopMatch: 'Arrêter le match',
+    tie: 'Égalité !', tieText: (names, p, won) => `${names} sont ex æquo avec ${p}${won ? ` et ${won}` : ''}.`,
+    matchWinner: n => `${n} remporte le match !`, winner: n => `${n} gagne !`,
+    singleText: (p, total, t) => `${p} sur ${total}, en ${t}.`,
+    tieBreak: (p, n, won) => `Égalité à ${p} : ${n} l'emporte grâce à ${won}.`,
+    totalText: (p, r) => `${p} au total sur ${r} manches.`,
+    newMatch: 'Nouveau match', rematch: 'Revanche', changePlayers: 'Changer les joueurs',
+    perfect: 'Mémoire parfaite !', bravo: 'Bravo !', timeUp: 'Temps écoulé',
+    wonText: (p, lv) => `Vous avez trouvé les ${p} paires du niveau ${lv}.`,
+    lostText: (f, p) => `Vous avez trouvé ${f} paires sur ${p}. Réessayez !`,
+    unlocked: lv => `🔓 Niveau ${lv} débloqué !`, card: k => `Carte ${k}`,
+  },
+  en: {
+    tagline: 'Memorize the cards, then find the pairs.',
+    gameMode: 'Game mode', solo: 'Solo', multi: 'Multiplayer',
+    rulesSolo: 'At the start, all the cards are <b>shown for a few seconds</b>, then they flip over. Tap two cards at a time: if they match, they stay face up. Find <b>all the pairs</b> in as few moves as possible. Win a level to <b>unlock the next one</b>.',
+    chooseLevel: 'Choose a level',
+    rulesMulti: '2 to 4 players on the same phone. Take turns flipping two cards. <b>A pair = 1 point, and you play again.</b> Otherwise, pass the phone to the next player. In a <b>fair match</b>, there is one round per player so everyone goes first once, and the points add up.',
+    nbPlayers: 'Number of players', boardSize: 'Board size', format: 'Format', startGame: 'Start the game',
+    backHome: 'Back to home', restart: 'Restart', soundOn: 'Turn sound on', soundOff: 'Mute',
+    moves: 'Moves', pairsLabel: 'Pairs', time: 'Time', left: 'Left',
+    newRecord: 'New record for this level', nextLevel: 'Next level', replay: 'Play again', chooseLevelBtn: 'Choose a level',
+    levels: { facile: 'Easy', moyen: 'Medium', difficile: 'Hard', expert: 'Expert', maitre: 'Master' },
+    cardsSwap: 'cards swap places',
+    winToUnlock: n => `Win ${n}`,
+    lockedAria: (lv, prev) => `${lv}, locked: win ${prev} to unlock it`,
+    nMoves: n => plural(n, 'move', 'moves'), notPlayed: 'Not played yet',
+    levelMeta: (p, c, r, sec) => `${p} pairs · ${c}×${r} · ${sec} s to memorize`,
+    nPlayers: n => `${n} players`, player: k => `Player ${k}`,
+    playerAria: k => `Name of player ${k}`, clearAria: k => `Clear the name of player ${k}`,
+    fairMatch: 'Fair match', fairSub: n => `${n} rounds, 1 per player`,
+    singleGame: 'Single game', singleSub: '1 round, random first player',
+    total: n => `Total ${n}`, turnOf: n => `${n}'s turn`,
+    roundTitle: (r, n) => `Round ${r}/${n}`, multiTitle: 'Multiplayer',
+    metaMulti: (lv, p) => `${lv} · ${p} pairs`, metaSolo: (p, c, r) => `${p} pairs · ${c}×${r}`,
+    memorize: r => `Memorize the cards… ${r}`, roundPrefix: r => `Round ${r}: `, starts: n => `${n} goes first!`,
+    yourTurn: 'Your turn! Tap two cards.', drawing: 'Drawing who goes first…',
+    pairFor: n => `Pair for ${n}, play again!`, pairFound: 'Pair found!', notSame: 'Not a match…',
+    movedTurn: n => `Two cards moved! ${n}'s turn`, swapped: 'Two cards swapped places!',
+    and: 'and', pairs: n => plural(n, 'pair', 'pairs'),
+    wonRounds: n => `${plural(n, 'round', 'rounds')} won`, winsShort: n => plural(n, 'win', 'wins'),
+    roundEnd: (r, n) => `End of round ${r}/${n}`,
+    roundTie: (names, p) => `${names} tie this round with ${p}.`,
+    roundWin: (n, p) => `${n} wins the round with ${p}.`,
+    nextRound: (r, n) => `Round ${r}: ${n} goes first`, stopMatch: 'End the match',
+    tie: 'It\'s a tie!', tieText: (names, p, won) => `${names} are tied with ${p}${won ? ` and ${won}` : ''}.`,
+    matchWinner: n => `${n} wins the match!`, winner: n => `${n} wins!`,
+    singleText: (p, total, t) => `${p} out of ${total}, in ${t}.`,
+    tieBreak: (p, n, won) => `Tied at ${p}: ${n} wins with ${won}.`,
+    totalText: (p, r) => `${p} in total over ${r} rounds.`,
+    newMatch: 'New match', rematch: 'Rematch', changePlayers: 'Change players',
+    perfect: 'Perfect memory!', bravo: 'Well done!', timeUp: 'Time\'s up',
+    wonText: (p, lv) => `You found all ${p} pairs of the ${lv} level.`,
+    lostText: (f, p) => `You found ${f} of the ${p} pairs. Try again!`,
+    unlocked: lv => `🔓 ${lv} level unlocked!`, card: k => `Card ${k}`,
+  },
+};
+const T = I18N[LANG];
+document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
+document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
+
+const LEVELS = [
+  { id: 'facile',    pairs: 6,  cols: 3, rows: 4, preview: 5000, miss: 1000 },
+  { id: 'moyen',     pairs: 8,  cols: 4, rows: 4, preview: 4000, miss: 850 },
+  { id: 'difficile', pairs: 10, cols: 4, rows: 5, preview: 3000, miss: 700 },
+  { id: 'expert',    pairs: 15, cols: 5, rows: 6, preview: 2500, miss: 550, limit: 150 },
+  { id: 'maitre',    pairs: 18, cols: 6, rows: 6, preview: 2000, miss: 500, limit: 180, swap: true },
+].map(lv => ({ ...lv, name: T.levels[lv.id] }));
+const SYMBOLS = ['🦊','🐼','🐙','🦉','🐢','🦋','🍉','🍋','🍓','🥑','🌵','🌻','🍄','⭐','🌙','🔥','⚓','🎈','🎲','🚀','🪁','🐳','🦜','🍒'];
+
+const $ = id => document.getElementById(id);
+const els = { home: $('home'), game: $('game'), board: $('board'), wrap: $('boardWrap'), overlay: $('overlay') };
+
+let best = {};
+try { best = JSON.parse(localStorage.getItem('memoire-best') || '{}') || {}; } catch (e) { best = {}; }
+function saveBest() { try { localStorage.setItem('memoire-best', JSON.stringify(best)); } catch (e) {} }
+
+let S = null;      // état de la partie
+let tick = null, timers = [];
+
+/* ---------- Sons (générés, aucun fichier audio) ---------- */
+let actx = null, muted = false;
+try { muted = localStorage.getItem('memoire-son') === 'off'; } catch (e) {}
+function audio() {
+  if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+  if (actx.state === 'suspended') actx.resume();
+  return actx;
+}
+function tone(freq, dur, { type = 'sine', at = 0, vol = 0.18, to } = {}) {
+  const c = audio(); if (!c) return;
+  const t = c.currentTime + at, o = c.createOscillator(), g = c.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t);
+  if (to) o.frequency.exponentialRampToValueAtTime(to, t + dur);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, t + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g).connect(c.destination); o.start(t); o.stop(t + dur + 0.05);
+}
+const SOUNDS = {
+  flip:  () => tone(520, 0.07, { type: 'triangle', vol: 0.12, to: 880 }),
+  match: () => { tone(660, 0.14); tone(990, 0.25, { at: 0.11 }); },
+  miss:  () => { tone(240, 0.16, { type: 'square', vol: 0.05, to: 180 }); tone(180, 0.24, { type: 'square', at: 0.15, vol: 0.05, to: 120 }); },
+  win:   () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.25, { at: i * 0.12 })),
+  tick:  () => tone(1100, 0.035, { type: 'square', vol: 0.035 }),
+  pick:  () => { tone(660, 0.12); tone(880, 0.12, { at: 0.1 }); tone(1320, 0.3, { at: 0.2 }); },
+  swap:  () => { tone(420, 0.12, { type: 'triangle', to: 840 }); tone(840, 0.14, { type: 'triangle', at: 0.13, to: 420 }); },
+  lose:  () => [392, 330, 262].forEach((f, i) => tone(f, 0.32, { type: 'triangle', at: i * 0.2 })),
+};
+let play = function (name) { if (!muted) SOUNDS[name](); }
+function renderSound() {
+  $('sound').setAttribute('aria-pressed', String(!muted));
+  $('sound').setAttribute('aria-label', muted ? T.soundOn : T.soundOff);
+  $('soundOff').style.display = muted ? '' : 'none';
+  $('sound').classList.toggle('muted', muted);
+}
+
+const fmt = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const starsFor = (lv, moves) => moves <= Math.ceil(lv.pairs * 1.5) ? 3 : moves <= lv.pairs * 2.2 ? 2 : 1;
+const later = (fn, ms) => { const t = setTimeout(fn, ms); timers.push(t); return t; };
+function clearAll() { timers.forEach(clearTimeout); timers = []; clearInterval(tick); tick = null; }
+
+/* ---------- Accueil ---------- */
+function renderLevels() {
+  $('levels').innerHTML = LEVELS.map((lv, i) => {
+    const b = best[lv.id];
+    const locked = i > 0 && !best[LEVELS[i - 1].id];
+    const mini = Array.from({ length: lv.cols * lv.rows }, () => '<i></i>').join('');
+    const extra = (lv.limit ? ` · ${fmt(lv.limit)} max` : '') + (lv.swap ? ` · ${T.cardsSwap}` : '');
+    const right = locked
+      ? `<svg class="lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>${T.winToUnlock(LEVELS[i - 1].name)}`
+      : b
+      ? `<span class="level-stars">${'★'.repeat(b.stars)}${'☆'.repeat(3 - b.stars)}</span><strong>${T.nMoves(b.moves)}</strong>${fmt(b.time)}`
+      : T.notPlayed;
+    return `<button class="level${locked ? ' locked' : ''}" data-i="${i}"${locked ? ` disabled aria-label="${T.lockedAria(lv.name, LEVELS[i - 1].name)}"` : ''}>
+      <span class="mini" style="grid-template-columns:repeat(${lv.cols},1fr)">${mini}</span>
+      <span><span class="level-name">${lv.name}</span>
+      <span class="level-meta">${T.levelMeta(lv.pairs, lv.cols, lv.rows, lv.preview / 1000)}${extra}</span></span>
+      <span class="level-best">${right}</span>
+    </button>`;
+  }).join('');
+}
+$('levels').addEventListener('click', e => { const b = e.target.closest('.level'); if (b && !b.disabled) start(+b.dataset.i); });
+
+function showHome() {
+  clearAll(); S = null;
+  els.overlay.hidden = true; els.game.hidden = true; els.home.hidden = false;
+  els.home.scrollTop = 0;
+  renderLevels(); renderSetup();
+}
+
+/* ---------- Onglets Solo / À plusieurs ---------- */
+function setTab(t) {
+  $('tabSolo').setAttribute('aria-selected', String(t === 'solo'));
+  $('tabMulti').setAttribute('aria-selected', String(t === 'multi'));
+  $('soloPanel').hidden = t !== 'solo';
+  $('multiPanel').hidden = t !== 'multi';
+}
+$('tabSolo').onclick = () => setTab('solo');
+$('tabMulti').onclick = () => setTab('multi');
+
+/* ---------- À plusieurs : réglages ---------- */
+const PCOLORS = ['var(--p1)', 'var(--p2)', 'var(--p3)', 'var(--p4)'];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+// Un prénom vide affiche « Joueur N » / « Player N » en gris et c'est ce nom qui est utilisé
+let setup = { n: 2, names: ['', '', '', ''], size: 1, format: 'match' };
+try { Object.assign(setup, JSON.parse(localStorage.getItem('memoire-joueurs') || '{}')); } catch (e) {}
+setup.names = setup.names.map((n, i) => (n === `Joueur ${i + 1}` || n === `Player ${i + 1}` ? '' : n));
+function saveSetup() { try { localStorage.setItem('memoire-joueurs', JSON.stringify(setup)); } catch (e) {} }
+
+/* Match : une manche par joueur (chacun commence une fois), les paires s'additionnent */
+let match = null;
+let againAction = null;   // action du bouton principal de l'écran de résultat
+function newMatch(offset = 0) {
+  match = {
+    rounds: setup.format === 'single' ? 1 : setup.n, round: 1, offset,
+    players: setup.names.slice(0, setup.n).map((n, k) => ({ name: n.trim() || T.player(k + 1), color: PCOLORS[k], total: 0, wins: 0 })),
+  };
+}
+const starter = () => (match.offset + match.round - 1) % match.players.length;
+
+function renderSetup() {
+  $('pCount').innerHTML = [2, 3, 4].map(n =>
+    `<button class="chip" data-n="${n}" aria-pressed="${n === setup.n}">${T.nPlayers(n)}</button>`).join('');
+  $('players').innerHTML = setup.names.slice(0, setup.n).map((name, i) =>
+    `<label class="player${name ? ' filled' : ''}" style="--pc:${PCOLORS[i]}"><i></i>` +
+    `<input id="pName${i}" data-i="${i}" maxlength="12" value="${esc(name)}" placeholder="${T.player(i + 1)}" aria-label="${T.playerAria(i + 1)}" autocomplete="off" enterkeyhint="done">` +
+    `<button class="clear" data-c="${i}" aria-label="${T.clearAria(i + 1)}"><span><svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6"/></svg></span></button></label>`).join('');
+  $('sizes').innerHTML = LEVELS.map((lv, i) =>
+    `<button class="chip" data-s="${i}" aria-pressed="${i === setup.size}">${lv.pairs}<small>${lv.name}</small></button>`).join('');
+  $('formats').innerHTML =
+    `<button class="chip" data-f="match" aria-pressed="${setup.format === 'match'}">${T.fairMatch}<small>${T.fairSub(setup.n)}</small></button>` +
+    `<button class="chip" data-f="single" aria-pressed="${setup.format === 'single'}">${T.singleGame}<small>${T.singleSub}</small></button>`;
+}
+$('players').addEventListener('focusin', e => { if (e.target.select) e.target.select(); });
+// La croix vide un seul prénom ; le clavier reste ouvert pour taper le nouveau
+$('players').addEventListener('pointerdown', e => { if (e.target.closest('.clear')) e.preventDefault(); });
+$('players').addEventListener('click', e => {
+  const b = e.target.closest('.clear'); if (!b) return;
+  e.preventDefault();
+  const i = +b.dataset.c, input = $('pName' + i);
+  input.value = ''; setup.names[i] = ''; saveSetup();
+  input.closest('.player').classList.remove('filled');
+  input.focus();
+});
+$('formats').onclick = e => { const b = e.target.closest('[data-f]'); if (b) { setup.format = b.dataset.f; saveSetup(); renderSetup(); } };
+$('pCount').onclick = e => { const b = e.target.closest('[data-n]'); if (b) { setup.n = +b.dataset.n; saveSetup(); renderSetup(); } };
+$('sizes').onclick = e => { const b = e.target.closest('[data-s]'); if (b) { setup.size = +b.dataset.s; saveSetup(); renderSetup(); } };
+$('players').oninput = e => {
+  const i = e.target.dataset.i; if (i == null) return;
+  setup.names[i] = e.target.value; saveSetup();
+  e.target.closest('.player').classList.toggle('filled', e.target.value !== '');
+};
+$('players').onkeydown = e => { if (e.key === 'Enter') e.target.blur(); };
+$('startMulti').onclick = () => { newMatch(); start(setup.size, true); };
+
+function renderScores() {
+  const m = S.mp, box = $('scores'), multiRound = match.rounds > 1;
+  box.style.gridTemplateColumns = `repeat(${m.players.length}, 1fr)`;
+  box.innerHTML = m.players.map((p, k) =>
+    `<div class="pscore${k === m.turn ? ' active' : ''}" style="--pc:${p.color}"><span>${esc(p.name)}</span><b>${p.score}</b>` +
+    (multiRound ? `<small>${T.total(p.ref.total + p.score)}</small>` : '') + `</div>`).join('');
+}
+function announceTurn(msg) {
+  const p = S.mp.players[S.mp.turn], st = $('status');
+  st.className = 'status turn'; st.style.setProperty('--pc', p.color);
+  st.textContent = msg ?? T.turnOf(p.name);
+}
+
+/* ---------- Partie ---------- */
+function start(i, multi = false) {
+  clearAll(); audio();
+  const lv = LEVELS[i];
+  const syms = shuffle(SYMBOLS.slice()).slice(0, lv.pairs);
+  S = { i, lv, deck: shuffle([...syms, ...syms]), open: [], found: 0, moves: 0, lock: true, t0: 0, elapsed: 0, over: false,
+        limit: multi ? 0 : lv.limit, mp: null };
+  if (multi) {
+    S.mp = { players: match.players.map(p => ({ ref: p, name: p.name, color: p.color, score: 0 })), turn: starter() };
+  }
+
+  els.home.hidden = true; els.overlay.hidden = true; els.game.hidden = false;
+  $('gName').textContent = !multi ? lv.name : match.rounds > 1 ? T.roundTitle(match.round, match.rounds) : T.multiTitle;
+  $('gMeta').textContent = multi ? T.metaMulti(lv.name, lv.pairs) : T.metaSolo(lv.pairs, lv.cols, lv.rows);
+  $('sTimeLabel').textContent = S.limit ? T.left : T.time;
+  $('timeBox').classList.remove('warn');
+  document.querySelector('.stats').hidden = multi;
+  $('scores').hidden = !multi;
+  if (multi) renderScores();
+
+  // Partie unique : tirage au sort du premier joueur, cartes cachées pendant le tirage
+  const draw = multi && match.rounds === 1;
+  if (draw) S.mp.turn = -1;
+  els.board.innerHTML = S.deck.map((s, k) =>
+    `<button class="card${draw ? '' : ' up'}" data-k="${k}" aria-label="${T.card(k + 1)}"><span class="inner"><span class="back"></span><span class="face">${s}</span></span></button>`
+  ).join('');
+  S.cards = [...els.board.children];
+  updateStats(); fit();
+  $('bar').style.transition = 'none'; $('bar').style.width = '0%';
+  if (draw) drawStarter(memorize); else memorize();
+}
+
+/* Phase de mémorisation : cartes visibles, puis retournées */
+function memorize() {
+  const lv = S.lv, bar = $('bar'), status = $('status');
+  S.cards.forEach(c => c.classList.add('up'));
+  status.className = 'status memo';
+  bar.style.transition = 'none'; bar.style.width = '100%';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    bar.style.transition = `width ${lv.preview}ms linear`; bar.style.width = '0%';
+  }));
+  const tEnd = Date.now() + lv.preview;
+  const countdown = () => {
+    const r = Math.ceil((tEnd - Date.now()) / 1000);
+    if (r > 0) { status.textContent = T.memorize(r); later(countdown, 200); }
+  };
+  countdown();
+  later(() => {
+    S.cards.forEach(c => c.classList.remove('up'));
+    if (S.mp) { renderScores(); announceTurn((match.rounds > 1 ? T.roundPrefix(match.round) : '') + T.starts(S.mp.players[S.mp.turn].name)); }
+    else { status.className = 'status'; status.textContent = T.yourTurn; }
+    S.lock = false; S.t0 = Date.now();
+    tick = setInterval(updateTime, 250);
+  }, lv.preview);
+}
+
+/* Tirage au sort : le contour passe d'un joueur à l'autre en ralentissant, puis s'arrête */
+function drawStarter(done) {
+  const n = S.mp.players.length, chosen = Math.random() * n | 0;
+  const steps = (n >= 3 ? 3 : 4) * n + chosen + 1;   // le dernier pas tombe sur le joueur tiré
+  const st = $('status'); st.className = 'status'; st.textContent = T.drawing;
+  let step = 0, wait = 0;
+  for (; step < steps; step++) {
+    const k = step % n, last = step === steps - 1;
+    wait += 70 + 330 * Math.pow(step / steps, 2.2);
+    later(() => {
+      S.mp.turn = k; renderScores();
+      if (!last) { play('tick'); return; }
+      play('pick');
+      $('scores').children[k].classList.add('chosen');
+      announceTurn(T.starts(S.mp.players[k].name));
+    }, wait);
+  }
+  later(done, wait + 1300);
+}
+
+function updateStats() {
+  $('sMoves').textContent = S.moves;
+  $('sPairs').textContent = `${S.found}/${S.lv.pairs}`;
+  updateTime();
+}
+function updateTime() {
+  if (!S) return;
+  if (S.t0 && !S.over) S.elapsed = (Date.now() - S.t0) / 1000;
+  if (S.limit) {
+    const left = Math.max(0, S.limit - S.elapsed);
+    $('sTime').textContent = fmt(Math.ceil(left));
+    $('timeBox').classList.toggle('warn', left <= 20);
+    if (left <= 0 && !S.over) finish(false);
+  } else {
+    $('sTime').textContent = fmt(S.elapsed);
+  }
+}
+
+els.board.addEventListener('click', e => {
+  const c = e.target.closest('.card');
+  if (!c || !S || S.lock || S.over || c.classList.contains('up') || c.classList.contains('matched')) return;
+  c.classList.add('up');
+  play('flip');
+  S.open.push(c);
+  if (S.open.length < 2) return;
+
+  S.moves++;
+  const [a, b] = S.open; S.open = [];
+  if (S.deck[a.dataset.k] === S.deck[b.dataset.k]) {
+    later(() => { a.classList.add('matched'); b.classList.add('matched'); if (S.found < S.lv.pairs) play('match'); }, 250);
+    S.found++;
+    if (S.mp) {
+      const p = S.mp.players[S.mp.turn];
+      p.score++;
+      a.style.setProperty('--owner', p.color); b.style.setProperty('--owner', p.color);
+      renderScores();
+      announceTurn(S.found < S.lv.pairs ? T.pairFor(p.name) : '');
+    } else {
+      $('status').textContent = S.found < S.lv.pairs ? T.pairFound : '';
+    }
+    updateStats();
+    if (S.found === S.lv.pairs) later(() => (S.mp ? finishMulti() : finish(true)), 650);
+  } else {
+    S.lock = true;
+    $('status').textContent = T.notSame;
+    later(() => { a.classList.add('wrong'); b.classList.add('wrong'); play('miss'); }, 300);
+    later(() => {
+      a.classList.remove('up', 'wrong'); b.classList.remove('up', 'wrong');
+      if (S) { S.lock = false; $('status').textContent = ''; }
+      if (S && S.mp && !S.over) { S.mp.turn = (S.mp.turn + 1) % S.mp.players.length; renderScores(); announceTurn(); }
+      if (S && S.lv.swap && !S.over) swapCards(a, b);
+    }, S.lv.miss);
+    updateStats();
+  }
+});
+
+/* Niveau Maître : après chaque erreur, deux cartes cachées échangent leur place */
+function swapCards(a, b) {
+  const pool = S.cards.filter(c => c !== a && c !== b && !c.classList.contains('up') && !c.classList.contains('matched'));
+  if (pool.length < 2) return;
+  const x = pool.splice(Math.random() * pool.length | 0, 1)[0];
+  const y = pool[Math.random() * pool.length | 0];
+  const kx = x.dataset.k, ky = y.dataset.k;
+  [S.deck[kx], S.deck[ky]] = [S.deck[ky], S.deck[kx]];
+  x.querySelector('.face').textContent = S.deck[kx];
+  y.querySelector('.face').textContent = S.deck[ky];
+  [x, y].forEach(c => { c.classList.remove('swapped'); void c.offsetWidth; c.classList.add('swapped'); });
+  later(() => { x.classList.remove('swapped'); y.classList.remove('swapped'); }, 700);
+  play('swap');
+  if (S.mp) announceTurn(T.movedTurn(S.mp.players[S.mp.turn].name));
+  else $('status').textContent = T.swapped;
+}
+
+/* Fin d'une manche à plusieurs : points ajoutés au total, puis manche suivante ou classement final */
+const joinNames = ns => ns.length > 1 ? `${ns.slice(0, -1).join(', ')} ${T.and} ${ns[ns.length - 1]}` : ns[0];
+function finishMulti() {
+  S.over = true; clearInterval(tick);
+  play('win');
+  const sp = S.mp.players, best = Math.max(...sp.map(p => p.score));
+  const roundWinners = sp.filter(p => p.score === best);
+  sp.forEach(p => { p.ref.total += p.score; });
+  if (roundWinners.length === 1) roundWinners[0].ref.wins++;
+  const last = match.round >= match.rounds;
+
+  if (!last) {
+    // Bilan de la manche, classement provisoire au total
+    const next = match.players[(match.offset + match.round) % match.players.length];
+    $('rTitle').textContent = T.roundEnd(match.round, match.rounds);
+    $('rText').textContent = roundWinners.length > 1
+      ? T.roundTie(joinNames(roundWinners.map(p => p.name)), T.pairs(best))
+      : T.roundWin(roundWinners[0].name, T.pairs(best));
+    const ps = match.players.slice().sort((x, y) => y.total - x.total);
+    $('rRank').innerHTML = ps.map(p => {
+      const pos = 1 + ps.filter(q => q.total > p.total).length;
+      const gain = sp.find(q => q.ref === p).score;
+      return `<li style="--pc:${p.color}"><i></i><span>${pos}. ${esc(p.name)}</span><em>+${gain} · total ${p.total}</em></li>`;
+    }).join('');
+    $('rAgain').textContent = T.nextRound(match.round + 1, next.name);
+    $('rHome').textContent = T.stopMatch;
+    againAction = () => { match.round++; start(S.i, true); };
+  } else {
+    // Classement final : total des paires, puis nombre de manches gagnées
+    const better = (x, y) => y.total - x.total || y.wins - x.wins;
+    const ps = match.players.slice().sort(better);
+    const top = ps[0], sameTotal = ps.filter(p => p.total === top.total), winners = sameTotal.filter(p => p.wins === top.wins);
+    const multiRound = match.rounds > 1;
+    if (winners.length > 1) {
+      $('rTitle').textContent = T.tie;
+      $('rText').textContent = T.tieText(joinNames(winners.map(p => p.name)), T.pairs(top.total), multiRound ? T.wonRounds(top.wins) : '');
+    } else {
+      $('rTitle').textContent = multiRound ? T.matchWinner(top.name) : T.winner(top.name);
+      $('rText').textContent = !multiRound
+        ? T.singleText(T.pairs(top.total), S.lv.pairs, fmt(Math.round(S.elapsed)))
+        : sameTotal.length > 1
+        ? T.tieBreak(T.pairs(top.total), top.name, T.wonRounds(top.wins))
+        : T.totalText(T.pairs(top.total), match.rounds);
+    }
+    $('rRank').innerHTML = ps.map(p => {
+      const pos = 1 + ps.filter(q => better(q, p) < 0).length;
+      const detail = multiRound ? `${T.pairs(p.total)} · ${T.winsShort(p.wins)}` : T.pairs(p.total);
+      return `<li class="${pos === 1 ? 'first' : ''}" style="--pc:${p.color}"><i></i><span>${pos}. ${esc(p.name)}</span><em>${detail}</em></li>`;
+    }).join('');
+    $('rAgain').textContent = multiRound ? T.newMatch : T.rematch;
+    $('rHome').textContent = T.changePlayers;
+    againAction = () => { newMatch(); start(S.i, true); };
+  }
+  $('rRank').hidden = false; $('rGrid').hidden = true; $('rStars').hidden = true;
+  $('rRecord').hidden = true; $('rUnlock').hidden = true; $('rNext').hidden = true;
+  els.overlay.hidden = false; $('rAgain').focus();
+}
+
+function finish(won) {
+  S.over = true; clearInterval(tick);
+  play(won ? 'win' : 'lose');
+  const lv = S.lv, time = Math.round(S.elapsed);
+  const next = LEVELS[S.i + 1];
+  let record = false, stars = 0;
+  const unlocked = won && next && !best[lv.id];
+  if (won) {
+    stars = starsFor(lv, S.moves);
+    const b = best[lv.id];
+    if (!b || S.moves < b.moves || (S.moves === b.moves && time < b.time)) {
+      best[lv.id] = { moves: S.moves, time, stars: Math.max(stars, b ? b.stars : 0) };
+      record = true; saveBest();
+    } else if (stars > b.stars) { b.stars = stars; saveBest(); }
+  } else {
+    S.cards.forEach(c => c.classList.add('up'));
+  }
+  $('rStars').innerHTML = won ? [1, 2, 3].map(n => `<span class="${n <= stars ? '' : 'off'}">★</span>`).join('') : '';
+  $('rStars').hidden = !won;
+  $('rTitle').textContent = won ? (stars === 3 ? T.perfect : T.bravo) : T.timeUp;
+  $('rText').textContent = won
+    ? T.wonText(lv.pairs, lv.name)
+    : T.lostText(S.found, lv.pairs);
+  $('rMoves').textContent = S.moves;
+  $('rTime').textContent = fmt(time);
+  $('rRecord').hidden = !record;
+  $('rUnlock').hidden = !unlocked;
+  if (unlocked) $('rUnlock').textContent = T.unlocked(next.name);
+  $('rNext').hidden = !(won && next);
+  $('rRank').hidden = true; $('rGrid').hidden = false;
+  $('rAgain').textContent = T.replay;
+  $('rHome').textContent = T.chooseLevelBtn;
+  againAction = () => start(S.i);
+  later(() => { els.overlay.hidden = false; (won && next ? $('rNext') : $('rAgain')).focus(); }, won ? 0 : 900);
+}
+
+$('rNext').onclick = () => start(S.i + 1);
+$('rAgain').onclick = () => againAction && againAction();
+$('rHome').onclick = showHome;
+$('back').onclick = showHome;
+$('restart').onclick = () => S && start(S.i, !!S.mp);
+$('sound').onclick = () => {
+  muted = !muted; renderSound();
+  try { localStorage.setItem('memoire-son', muted ? 'off' : 'on'); } catch (e) {}
+  play('flip');
+};
+renderSound();
+
+/* Ajuste la taille des cartes à l'écran (téléphone ou ordinateur) */
+function fit() {
+  if (!S || els.game.hidden) return;
+  const { cols, rows } = S.lv, gap = cols >= 6 ? 5 : cols >= 5 ? 6 : 8;
+  const W = els.wrap.clientWidth, H = els.wrap.clientHeight;
+  const w = Math.floor(Math.min((W - gap * (cols - 1)) / cols, ((H - gap * (rows - 1)) / rows) * 0.75, 130));
+  els.board.style.gap = gap + 'px';
+  els.board.style.gridTemplateColumns = `repeat(${cols}, ${w}px)`;
+  els.board.style.setProperty('--sym', Math.round(w * 0.52) + 'px');
+}
+addEventListener('resize', fit);
+
+
+/* ---------- Application native (iOS / Android via Capacitor) ---------- */
+const P = (window.Capacitor && window.Capacitor.Plugins) || {};
+function haptic(kind) {
+  try {
+    if (!P.Haptics) { if (navigator.vibrate) navigator.vibrate(kind === 'miss' ? [30, 40, 30] : kind === 'tick' ? 5 : 15); return; }
+    if (kind === 'flip' || kind === 'tick') P.Haptics.impact({ style: 'LIGHT' });
+    else if (kind === 'miss') P.Haptics.notification({ type: 'ERROR' });
+    else P.Haptics.notification({ type: 'SUCCESS' });
+  } catch (e) {}
+}
+const playSound = play;
+play = name => { playSound(name); if (!muted && name !== 'lose') haptic(name); };
+if (P.App) P.App.addListener('backButton', () => {
+  if (!els.home.hidden) P.App.exitApp(); else showHome();
+});
+if (P.SplashScreen) P.SplashScreen.hide();
+
+/* ---------- Version web installable : fonctionne hors ligne ---------- */
+const isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+if (!isNative && 'serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+
+renderLevels();
+renderSetup();
+</script>
+</body>
+</html>
