@@ -249,21 +249,42 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
   animation: fxIn .25s ease;
 }
 @keyframes fxIn { from { opacity: 0; } }
-.lock-stage { --lk: min(52vw, 230px); position: relative; width: calc(var(--lk) * 1.5); height: calc(var(--lk) * 1.5); display: grid; place-items: center; }
-.padlock { width: var(--lk); height: calc(var(--lk) * 7 / 6); overflow: visible; animation: lockIn .5s cubic-bezier(.2,.9,.3,1.3); }
-@keyframes lockIn { from { transform: scale(0) rotate(-20deg); } }
-.padlock .shackle { fill: none; stroke: #DCE0F2; stroke-width: 13; stroke-linecap: round;
-  transform-box: view-box; transform-origin: 88px 64px; transition: transform .45s cubic-bezier(.3,1.6,.5,1); }
-.padlock .lbody { fill: var(--accent); }
-.padlock .khole { fill: #2B3580; transition: opacity .3s; }
-.unlock-fx.shake .padlock { animation: lockShake .6s ease; }
-@keyframes lockShake { 15%, 55% { transform: rotate(-9deg); } 35%, 75% { transform: rotate(9deg); } }
-.unlock-fx.open .shackle { transform: translateY(-18px) rotate(-38deg); }
-.unlock-fx.open .padlock { filter: drop-shadow(0 0 34px color-mix(in srgb, var(--accent) 80%, transparent)); animation: lockPop .5s ease; }
-@keyframes lockPop { 40% { transform: scale(1.12); } }
+.lock-stage { --lk: min(64vw, 290px); position: relative; width: calc(var(--lk) * 1.45); height: calc(var(--lk) * 1.45); display: grid; place-items: center; }
+/* Cadenas : anse en métal + corps doré ; l'anse saute puis pivote en 3D autour de sa grande branche */
+.padlock { position: relative; width: var(--lk); height: calc(var(--lk) * 1.12); perspective: calc(var(--lk) * 3);
+  animation: lockIn .45s cubic-bezier(.2,.9,.3,1.3) both; }
+@keyframes lockIn { from { transform: translateY(-40px) scale(.2) rotate(-15deg); opacity: 0; } }
+.padlock .shackle {
+  position: absolute; left: 19%; width: 62%; top: 0; height: 60%; box-sizing: border-box;
+  border: calc(var(--lk) * .105) solid #C7CDDE; border-bottom: 0; border-radius: calc(var(--lk) * .32) calc(var(--lk) * .32) 0 0;
+  border-top-color: #E9ECF6; border-left-color: #D7DCEA;
+  box-shadow: inset 0 calc(var(--lk) * .02) 0 rgb(255 255 255 / .5), 0 calc(var(--lk) * .015) 0 rgb(0 0 0 / .18);
+  transform-origin: calc(100% - var(--lk) * .052) 100%; transform-style: preserve-3d;
+  transition: transform .22s cubic-bezier(.3,1.8,.5,1);
+}
+.padlock .lbody {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 60%; border-radius: calc(var(--lk) * .14); z-index: 1;
+  background: linear-gradient(155deg, #FFE08A 0%, #F6B73C 38%, #E39A1C 70%, #C77C0C 100%);
+  box-shadow: inset 0 calc(var(--lk) * .03) 0 rgb(255 255 255 / .5), inset 0 calc(var(--lk) * -.04) 0 rgb(0 0 0 / .14),
+    0 calc(var(--lk) * .05) calc(var(--lk) * .09) rgb(0 0 0 / .4);
+  display: grid; place-items: center;
+}
+.padlock .lbody::before { content: ""; position: absolute; inset: 9% 7% auto; height: 16%; border-radius: 99px; background: rgb(255 255 255 / .22); }
+.padlock .khole { position: relative; width: calc(var(--lk) * .2); height: calc(var(--lk) * .3); transition: transform .25s ease; }
+.padlock .khole::before { content: ""; position: absolute; left: 50%; top: 0; width: calc(var(--lk) * .13); aspect-ratio: 1; border-radius: 50%;
+  background: #4A3309; transform: translateX(-50%); box-shadow: inset 0 calc(var(--lk) * .015) 0 rgb(0 0 0 / .35); }
+.padlock .khole::after { content: ""; position: absolute; left: 50%; top: 32%; width: calc(var(--lk) * .055); height: 62%; border-radius: 0 0 6px 6px;
+  background: #4A3309; transform: translateX(-50%); }
+.unlock-fx.shake .padlock { animation: lockShake .35s ease; }
+@keyframes lockShake { 25% { transform: rotate(-6deg); } 75% { transform: rotate(6deg); } }
+.unlock-fx.turn .khole { transform: rotate(90deg); }
+.unlock-fx.pop .shackle { transform: translateY(-17%); }
+.unlock-fx.open .shackle { transition: transform .6s cubic-bezier(.25,1.3,.5,1); transform: translateY(-17%) rotateY(-155deg); }
+.unlock-fx.open .padlock { filter: drop-shadow(0 0 calc(var(--lk) * .16) color-mix(in srgb, var(--accent) 80%, transparent)); animation: lockPop .5s ease; }
+@keyframes lockPop { 40% { transform: scale(1.08); } }
 .burst { position: absolute; inset: 0; pointer-events: none; }
 .burst i {
-  position: absolute; left: calc(50% - 5px); top: calc(50% - 26px); width: 10px; height: 52px; border-radius: 5px;
+  position: absolute; left: calc(50% - var(--lk) * .022); top: calc(50% - var(--lk) * .11); width: calc(var(--lk) * .044); height: calc(var(--lk) * .22); border-radius: 6px;
   background: var(--accent); opacity: 0; transform: rotate(var(--r)) translateY(calc(var(--lk) * -.6));
 }
 .unlock-fx.open .burst i { animation: ray .8s ease-out forwards; }
@@ -316,7 +337,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
   .card .inner { transition-duration: .01s; }
   .card.matched .face, .card.wrong .face, .card.swapped, .pscore.chosen, .sheet, .countdown b.go, .trophy, .trophy::after,
   .padlock, .unlock-fx.shake .padlock, .unlock-fx.open .burst i, .level.fresh, .unlock-fx { animation: none; }
-  .padlock .shackle { transition: none; }
+  .padlock .shackle, .padlock .khole { transition: none; }
 }
 </style>
 </head>
@@ -383,11 +404,10 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 <div class="unlock-fx" id="unlockFx" hidden aria-live="assertive">
   <div class="lock-stage">
     <div class="burst" aria-hidden="true"><i style="--r:0deg"></i><i style="--r:30deg"></i><i style="--r:60deg"></i><i style="--r:90deg"></i><i style="--r:120deg"></i><i style="--r:150deg"></i><i style="--r:180deg"></i><i style="--r:210deg"></i><i style="--r:240deg"></i><i style="--r:270deg"></i><i style="--r:300deg"></i><i style="--r:330deg"></i></div>
-    <svg class="padlock" viewBox="0 0 120 140" aria-hidden="true">
-      <path class="shackle" d="M32 64V42a28 28 0 0 1 56 0v22"/>
-      <rect class="lbody" x="12" y="60" width="96" height="74" rx="18"/>
-      <circle class="khole" cx="60" cy="92" r="10"/><rect class="khole" x="55.5" y="96" width="9" height="20" rx="4"/>
-    </svg>
+    <div class="padlock" aria-hidden="true">
+      <div class="shackle"></div>
+      <div class="lbody"><span class="khole"></span></div>
+    </div>
   </div>
   <small id="ufxSub">Nouveau niveau</small>
   <strong id="ufxTitle"></strong>
@@ -561,8 +581,9 @@ const SOUNDS = {
   miss:  () => { tone(240, 0.16, { type: 'square', vol: 0.05, to: 180 }); tone(180, 0.24, { type: 'square', at: 0.15, vol: 0.05, to: 120 }); },
   win:   () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.25, { at: i * 0.12 })),
   tick:  () => tone(1100, 0.035, { type: 'square', vol: 0.035 }),
-  unlock: () => { tone(1900, 0.03, { type: 'square', vol: 0.06 }); tone(1300, 0.04, { type: 'square', at: 0.05, vol: 0.05 });
-                  [523, 784, 1047, 1568].forEach((f, i) => tone(f, 0.3, { at: 0.15 + i * 0.09, vol: 0.15 })); },
+  click:  () => { tone(2100, 0.025, { type: 'square', vol: 0.07 }); tone(1400, 0.03, { type: 'square', at: 0.04, vol: 0.05 }); },
+  unlock: () => { tone(900, 0.06, { type: 'square', vol: 0.06, to: 1800 });
+                  [523, 784, 1047, 1568].forEach((f, i) => tone(f, 0.32, { at: 0.12 + i * 0.09, vol: 0.15 })); },
   count: () => tone(740, 0.14, { type: 'triangle', vol: 0.16 }),
   pick:  () => { tone(660, 0.12); tone(880, 0.12, { at: 0.1 }); tone(1320, 0.3, { at: 0.2 }); },
   swap:  () => { tone(420, 0.12, { type: 'triangle', to: 840 }); tone(840, 0.14, { type: 'triangle', at: 0.13, to: 420 }); },
@@ -946,7 +967,7 @@ function finish(won) {
   $('rHome').textContent = T.chooseLevelBtn;
   againAction = () => start(S.i);
   const showSheet = () => { els.overlay.hidden = false; (won && next ? $('rNext') : $('rAgain')).focus(); };
-  if (unlocked) { justUnlocked = next.id; later(() => playUnlock(next.name, showSheet), 350); }
+  if (unlocked) { justUnlocked = next.id; playUnlock(next.name, showSheet); }
   else later(showSheet, won ? 0 : 900);
 }
 
@@ -963,9 +984,11 @@ function playUnlock(name, done) {
     later(() => { fx.hidden = true; done(); }, 300);
   };
   fx.onclick = end;
-  later(() => fx.classList.add('shake'), 500);
-  later(() => { fx.classList.add('open'); play('unlock'); }, 1150);
-  later(end, 3400);
+  later(() => fx.classList.add('shake'), 420);
+  later(() => { fx.classList.add('turn'); play('click'); }, 780);
+  later(() => fx.classList.add('pop'), 1060);
+  later(() => { fx.classList.add('open'); play('unlock'); }, 1280);
+  later(end, 3500);
 }
 
 $('rNext').onclick = () => start(S.i + 1);
@@ -1001,6 +1024,7 @@ function haptic(kind) {
     if (kind === 'flip' || kind === 'tick') P.Haptics.impact({ style: 'LIGHT' });
     else if (kind === 'count') P.Haptics.impact({ style: 'MEDIUM' });
     else if (kind === 'unlock') P.Haptics.impact({ style: 'HEAVY' });
+    else if (kind === 'click') P.Haptics.impact({ style: 'MEDIUM' });
     else if (kind === 'miss') P.Haptics.notification({ type: 'ERROR' });
     else P.Haptics.notification({ type: 'SUCCESS' });
   } catch (e) {}
