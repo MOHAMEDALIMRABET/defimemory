@@ -25,6 +25,9 @@ Au début de chaque partie, toutes les cartes sont visibles pendant quelques sec
 
 Gagnez un niveau pour débloquer le suivant.
 
+À PLUSIEURS SUR LE MÊME TÉLÉPHONE
+Défiez votre famille ou vos amis, de 2 à 4 joueurs ! Chacun son tour, retournez deux cartes : une paire rapporte 1 point et vous rejouez, sinon vous passez le téléphone. Celui qui trouve le plus de paires gagne. Choisissez la taille du plateau, de 6 à 18 paires, et lancez la revanche.
+
 POUR TOUS
 • Jusqu'à 3 étoiles par niveau selon votre nombre de coups
 • Meilleurs scores enregistrés pour chaque niveau
@@ -43,7 +46,7 @@ Saurez-vous devenir Maître de DefiMemory ?
 | Champ | Texte |
 |---|---|
 | Sous-titre (30 max) | `Mémorise. Retourne. Gagne.` |
-| Texte promotionnel (170 max) | `5 niveaux, de Facile à Maître. Mémorisez les cartes en quelques secondes puis retrouvez toutes les paires. Sans publicité, sans Internet.` |
+| Texte promotionnel (170 max) | `5 niveaux en solo et un mode de 2 à 4 joueurs sur le même téléphone. Mémorisez les cartes, retrouvez les paires. Sans publicité, sans Internet.` |
 | Mots-clés (100 max, séparés par des virgules) | `memoire,memory,paires,cartes,cerveau,concentration,reflexion,enfant,puzzle,brain,jeu,memo` |
 | Catégorie principale | Jeux |
 | Sous-catégories | Réflexion, Cartes |

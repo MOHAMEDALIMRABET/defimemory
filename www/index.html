@@ -30,6 +30,7 @@ body { margin: 0; }
   --match: #23977A;
   --miss: #D2475A;
   --face: #FFFFFF;
+  --p1: #E0533D; --p2: #1C9A8C; --p3: #D9920F; --p4: #8150E0;
   --font-display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
   --font-body: "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
@@ -37,12 +38,14 @@ body { margin: 0; }
   :root:not([data-theme="light"]) {
     --bg: #111430; --surface: #1C2045; --ink: #ECEEFA; --muted: #9CA2C8; --line: #2E3466;
     --back: #3A47B5; --back-2: #5160D6; --accent: #F4B451; --match: #3CC29E; --miss: #F06A7C; --face: #F4F5FB;
+    --p1: #FF7A63; --p2: #3CC7B6; --p3: #F2B33D; --p4: #A57EFF;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #111430; --surface: #1C2045; --ink: #ECEEFA; --muted: #9CA2C8; --line: #2E3466;
   --back: #3A47B5; --back-2: #5160D6; --accent: #F4B451; --match: #3CC29E; --miss: #F06A7C; --face: #F4F5FB;
+  --p1: #FF7A63; --p2: #3CC7B6; --p3: #F2B33D; --p4: #A57EFF;
   color-scheme: dark;
 }
 
@@ -99,6 +102,53 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 .lock { display: block; width: 22px; height: 22px; margin: 0 0 3px auto; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; }
 .unlock { color: var(--back-2); font-weight: 700; }
 .level-stars { color: var(--accent); letter-spacing: 1px; font-size: 13px; }
+
+/* ---------- Onglets Solo / À plusieurs ---------- */
+.tabs { display: grid; grid-template-columns: 1fr 1fr; background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; padding: 4px; gap: 4px; }
+.tab { border: 0; background: none; border-radius: 10px; min-height: 42px; font-weight: 700; color: var(--muted); }
+.tab[aria-selected="true"] { background: var(--back); color: #fff; }
+.panel { display: flex; flex-direction: column; gap: 22px; }
+
+/* ---------- Réglages à plusieurs ---------- */
+.count { display: flex; gap: 8px; }
+.chip {
+  flex: 1; min-height: 44px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--surface);
+  font-weight: 700; font-size: 15px; display: grid; place-items: center; gap: 0; line-height: 1.15; padding: 6px 4px;
+}
+.chip small { font-weight: 600; font-size: 11px; color: var(--muted); }
+.chip[aria-pressed="true"] { border-color: var(--back-2); background: color-mix(in srgb, var(--back-2) 12%, var(--surface)); }
+.sizes { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.players { display: grid; gap: 8px; }
+.player { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px; padding: 4px 6px 4px 12px; }
+.player i { width: 14px; height: 14px; border-radius: 50%; background: var(--pc); flex: none; }
+.player input {
+  flex: 1; min-width: 0; border: 0; background: none; color: var(--ink); font: inherit; font-weight: 700; font-size: 16px;
+  padding: 10px 4px; user-select: text; -webkit-user-select: text; outline: none;
+}
+.player:focus-within { border-color: var(--pc); }
+.btn.start { flex: none; }
+
+/* ---------- Scores pendant la partie ---------- */
+.scores { display: grid; gap: 6px; }
+.pscore {
+  border: 1.5px solid var(--line); background: var(--surface); border-radius: 12px; padding: 6px 8px 7px; min-width: 0;
+  text-align: center; position: relative; overflow: hidden; transition: border-color .2s, background .2s, transform .2s;
+}
+.pscore::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--pc); opacity: .35; }
+.pscore span { display: block; font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muted); }
+.pscore b { font-family: var(--font-display); font-size: 22px; font-variant-numeric: tabular-nums; }
+.pscore.active { border-color: var(--pc); background: color-mix(in srgb, var(--pc) 13%, var(--surface)); transform: translateY(-2px); }
+.pscore.active::before { opacity: 1; }
+.pscore.active span { color: var(--ink); }
+.status.turn { color: var(--pc, var(--ink)); }
+.card.matched[style*="--owner"] .face { border-color: var(--owner); box-shadow: 0 0 0 3px color-mix(in srgb, var(--owner) 30%, transparent); }
+
+.rank { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; text-align: left; }
+.rank li { display: flex; align-items: center; gap: 10px; background: var(--bg); border-radius: 12px; padding: 10px 12px; font-weight: 700; }
+.rank li i { width: 12px; height: 12px; border-radius: 50%; background: var(--pc); flex: none; }
+.rank li span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rank li em { font-style: normal; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.rank li.first { background: color-mix(in srgb, var(--accent) 22%, var(--bg)); }
 
 /* ---------- Jeu ---------- */
 .game { flex: 1; display: flex; flex-direction: column; gap: 12px; min-height: 0; }
@@ -194,9 +244,26 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
         <p class="tagline">Retenez les cartes, puis retrouvez les paires.</p>
       </div>
     </div>
-    <p class="rules">Au début, toutes les cartes sont <b>visibles quelques secondes</b>, puis elles se retournent. Touchez deux cartes à la fois : si elles sont identiques, elles restent ouvertes. Trouvez <b>toutes les paires</b> en un minimum de coups. Gagnez un niveau pour <b>débloquer le suivant</b>.</p>
-    <p class="label">Choisissez un niveau</p>
-    <div class="levels" id="levels"></div>
+    <div class="tabs" role="tablist" aria-label="Mode de jeu">
+      <button class="tab" role="tab" id="tabSolo" aria-selected="true" aria-controls="soloPanel">Solo</button>
+      <button class="tab" role="tab" id="tabMulti" aria-selected="false" aria-controls="multiPanel">À plusieurs</button>
+    </div>
+
+    <div class="panel" id="soloPanel" role="tabpanel" aria-labelledby="tabSolo">
+      <p class="rules">Au début, toutes les cartes sont <b>visibles quelques secondes</b>, puis elles se retournent. Touchez deux cartes à la fois : si elles sont identiques, elles restent ouvertes. Trouvez <b>toutes les paires</b> en un minimum de coups. Gagnez un niveau pour <b>débloquer le suivant</b>.</p>
+      <p class="label">Choisissez un niveau</p>
+      <div class="levels" id="levels"></div>
+    </div>
+
+    <div class="panel" id="multiPanel" role="tabpanel" aria-labelledby="tabMulti" hidden>
+      <p class="rules">De 2 à 4 joueurs sur le même téléphone. Chacun son tour, retournez deux cartes. <b>Une paire = 1 point, et vous rejouez.</b> Sinon, passez le téléphone au joueur suivant. Celui qui a le plus de paires gagne.</p>
+      <p class="label">Nombre de joueurs</p>
+      <div class="count" id="pCount"></div>
+      <div class="players" id="players"></div>
+      <p class="label">Taille du plateau</p>
+      <div class="sizes" id="sizes"></div>
+      <button class="btn primary start" id="startMulti">Commencer la partie</button>
+    </div>
   </section>
 
   <section class="game" id="game" hidden>
@@ -217,6 +284,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
       <div class="stat"><small>Paires</small><b id="sPairs">0/6</b></div>
       <div class="stat" id="timeBox"><small id="sTimeLabel">Temps</small><b id="sTime">0:00</b></div>
     </div>
+    <div class="scores" id="scores" hidden></div>
     <div class="status" id="status" aria-live="polite"></div>
     <div class="progress" aria-hidden="true"><i id="bar"></i></div>
     <div class="board-wrap" id="boardWrap"><div class="board" id="board"></div></div>
@@ -228,7 +296,8 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
     <div class="big-stars" id="rStars"></div>
     <h2 id="rTitle">Bravo !</h2>
     <p id="rText"></p>
-    <div class="result-grid">
+    <ol class="rank" id="rRank" hidden></ol>
+    <div class="result-grid" id="rGrid">
       <div><small>Coups</small><b id="rMoves">0</b></div>
       <div><small>Temps</small><b id="rTime">0:00</b></div>
     </div>
@@ -328,21 +397,73 @@ function showHome() {
   clearAll(); S = null;
   els.overlay.hidden = true; els.game.hidden = true; els.home.hidden = false;
   els.home.scrollTop = 0;
-  renderLevels();
+  renderLevels(); renderSetup();
+}
+
+/* ---------- Onglets Solo / À plusieurs ---------- */
+function setTab(t) {
+  $('tabSolo').setAttribute('aria-selected', String(t === 'solo'));
+  $('tabMulti').setAttribute('aria-selected', String(t === 'multi'));
+  $('soloPanel').hidden = t !== 'solo';
+  $('multiPanel').hidden = t !== 'multi';
+}
+$('tabSolo').onclick = () => setTab('solo');
+$('tabMulti').onclick = () => setTab('multi');
+
+/* ---------- À plusieurs : réglages ---------- */
+const PCOLORS = ['var(--p1)', 'var(--p2)', 'var(--p3)', 'var(--p4)'];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+let setup = { n: 2, names: ['Joueur 1', 'Joueur 2', 'Joueur 3', 'Joueur 4'], size: 1 };
+try { Object.assign(setup, JSON.parse(localStorage.getItem('memoire-joueurs') || '{}')); } catch (e) {}
+function saveSetup() { try { localStorage.setItem('memoire-joueurs', JSON.stringify(setup)); } catch (e) {} }
+let mpRound = 0;   // fait tourner le premier joueur à chaque revanche
+
+function renderSetup() {
+  $('pCount').innerHTML = [2, 3, 4].map(n =>
+    `<button class="chip" data-n="${n}" aria-pressed="${n === setup.n}">${n} joueurs</button>`).join('');
+  $('players').innerHTML = setup.names.slice(0, setup.n).map((name, i) =>
+    `<label class="player" style="--pc:${PCOLORS[i]}"><i></i><input id="pName${i}" data-i="${i}" maxlength="12" value="${esc(name)}" aria-label="Nom du joueur ${i + 1}" autocomplete="off" enterkeyhint="done"></label>`).join('');
+  $('sizes').innerHTML = LEVELS.map((lv, i) =>
+    `<button class="chip" data-s="${i}" aria-pressed="${i === setup.size}">${lv.pairs}<small>${lv.name}</small></button>`).join('');
+}
+$('pCount').onclick = e => { const b = e.target.closest('[data-n]'); if (b) { setup.n = +b.dataset.n; saveSetup(); renderSetup(); } };
+$('sizes').onclick = e => { const b = e.target.closest('[data-s]'); if (b) { setup.size = +b.dataset.s; saveSetup(); renderSetup(); } };
+$('players').oninput = e => { const i = e.target.dataset.i; if (i != null) { setup.names[i] = e.target.value; saveSetup(); } };
+$('players').onkeydown = e => { if (e.key === 'Enter') e.target.blur(); };
+$('startMulti').onclick = () => { mpRound = 0; start(setup.size, true); };
+
+function renderScores() {
+  const m = S.mp, box = $('scores');
+  box.style.gridTemplateColumns = `repeat(${m.players.length}, 1fr)`;
+  box.innerHTML = m.players.map((p, k) =>
+    `<div class="pscore${k === m.turn ? ' active' : ''}" style="--pc:${p.color}"><span>${esc(p.name)}</span><b>${p.score}</b></div>`).join('');
+}
+function announceTurn(msg) {
+  const p = S.mp.players[S.mp.turn], st = $('status');
+  st.className = 'status turn'; st.style.setProperty('--pc', p.color);
+  st.textContent = msg ?? `Au tour de ${p.name}`;
 }
 
 /* ---------- Partie ---------- */
-function start(i) {
+function start(i, multi = false) {
   clearAll(); audio();
   const lv = LEVELS[i];
   const syms = shuffle(SYMBOLS.slice()).slice(0, lv.pairs);
-  S = { i, lv, deck: shuffle([...syms, ...syms]), open: [], found: 0, moves: 0, lock: true, t0: 0, elapsed: 0, over: false };
+  S = { i, lv, deck: shuffle([...syms, ...syms]), open: [], found: 0, moves: 0, lock: true, t0: 0, elapsed: 0, over: false,
+        limit: multi ? 0 : lv.limit, mp: null };
+  if (multi) {
+    const players = setup.names.slice(0, setup.n).map((n, k) => ({ name: n.trim() || `Joueur ${k + 1}`, color: PCOLORS[k], score: 0 }));
+    S.mp = { players, turn: mpRound % players.length };
+  }
 
   els.home.hidden = true; els.overlay.hidden = true; els.game.hidden = false;
-  $('gName').textContent = lv.name;
-  $('gMeta').textContent = `${lv.pairs} paires · ${lv.cols}×${lv.rows}`;
-  $('sTimeLabel').textContent = lv.limit ? 'Reste' : 'Temps';
+  $('gName').textContent = multi ? 'À plusieurs' : lv.name;
+  $('gMeta').textContent = multi ? `${lv.name} · ${lv.pairs} paires` : `${lv.pairs} paires · ${lv.cols}×${lv.rows}`;
+  $('sTimeLabel').textContent = S.limit ? 'Reste' : 'Temps';
   $('timeBox').classList.remove('warn');
+  document.querySelector('.stats').hidden = multi;
+  $('scores').hidden = !multi;
+  if (multi) renderScores();
 
   els.board.innerHTML = S.deck.map((s, k) =>
     `<button class="card up" data-k="${k}" aria-label="Carte ${k + 1}"><span class="inner"><span class="back"></span><span class="face">${s}</span></span></button>`
@@ -365,7 +486,8 @@ function start(i) {
   countdown();
   later(() => {
     S.cards.forEach(c => c.classList.remove('up'));
-    status.className = 'status'; status.textContent = 'À vous ! Touchez deux cartes.';
+    if (S.mp) announceTurn(`${S.mp.players[S.mp.turn].name} commence !`);
+    else { status.className = 'status'; status.textContent = 'À vous ! Touchez deux cartes.'; }
     S.lock = false; S.t0 = Date.now();
     tick = setInterval(updateTime, 250);
   }, lv.preview);
@@ -379,8 +501,8 @@ function updateStats() {
 function updateTime() {
   if (!S) return;
   if (S.t0 && !S.over) S.elapsed = (Date.now() - S.t0) / 1000;
-  if (S.lv.limit) {
-    const left = Math.max(0, S.lv.limit - S.elapsed);
+  if (S.limit) {
+    const left = Math.max(0, S.limit - S.elapsed);
     $('sTime').textContent = fmt(Math.ceil(left));
     $('timeBox').classList.toggle('warn', left <= 20);
     if (left <= 0 && !S.over) finish(false);
@@ -402,9 +524,17 @@ els.board.addEventListener('click', e => {
   if (S.deck[a.dataset.k] === S.deck[b.dataset.k]) {
     later(() => { a.classList.add('matched'); b.classList.add('matched'); if (S.found < S.lv.pairs) play('match'); }, 250);
     S.found++;
-    $('status').textContent = S.found < S.lv.pairs ? 'Paire trouvée !' : '';
+    if (S.mp) {
+      const p = S.mp.players[S.mp.turn];
+      p.score++;
+      a.style.setProperty('--owner', p.color); b.style.setProperty('--owner', p.color);
+      renderScores();
+      announceTurn(S.found < S.lv.pairs ? `Paire pour ${p.name}, qui rejoue !` : '');
+    } else {
+      $('status').textContent = S.found < S.lv.pairs ? 'Paire trouvée !' : '';
+    }
     updateStats();
-    if (S.found === S.lv.pairs) later(() => finish(true), 650);
+    if (S.found === S.lv.pairs) later(() => (S.mp ? finishMulti() : finish(true)), 650);
   } else {
     S.lock = true;
     $('status').textContent = 'Pas pareilles…';
@@ -412,6 +542,7 @@ els.board.addEventListener('click', e => {
     later(() => {
       a.classList.remove('up', 'wrong'); b.classList.remove('up', 'wrong');
       if (S) { S.lock = false; $('status').textContent = ''; }
+      if (S && S.mp && !S.over) { S.mp.turn = (S.mp.turn + 1) % S.mp.players.length; renderScores(); announceTurn(); }
       if (S && S.lv.swap && !S.over) swapCards(a, b);
     }, S.lv.miss);
     updateStats();
@@ -431,7 +562,30 @@ function swapCards(a, b) {
   [x, y].forEach(c => { c.classList.remove('swapped'); void c.offsetWidth; c.classList.add('swapped'); });
   later(() => { x.classList.remove('swapped'); y.classList.remove('swapped'); }, 700);
   play('swap');
-  $('status').textContent = 'Deux cartes ont changé de place !';
+  if (S.mp) announceTurn(`Deux cartes ont bougé ! Au tour de ${S.mp.players[S.mp.turn].name}`);
+  else $('status').textContent = 'Deux cartes ont changé de place !';
+}
+
+/* Fin d'une partie à plusieurs : classement */
+function finishMulti() {
+  S.over = true; clearInterval(tick);
+  play('win');
+  const ps = S.mp.players.slice().sort((x, y) => y.score - x.score);
+  const top = ps[0].score, winners = ps.filter(p => p.score === top);
+  const names = winners.map(w => w.name);
+  $('rTitle').textContent = winners.length > 1 ? 'Égalité !' : `${winners[0].name} gagne !`;
+  $('rText').textContent = winners.length > 1
+    ? `${names.slice(0, -1).join(', ')} et ${names[names.length - 1]} sont ex æquo avec ${top} paires.`
+    : `${top} paires sur ${S.lv.pairs}, en ${fmt(Math.round(S.elapsed))}.`;
+  $('rRank').innerHTML = ps.map(p => {
+    const pos = 1 + ps.filter(q => q.score > p.score).length;
+    return `<li class="${p.score === top ? 'first' : ''}" style="--pc:${p.color}"><i></i><span>${pos}. ${esc(p.name)}</span><em>${p.score} paire${p.score > 1 ? 's' : ''}</em></li>`;
+  }).join('');
+  $('rRank').hidden = false; $('rGrid').hidden = true; $('rStars').hidden = true;
+  $('rRecord').hidden = true; $('rUnlock').hidden = true; $('rNext').hidden = true;
+  $('rAgain').textContent = 'Revanche';
+  $('rHome').textContent = 'Changer les joueurs';
+  els.overlay.hidden = false; $('rAgain').focus();
 }
 
 function finish(won) {
@@ -463,14 +617,17 @@ function finish(won) {
   $('rUnlock').hidden = !unlocked;
   if (unlocked) $('rUnlock').textContent = `🔓 Niveau ${next.name} débloqué !`;
   $('rNext').hidden = !(won && next);
+  $('rRank').hidden = true; $('rGrid').hidden = false;
+  $('rAgain').textContent = 'Rejouer';
+  $('rHome').textContent = 'Choisir un niveau';
   later(() => { els.overlay.hidden = false; (won && next ? $('rNext') : $('rAgain')).focus(); }, won ? 0 : 900);
 }
 
 $('rNext').onclick = () => start(S.i + 1);
-$('rAgain').onclick = () => start(S.i);
+$('rAgain').onclick = () => { if (S.mp) mpRound++; start(S.i, !!S.mp); };
 $('rHome').onclick = showHome;
 $('back').onclick = showHome;
-$('restart').onclick = () => S && start(S.i);
+$('restart').onclick = () => S && start(S.i, !!S.mp);
 $('sound').onclick = () => {
   muted = !muted; renderSound();
   try { localStorage.setItem('memoire-son', muted ? 'off' : 'on'); } catch (e) {}
@@ -509,6 +666,7 @@ if (P.App) P.App.addListener('backButton', () => {
 if (P.SplashScreen) P.SplashScreen.hide();
 
 renderLevels();
+renderSetup();
 </script>
 </body>
 </html>
