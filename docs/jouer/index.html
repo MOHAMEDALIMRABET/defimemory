@@ -161,7 +161,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 .on-msg { margin: -8px 0 0; min-height: 20px; color: var(--miss); font-weight: 700; font-size: 14px; text-align: center; }
 .on-msg.ok { color: var(--match); }
 .lobby { flex: 1; display: flex; flex-direction: column; gap: 12px; }
-.lobby-body { flex: 1; display: grid; align-content: center; justify-items: center; gap: 18px; text-align: center; padding-bottom: 40px; }
+.lobby-body { flex: 1; display: grid; align-content: center; justify-items: center; gap: 16px; text-align: center; padding-bottom: 24px; overflow-y: auto; }
 .lobby-body p { margin: 0; color: var(--muted); font-weight: 700; }
 .room-code {
   font-family: var(--font-display); font-weight: 800; font-size: clamp(56px, 18vw, 84px); letter-spacing: .14em; line-height: 1;
@@ -169,6 +169,20 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
   user-select: all; -webkit-user-select: all;
 }
 .lobby-body .btn { width: min(100%, 320px); flex: none; }
+.lobby-list { width: min(100%, 360px); display: grid; gap: 10px; text-align: left; }
+.lobby-list .label { margin: 0; }
+.lobby-players { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.lobby-players li {
+  display: flex; align-items: center; gap: 8px; min-width: 0; padding: 10px 12px; border-radius: 12px;
+  background: var(--surface); border: 1.5px solid var(--pc, var(--line)); font-weight: 700; animation: pop .35s ease;
+}
+.lobby-players li i { width: 12px; height: 12px; border-radius: 50%; background: var(--pc); flex: none; }
+.lobby-players li span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lobby-players li small { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--pc); }
+.lobby-players li b { font-size: 14px; }
+.lobby-players li.free { border-style: dashed; border-color: var(--line); color: var(--muted); font-weight: 600; animation: none; }
+.lobby-players li.free i { background: var(--line); }
+#onStart:disabled { opacity: .45; }
 .waiting { display: flex; align-items: center; gap: 10px; }
 .waiting::before { content: ""; width: 14px; height: 14px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--back-2); animation: spin .9s linear infinite; }
 .waiting.done::before { display: none; }
@@ -475,7 +489,12 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
     <div class="lobby-body">
       <p data-t="shareCode">Envoyez ce code à votre ami :</p>
       <div class="room-code" id="roomCode" aria-live="polite"></div>
-      <button class="btn primary" id="onShare" data-t="share">Partager l'invitation</button>
+      <button class="btn" id="onShare" data-t="share">Partager l'invitation</button>
+      <div class="lobby-list">
+        <p class="label" id="lobbyCount"></p>
+        <ul class="lobby-players" id="lobbyPlayers"></ul>
+      </div>
+      <button class="btn primary" id="onStart" data-t="startGame" hidden>Commencer la partie</button>
       <p class="waiting" id="lobbyStatus" aria-live="polite"></p>
     </div>
   </section>
@@ -622,10 +641,12 @@ const I18N = {
     lostText: (f, p) => `Vous avez trouvé ${f} paires sur ${p}. Réessayez !`,
     unlocked: lv => `🔓 Niveau ${lv} débloqué !`, card: k => `Carte ${k}`,
     online: 'En ligne',
-    rulesOnline: 'Jouez à deux, <b>chacun sur son téléphone</b>. Créez un salon et envoyez le code à un ami, ou rejoignez un salon avec le code reçu. Chacun son tour, <b>10 secondes maximum</b> par tour. Une paire = 1 point et vous rejouez.',
+    rulesOnline: 'De 2 à 4 joueurs, <b>chacun sur son téléphone</b>. Créez un salon et envoyez le code à vos amis, ou rejoignez un salon avec le code reçu. Chacun son tour, <b>10 secondes maximum</b> par tour. Une paire = 1 point et vous rejouez.',
     yourName: 'Votre pseudo', createRoom: 'Défier un ami', or: 'ou', join: 'Rejoindre', codeAria: 'Code du salon',
-    leaveRoom: 'Quitter le salon', lobbyTitle: 'Salon', shareCode: 'Envoyez ce code à votre ami :', share: 'Partager l\'invitation',
-    waitingOpp: 'En attente de votre ami…', copied: 'Invitation copiée : collez-la dans un message.',
+    leaveRoom: 'Quitter le salon', lobbyTitle: 'Salon', shareCode: 'Envoyez ce code à vos amis :', share: 'Partager l\'invitation',
+    waitingOpp: 'En attente de vos amis…', readyToStart: 'Lancez la partie quand tout le monde est là.',
+    waitHost: n => `En attente que ${n} lance la partie…`, freeSeat: 'Place libre', playersCount: (n, m) => `Joueurs ${n}/${m}`,
+    roomClosed: 'Le salon a été fermé.', othersLeft: n => `${n} : partie quittée.`, alone: 'Tous les autres joueurs sont partis.', copied: 'Invitation copiée : collez-la dans un message.',
     inviteText: (c, u) => `Viens jouer à DefiMemory avec moi ! Code du salon : ${c}\n${u}`,
     connecting: 'Connexion…', noNet: 'Connexion impossible. Vérifiez votre accès à Internet, puis réessayez.',
     notAvailable: 'Le jeu en ligne n\'est pas disponible dans cette version. Jouez sur mohamedalimrabet.github.io/defimemory/jouer/',
@@ -683,10 +704,12 @@ const I18N = {
     lostText: (f, p) => `You found ${f} of the ${p} pairs. Try again!`,
     unlocked: lv => `🔓 ${lv} level unlocked!`, card: k => `Card ${k}`,
     online: 'Online',
-    rulesOnline: 'Play with a friend, <b>each on your own phone</b>. Create a room and send the code to a friend, or join a room with the code you received. Take turns, <b>10 seconds max</b> per turn. A pair = 1 point and you play again.',
+    rulesOnline: '2 to 4 players, <b>each on their own phone</b>. Create a room and send the code to your friends, or join a room with the code you received. Take turns, <b>10 seconds max</b> per turn. A pair = 1 point and you play again.',
     yourName: 'Your nickname', createRoom: 'Challenge a friend', or: 'or', join: 'Join', codeAria: 'Room code',
-    leaveRoom: 'Leave the room', lobbyTitle: 'Room', shareCode: 'Send this code to your friend:', share: 'Share the invite',
-    waitingOpp: 'Waiting for your friend…', copied: 'Invite copied: paste it in a message.',
+    leaveRoom: 'Leave the room', lobbyTitle: 'Room', shareCode: 'Send this code to your friends:', share: 'Share the invite',
+    waitingOpp: 'Waiting for your friends…', readyToStart: 'Start the game when everyone is here.',
+    waitHost: n => `Waiting for ${n} to start the game…`, freeSeat: 'Free seat', playersCount: (n, m) => `Players ${n}/${m}`,
+    roomClosed: 'The room was closed.', othersLeft: n => `${n}: left the game.`, alone: 'All the other players left.', copied: 'Invite copied: paste it in a message.',
     inviteText: (c, u) => `Come play DefiMemory with me! Room code: ${c}\n${u}`,
     connecting: 'Connecting…', noNet: 'Cannot connect. Check your Internet connection and try again.',
     notAvailable: 'Online play is not available in this version. Play at mohamedalimrabet.github.io/defimemory/jouer/',
@@ -701,7 +724,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 17;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 18;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${APP_BUILD})`;

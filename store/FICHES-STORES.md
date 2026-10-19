@@ -35,7 +35,7 @@ POUR TOUS
 • Sons et vibrations (son désactivable)
 • Mode clair et mode sombre
 • Fonctionne sans Internet
-• Défiez un ami en ligne avec un code de salon
+• Jouez en ligne de 2 à 4 amis avec un code de salon
 • Aucune publicité, aucun compte
 
 Saurez-vous devenir Maître de DefiMemory ?
@@ -121,7 +121,7 @@ FOR EVERYONE
 • Sounds and vibrations (sound can be muted)
 • Light and dark mode
 • Works offline
-• Challenge a friend online with a room code
+• Play online with 2 to 4 friends using a room code
 • No ads, no account
 
 Can you become a DefiMemory Master?
