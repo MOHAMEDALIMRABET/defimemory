@@ -536,7 +536,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 10;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 11;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${APP_BUILD})`;
@@ -544,9 +544,9 @@ document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${A
 const LEVELS = [
   { id: 'facile',    pairs: 6,  cols: 3, rows: 4, preview: 5000, miss: 1000 },
   { id: 'moyen',     pairs: 8,  cols: 4, rows: 4, preview: 4000, miss: 850 },
-  { id: 'difficile', pairs: 10, cols: 4, rows: 5, preview: 3000, miss: 700 },
-  { id: 'expert',    pairs: 15, cols: 5, rows: 6, preview: 2500, miss: 550, limit: 150 },
-  { id: 'maitre',    pairs: 18, cols: 6, rows: 6, preview: 2000, miss: 500, limit: 180, swap: true },
+  { id: 'difficile', pairs: 10, cols: 4, rows: 5, preview: 5000, miss: 700 },
+  { id: 'expert',    pairs: 15, cols: 5, rows: 6, preview: 10000, miss: 550, limit: 150 },
+  { id: 'maitre',    pairs: 18, cols: 6, rows: 6, preview: 10000, miss: 500, limit: 180, swap: true },
 ].map(lv => ({ ...lv, name: T.levels[lv.id] }));
 const SYMBOLS = ['🦊','🐼','🐙','🦉','🐢','🦋','🍉','🍋','🍓','🥑','🌵','🌻','🍄','⭐','🌙','🔥','⚓','🎈','🎲','🚀','🪁','🐳','🦜','🍒'];
 
