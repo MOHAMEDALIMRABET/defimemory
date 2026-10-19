@@ -108,6 +108,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 .level.locked .level-name, .level.locked .level-meta { opacity: .55; }
 .lock { display: block; width: 22px; height: 22px; margin: 0 0 3px auto; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; }
 .unlock { color: var(--back-2); font-weight: 700; }
+.version { margin: auto 0 0; padding-top: 4px; text-align: center; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .level-stars { color: var(--accent); letter-spacing: 1px; font-size: 13px; }
 
 /* ---------- Onglets Solo / À plusieurs ---------- */
@@ -374,6 +375,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
       <div class="count" id="formats"></div>
       <button class="btn primary start" id="startMulti" data-t="startGame">Commencer la partie</button>
     </div>
+    <p class="version" id="version"></p>
   </section>
 
   <section class="game" id="game" hidden>
@@ -473,7 +475,7 @@ const I18N = {
     roundTie: (names, p) => `${names} sont ex æquo dans cette manche avec ${p}.`,
     roundWin: (n, p) => `${n} gagne la manche avec ${p}.`,
     nextRound: (r, n) => `Manche ${r} : ${n} commence`, stopMatch: 'Arrêter le match',
-    nextRoundIn: (r, n) => `Manche ${r} · ${n} commence dans…`,
+    nextRoundIn: (r, n) => `Manche ${r} · passez le téléphone à ${n}`,
     tie: 'Égalité !', tieText: (names, p, won) => `${names} sont ex æquo avec ${p}${won ? ` et ${won}` : ''}.`,
     matchWinner: n => `${n} remporte le match !`, winner: n => `${n} gagne !`,
     singleText: (p, total, t) => `${p} sur ${total}, en ${t}.`,
@@ -519,7 +521,7 @@ const I18N = {
     roundTie: (names, p) => `${names} tie this round with ${p}.`,
     roundWin: (n, p) => `${n} wins the round with ${p}.`,
     nextRound: (r, n) => `Round ${r}: ${n} goes first`, stopMatch: 'End the match',
-    nextRoundIn: (r, n) => `Round ${r} · ${n} goes first in…`,
+    nextRoundIn: (r, n) => `Round ${r} · pass the phone to ${n}`,
     tie: 'It\'s a tie!', tieText: (names, p, won) => `${names} are tied with ${p}${won ? ` and ${won}` : ''}.`,
     matchWinner: n => `${n} wins the match!`, winner: n => `${n} wins!`,
     singleText: (p, total, t) => `${p} out of ${total}, in ${t}.`,
@@ -534,8 +536,10 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
+const APP_VERSION = '1.0.0', APP_BUILD = 9;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
+document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${APP_BUILD})`;
 
 const LEVELS = [
   { id: 'facile',    pairs: 6,  cols: 3, rows: 4, preview: 5000, miss: 1000 },
@@ -627,6 +631,7 @@ function renderLevels() {
 $('levels').addEventListener('click', e => { const b = e.target.closest('.level'); if (b && !b.disabled) start(+b.dataset.i); });
 
 function showHome() {
+  if (reloadWhenHome) { location.reload(); return; }
   clearAll(); S = null;
   els.overlay.hidden = true; els.game.hidden = true; els.home.hidden = false;
   els.home.scrollTop = 0;
@@ -888,17 +893,17 @@ function finishMulti() {
     }).join('');
     $('rHome').textContent = T.stopMatch;
     againAction = () => { match.round++; start(S.i, true); };
-    // La manche suivante démarre toute seule : bilan, puis 3… 2… 1…
+    // La manche suivante démarre toute seule : bilan, puis 5… 4… 3… 2… 1…
     $('rAgain').hidden = true;
     const box = $('rCount'), num = $('rCountNum');
     box.style.setProperty('--pc', next.color);
     $('rCountLabel').textContent = T.nextRoundIn(match.round + 1, next.name);
     num.textContent = ''; box.hidden = false;
-    [3, 2, 1].forEach((n, k) => later(() => {
+    [5, 4, 3, 2, 1].forEach((n, k) => later(() => {
       num.textContent = n; num.classList.remove('go'); void num.offsetWidth; num.classList.add('go');
       play('count');
-    }, 1800 + k * 1000));
-    later(() => againAction(), 4800);
+    }, 1500 + k * 1000));
+    later(() => againAction(), 6500);
   } else {
     // Classement final : total des paires, puis nombre de manches gagnées
     const better = (x, y) => y.total - x.total || y.wins - x.wins;
@@ -1038,8 +1043,16 @@ if (P.SplashScreen) P.SplashScreen.hide();
 
 /* ---------- Version web installable : fonctionne hors ligne ---------- */
 const isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+let reloadWhenHome = false;
 if (!isNative && 'serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-  addEventListener('load', () => navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch(() => {}));
+  const hadController = !!navigator.serviceWorker.controller;
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
+    .then(reg => reg.update()).catch(() => {}));
+  // Nouvelle version installée : on recharge tout de suite à l'accueil, sinon au retour à l'accueil
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!hadController) return;
+    if (S) reloadWhenHome = true; else location.reload();
+  });
 }
 
 renderLevels();

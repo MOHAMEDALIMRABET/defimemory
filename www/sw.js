@@ -2,7 +2,7 @@
 // Stratégie : la page du jeu est toujours demandée au réseau d'abord (dernière version
 // dès qu'il y a Internet), avec la copie en cache si on est hors ligne. Les autres fichiers
 // (polices, icônes) viennent du cache et sont rafraîchis en arrière-plan.
-const CACHE = 'defimemory-v2';
+const CACHE = 'defimemory-v3';
 const FILES = [
   './', 'index.html', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-192.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png',
