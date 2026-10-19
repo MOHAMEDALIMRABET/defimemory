@@ -20,13 +20,14 @@ workflows:
         script: npx cap sync android
       - name: Indiquer le SDK Android
         script: echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/android/local.properties"
-      - name: Compiler le fichier .aab signé
+      - name: Compiler le fichier .aab (Google Play) et le fichier .apk (installation directe), signés
         script: |
           cd android
           chmod +x gradlew
-          ./gradlew bundleRelease
+          ./gradlew bundleRelease assembleRelease
     artifacts:
       - android/app/build/outputs/**/*.aab
+      - android/app/build/outputs/**/*.apk
     # Après le tout premier envoi manuel sur la Play Console, vous pouvez activer
     # l'envoi automatique (test interne) en retirant les # ci-dessous :
     # publishing:
