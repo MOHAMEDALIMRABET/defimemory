@@ -1,6 +1,7 @@
 # Textes des fiches DefiMemory
 
 Copiez-collez ces textes dans App Store Connect et dans la Play Console.
+Le jeu suit la langue du téléphone (français, sinon anglais) : ajoutez les **deux langues** dans chaque store (voir la section « English » en bas).
 
 ---
 
@@ -75,3 +76,58 @@ Saurez-vous devenir Maître de DefiMemory ?
 | Classification du contenu | Questionnaire IARC : catégorie « Jeu », répondre « Non » partout → PEGI 3 |
 | Public cible | 13 ans et plus (le plus simple ; choisir des tranches d'âge plus jeunes impose les règles « Familles » de Google) |
 | Annonces | « Non, mon application ne contient pas d'annonces » |
+
+---
+
+## English (anglais)
+
+Dans **Google Play** : *Présence sur le Play Store > Fiche principale > Gérer les traductions > Ajouter vos propres traductions > English (United States) – en-US*.
+Dans **App Store Connect** : menu des langues en haut à droite de la fiche > *Ajouter une langue* > *English (U.S.)*.
+
+**App name**: `DefiMemory`
+
+**Subtitle (App Store, 30 max)**: `Memorize. Flip. Win.`
+
+**Short description (Google Play, 80 max)**: `Memorize the cards, find the pairs: 5 levels from Easy to Master, plus duels.`
+
+**Promotional text (App Store, 170 max)**: `5 solo levels and a 2 to 4 player mode on the same phone. Memorize the cards, then find all the pairs. No ads, no Internet needed.`
+
+**Keywords (App Store, 100 max)**: `memory,match,pairs,cards,brain,concentration,puzzle,kids,family,training,focus,matching`
+
+**Description**:
+
+```
+Train your memory with DefiMemory, the pair-matching game that gets tougher and tougher.
+
+HOW TO PLAY
+At the start of each game, all the cards are shown for a few seconds. Memorize them! Then they flip over: tap two cards at a time to find the matching pairs. Find them all in as few moves as possible.
+
+5 LEVELS TO UNLOCK
+• Easy: 6 pairs, 5 seconds to memorize
+• Medium: 8 pairs, 4 seconds
+• Hard: 10 pairs, 3 seconds
+• Expert: 15 pairs, 2.5 seconds and 2:30 to finish
+• Master: 18 pairs, 2 seconds, 3 minutes… and after every mistake, two hidden cards swap places!
+
+Win a level to unlock the next one.
+
+MULTIPLAYER ON ONE PHONE
+Challenge your family or friends, 2 to 4 players! Take turns flipping two cards: a pair is worth 1 point and you play again, otherwise you pass the phone. In a fair match, there is one round per player so everyone goes first once, and the pairs add up: the best total wins the match. In a hurry? In a single game, the first player is drawn at random. Choose the board size, from 6 to 18 pairs.
+
+FOR EVERYONE
+• Up to 3 stars per level depending on your number of moves
+• Best scores saved for each level
+• Sounds and vibrations (sound can be muted)
+• Light and dark mode
+• Works offline
+• No ads, no account, no data collected
+
+Can you become a DefiMemory Master?
+```
+
+| Field | Value |
+|---|---|
+| Support URL | `https://mohamedalimrabet.github.io/defimemory/support.html` |
+| Privacy Policy URL | `https://mohamedalimrabet.github.io/defimemory/privacy.html` |
+| Screenshots (iPhone 6.7"/6.9") | folder `screenshots/iphone-en/` (1290 × 2796) |
+| Screenshots (Android phone) | folder `screenshots/android-en/` (1080 × 1920) |

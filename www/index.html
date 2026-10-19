@@ -252,49 +252,49 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
       <div class="brand-cards" aria-hidden="true"><span></span><span>🧠</span></div>
       <div>
         <h1>DefiMemory</h1>
-        <p class="tagline">Retenez les cartes, puis retrouvez les paires.</p>
+        <p class="tagline" data-t="tagline">Retenez les cartes, puis retrouvez les paires.</p>
       </div>
     </div>
-    <div class="tabs" role="tablist" aria-label="Mode de jeu">
-      <button class="tab" role="tab" id="tabSolo" aria-selected="true" aria-controls="soloPanel">Solo</button>
-      <button class="tab" role="tab" id="tabMulti" aria-selected="false" aria-controls="multiPanel">À plusieurs</button>
+    <div class="tabs" role="tablist" aria-label="Mode de jeu" data-ta="gameMode">
+      <button class="tab" role="tab" id="tabSolo" aria-selected="true" aria-controls="soloPanel" data-t="solo">Solo</button>
+      <button class="tab" role="tab" id="tabMulti" aria-selected="false" aria-controls="multiPanel" data-t="multi">À plusieurs</button>
     </div>
 
     <div class="panel" id="soloPanel" role="tabpanel" aria-labelledby="tabSolo">
-      <p class="rules">Au début, toutes les cartes sont <b>visibles quelques secondes</b>, puis elles se retournent. Touchez deux cartes à la fois : si elles sont identiques, elles restent ouvertes. Trouvez <b>toutes les paires</b> en un minimum de coups. Gagnez un niveau pour <b>débloquer le suivant</b>.</p>
-      <p class="label">Choisissez un niveau</p>
+      <p class="rules" data-t="rulesSolo">Au début, toutes les cartes sont <b>visibles quelques secondes</b>, puis elles se retournent. Touchez deux cartes à la fois : si elles sont identiques, elles restent ouvertes. Trouvez <b>toutes les paires</b> en un minimum de coups. Gagnez un niveau pour <b>débloquer le suivant</b>.</p>
+      <p class="label" data-t="chooseLevel">Choisissez un niveau</p>
       <div class="levels" id="levels"></div>
     </div>
 
     <div class="panel" id="multiPanel" role="tabpanel" aria-labelledby="tabMulti" hidden>
-      <p class="rules">De 2 à 4 joueurs sur le même téléphone. Chacun son tour, retournez deux cartes. <b>Une paire = 1 point, et vous rejouez.</b> Sinon, passez le téléphone au joueur suivant. En <b>match équitable</b>, on joue une manche par joueur pour que chacun commence une fois, et les points s'additionnent.</p>
-      <p class="label">Nombre de joueurs</p>
+      <p class="rules" data-t="rulesMulti">De 2 à 4 joueurs sur le même téléphone. Chacun son tour, retournez deux cartes. <b>Une paire = 1 point, et vous rejouez.</b> Sinon, passez le téléphone au joueur suivant. En <b>match équitable</b>, on joue une manche par joueur pour que chacun commence une fois, et les points s'additionnent.</p>
+      <p class="label" data-t="nbPlayers">Nombre de joueurs</p>
       <div class="count" id="pCount"></div>
       <div class="players" id="players"></div>
-      <p class="label">Taille du plateau</p>
+      <p class="label" data-t="boardSize">Taille du plateau</p>
       <div class="sizes" id="sizes"></div>
-      <p class="label">Format</p>
+      <p class="label" data-t="format">Format</p>
       <div class="count" id="formats"></div>
-      <button class="btn primary start" id="startMulti">Commencer la partie</button>
+      <button class="btn primary start" id="startMulti" data-t="startGame">Commencer la partie</button>
     </div>
   </section>
 
   <section class="game" id="game" hidden>
     <div class="topbar">
-      <button class="icon-btn" id="back" aria-label="Retour aux niveaux">
+      <button class="icon-btn" id="back" aria-label="Retour à l'accueil" data-ta="backHome">
         <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
       </button>
       <div class="game-title"><strong id="gName">Facile</strong><span id="gMeta"></span></div>
       <button class="icon-btn" id="sound" aria-label="Son" aria-pressed="true">
         <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4z"/><g id="soundOn"><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/></g><g id="soundOff" style="display:none"><path d="M3 3l18 18" stroke-width="2.6"/></g></svg>
       </button>
-      <button class="icon-btn" id="restart" aria-label="Recommencer">
+      <button class="icon-btn" id="restart" aria-label="Recommencer" data-ta="restart">
         <svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v5h5"/></svg>
       </button>
     </div>
     <div class="stats">
-      <div class="stat"><small>Coups</small><b id="sMoves">0</b></div>
-      <div class="stat"><small>Paires</small><b id="sPairs">0/6</b></div>
+      <div class="stat"><small data-t="moves">Coups</small><b id="sMoves">0</b></div>
+      <div class="stat"><small data-t="pairsLabel">Paires</small><b id="sPairs">0/6</b></div>
       <div class="stat" id="timeBox"><small id="sTimeLabel">Temps</small><b id="sTime">0:00</b></div>
     </div>
     <div class="scores" id="scores" hidden></div>
@@ -311,13 +311,13 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
     <p id="rText"></p>
     <ol class="rank" id="rRank" hidden></ol>
     <div class="result-grid" id="rGrid">
-      <div><small>Coups</small><b id="rMoves">0</b></div>
-      <div><small>Temps</small><b id="rTime">0:00</b></div>
+      <div><small data-t="moves">Coups</small><b id="rMoves">0</b></div>
+      <div><small data-t="time">Temps</small><b id="rTime">0:00</b></div>
     </div>
-    <p class="record" id="rRecord" hidden>Nouveau record pour ce niveau</p>
+    <p class="record" id="rRecord" hidden data-t="newRecord">Nouveau record pour ce niveau</p>
     <p class="unlock" id="rUnlock" hidden></p>
     <div class="actions">
-      <button class="btn primary" id="rNext">Niveau suivant</button>
+      <button class="btn primary" id="rNext" data-t="nextLevel">Niveau suivant</button>
       <button class="btn" id="rAgain">Rejouer</button>
       <button class="btn" id="rHome">Choisir un niveau</button>
     </div>
@@ -325,13 +325,111 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 </div>
 
 <script>
+/* ---------- Langue : français si le téléphone est en français, anglais sinon ---------- */
+const LANG = /^fr\b/i.test((navigator.languages && navigator.languages[0]) || navigator.language || 'fr') ? 'fr' : 'en';
+document.documentElement.lang = LANG;
+const plural = (n, one, many) => `${n} ${(LANG === 'fr' ? n > 1 : n !== 1) ? many : one}`;
+const I18N = {
+  fr: {
+    tagline: 'Retenez les cartes, puis retrouvez les paires.',
+    gameMode: 'Mode de jeu', solo: 'Solo', multi: 'À plusieurs',
+    rulesSolo: 'Au début, toutes les cartes sont <b>visibles quelques secondes</b>, puis elles se retournent. Touchez deux cartes à la fois : si elles sont identiques, elles restent ouvertes. Trouvez <b>toutes les paires</b> en un minimum de coups. Gagnez un niveau pour <b>débloquer le suivant</b>.',
+    chooseLevel: 'Choisissez un niveau',
+    rulesMulti: 'De 2 à 4 joueurs sur le même téléphone. Chacun son tour, retournez deux cartes. <b>Une paire = 1 point, et vous rejouez.</b> Sinon, passez le téléphone au joueur suivant. En <b>match équitable</b>, on joue une manche par joueur pour que chacun commence une fois, et les points s\'additionnent.',
+    nbPlayers: 'Nombre de joueurs', boardSize: 'Taille du plateau', format: 'Format', startGame: 'Commencer la partie',
+    backHome: 'Retour à l\'accueil', restart: 'Recommencer', soundOn: 'Activer le son', soundOff: 'Couper le son',
+    moves: 'Coups', pairsLabel: 'Paires', time: 'Temps', left: 'Reste',
+    newRecord: 'Nouveau record pour ce niveau', nextLevel: 'Niveau suivant', replay: 'Rejouer', chooseLevelBtn: 'Choisir un niveau',
+    levels: { facile: 'Facile', moyen: 'Moyen', difficile: 'Difficile', expert: 'Expert', maitre: 'Maître' },
+    cardsSwap: 'les cartes changent de place',
+    winToUnlock: n => `Gagnez ${n}`,
+    lockedAria: (lv, prev) => `${lv}, bloqué : gagnez le niveau ${prev} pour le débloquer`,
+    nMoves: n => plural(n, 'coup', 'coups'), notPlayed: 'Pas encore joué',
+    levelMeta: (p, c, r, sec) => `${p} paires · ${c}×${r} · ${sec} s pour mémoriser`,
+    nPlayers: n => `${n} joueurs`, player: k => `Joueur ${k}`,
+    playerAria: k => `Nom du joueur ${k}`, clearAria: k => `Effacer le nom du joueur ${k}`,
+    fairMatch: 'Match équitable', fairSub: n => `${n} manches, 1 par joueur`,
+    singleGame: 'Partie unique', singleSub: '1 manche, 1er joueur tiré au sort',
+    total: n => `Total ${n}`, turnOf: n => `Au tour de ${n}`,
+    roundTitle: (r, n) => `Manche ${r}/${n}`, multiTitle: 'À plusieurs',
+    metaMulti: (lv, p) => `${lv} · ${p} paires`, metaSolo: (p, c, r) => `${p} paires · ${c}×${r}`,
+    memorize: r => `Mémorisez les cartes… ${r}`, roundPrefix: r => `Manche ${r} : `, starts: n => `${n} commence !`,
+    yourTurn: 'À vous ! Touchez deux cartes.', drawing: 'Tirage au sort du premier joueur…',
+    pairFor: n => `Paire pour ${n}, qui rejoue !`, pairFound: 'Paire trouvée !', notSame: 'Pas pareilles…',
+    movedTurn: n => `Deux cartes ont bougé ! Au tour de ${n}`, swapped: 'Deux cartes ont changé de place !',
+    and: 'et', pairs: n => plural(n, 'paire', 'paires'),
+    wonRounds: n => `${plural(n, 'manche', 'manches')} gagnée${n > 1 ? 's' : ''}`, winsShort: n => plural(n, 'manche', 'manches'),
+    roundEnd: (r, n) => `Fin de la manche ${r}/${n}`,
+    roundTie: (names, p) => `${names} sont ex æquo dans cette manche avec ${p}.`,
+    roundWin: (n, p) => `${n} gagne la manche avec ${p}.`,
+    nextRound: (r, n) => `Manche ${r} : ${n} commence`, stopMatch: 'Arrêter le match',
+    tie: 'Égalité !', tieText: (names, p, won) => `${names} sont ex æquo avec ${p}${won ? ` et ${won}` : ''}.`,
+    matchWinner: n => `${n} remporte le match !`, winner: n => `${n} gagne !`,
+    singleText: (p, total, t) => `${p} sur ${total}, en ${t}.`,
+    tieBreak: (p, n, won) => `Égalité à ${p} : ${n} l'emporte grâce à ${won}.`,
+    totalText: (p, r) => `${p} au total sur ${r} manches.`,
+    newMatch: 'Nouveau match', rematch: 'Revanche', changePlayers: 'Changer les joueurs',
+    perfect: 'Mémoire parfaite !', bravo: 'Bravo !', timeUp: 'Temps écoulé',
+    wonText: (p, lv) => `Vous avez trouvé les ${p} paires du niveau ${lv}.`,
+    lostText: (f, p) => `Vous avez trouvé ${f} paires sur ${p}. Réessayez !`,
+    unlocked: lv => `🔓 Niveau ${lv} débloqué !`, card: k => `Carte ${k}`,
+  },
+  en: {
+    tagline: 'Memorize the cards, then find the pairs.',
+    gameMode: 'Game mode', solo: 'Solo', multi: 'Multiplayer',
+    rulesSolo: 'At the start, all the cards are <b>shown for a few seconds</b>, then they flip over. Tap two cards at a time: if they match, they stay face up. Find <b>all the pairs</b> in as few moves as possible. Win a level to <b>unlock the next one</b>.',
+    chooseLevel: 'Choose a level',
+    rulesMulti: '2 to 4 players on the same phone. Take turns flipping two cards. <b>A pair = 1 point, and you play again.</b> Otherwise, pass the phone to the next player. In a <b>fair match</b>, there is one round per player so everyone goes first once, and the points add up.',
+    nbPlayers: 'Number of players', boardSize: 'Board size', format: 'Format', startGame: 'Start the game',
+    backHome: 'Back to home', restart: 'Restart', soundOn: 'Turn sound on', soundOff: 'Mute',
+    moves: 'Moves', pairsLabel: 'Pairs', time: 'Time', left: 'Left',
+    newRecord: 'New record for this level', nextLevel: 'Next level', replay: 'Play again', chooseLevelBtn: 'Choose a level',
+    levels: { facile: 'Easy', moyen: 'Medium', difficile: 'Hard', expert: 'Expert', maitre: 'Master' },
+    cardsSwap: 'cards swap places',
+    winToUnlock: n => `Win ${n}`,
+    lockedAria: (lv, prev) => `${lv}, locked: win ${prev} to unlock it`,
+    nMoves: n => plural(n, 'move', 'moves'), notPlayed: 'Not played yet',
+    levelMeta: (p, c, r, sec) => `${p} pairs · ${c}×${r} · ${sec} s to memorize`,
+    nPlayers: n => `${n} players`, player: k => `Player ${k}`,
+    playerAria: k => `Name of player ${k}`, clearAria: k => `Clear the name of player ${k}`,
+    fairMatch: 'Fair match', fairSub: n => `${n} rounds, 1 per player`,
+    singleGame: 'Single game', singleSub: '1 round, random first player',
+    total: n => `Total ${n}`, turnOf: n => `${n}'s turn`,
+    roundTitle: (r, n) => `Round ${r}/${n}`, multiTitle: 'Multiplayer',
+    metaMulti: (lv, p) => `${lv} · ${p} pairs`, metaSolo: (p, c, r) => `${p} pairs · ${c}×${r}`,
+    memorize: r => `Memorize the cards… ${r}`, roundPrefix: r => `Round ${r}: `, starts: n => `${n} goes first!`,
+    yourTurn: 'Your turn! Tap two cards.', drawing: 'Drawing who goes first…',
+    pairFor: n => `Pair for ${n}, play again!`, pairFound: 'Pair found!', notSame: 'Not a match…',
+    movedTurn: n => `Two cards moved! ${n}'s turn`, swapped: 'Two cards swapped places!',
+    and: 'and', pairs: n => plural(n, 'pair', 'pairs'),
+    wonRounds: n => `${plural(n, 'round', 'rounds')} won`, winsShort: n => plural(n, 'win', 'wins'),
+    roundEnd: (r, n) => `End of round ${r}/${n}`,
+    roundTie: (names, p) => `${names} tie this round with ${p}.`,
+    roundWin: (n, p) => `${n} wins the round with ${p}.`,
+    nextRound: (r, n) => `Round ${r}: ${n} goes first`, stopMatch: 'End the match',
+    tie: 'It\'s a tie!', tieText: (names, p, won) => `${names} are tied with ${p}${won ? ` and ${won}` : ''}.`,
+    matchWinner: n => `${n} wins the match!`, winner: n => `${n} wins!`,
+    singleText: (p, total, t) => `${p} out of ${total}, in ${t}.`,
+    tieBreak: (p, n, won) => `Tied at ${p}: ${n} wins with ${won}.`,
+    totalText: (p, r) => `${p} in total over ${r} rounds.`,
+    newMatch: 'New match', rematch: 'Rematch', changePlayers: 'Change players',
+    perfect: 'Perfect memory!', bravo: 'Well done!', timeUp: 'Time\'s up',
+    wonText: (p, lv) => `You found all ${p} pairs of the ${lv} level.`,
+    lostText: (f, p) => `You found ${f} of the ${p} pairs. Try again!`,
+    unlocked: lv => `🔓 ${lv} level unlocked!`, card: k => `Card ${k}`,
+  },
+};
+const T = I18N[LANG];
+document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
+document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
+
 const LEVELS = [
-  { id: 'facile',    name: 'Facile',    pairs: 6,  cols: 3, rows: 4, preview: 5000, miss: 1000 },
-  { id: 'moyen',     name: 'Moyen',     pairs: 8,  cols: 4, rows: 4, preview: 4000, miss: 850 },
-  { id: 'difficile', name: 'Difficile', pairs: 10, cols: 4, rows: 5, preview: 3000, miss: 700 },
-  { id: 'expert',    name: 'Expert',    pairs: 15, cols: 5, rows: 6, preview: 2500, miss: 550, limit: 150 },
-  { id: 'maitre',    name: 'Maître',    pairs: 18, cols: 6, rows: 6, preview: 2000, miss: 500, limit: 180, swap: true },
-];
+  { id: 'facile',    pairs: 6,  cols: 3, rows: 4, preview: 5000, miss: 1000 },
+  { id: 'moyen',     pairs: 8,  cols: 4, rows: 4, preview: 4000, miss: 850 },
+  { id: 'difficile', pairs: 10, cols: 4, rows: 5, preview: 3000, miss: 700 },
+  { id: 'expert',    pairs: 15, cols: 5, rows: 6, preview: 2500, miss: 550, limit: 150 },
+  { id: 'maitre',    pairs: 18, cols: 6, rows: 6, preview: 2000, miss: 500, limit: 180, swap: true },
+].map(lv => ({ ...lv, name: T.levels[lv.id] }));
 const SYMBOLS = ['🦊','🐼','🐙','🦉','🐢','🦋','🍉','🍋','🍓','🥑','🌵','🌻','🍄','⭐','🌙','🔥','⚓','🎈','🎲','🚀','🪁','🐳','🦜','🍒'];
 
 const $ = id => document.getElementById(id);
@@ -375,7 +473,7 @@ const SOUNDS = {
 let play = function (name) { if (!muted) SOUNDS[name](); }
 function renderSound() {
   $('sound').setAttribute('aria-pressed', String(!muted));
-  $('sound').setAttribute('aria-label', muted ? 'Activer le son' : 'Couper le son');
+  $('sound').setAttribute('aria-label', muted ? T.soundOn : T.soundOff);
   $('soundOff').style.display = muted ? '' : 'none';
   $('sound').classList.toggle('muted', muted);
 }
@@ -392,16 +490,16 @@ function renderLevels() {
     const b = best[lv.id];
     const locked = i > 0 && !best[LEVELS[i - 1].id];
     const mini = Array.from({ length: lv.cols * lv.rows }, () => '<i></i>').join('');
-    const extra = (lv.limit ? ` · ${fmt(lv.limit)} max` : '') + (lv.swap ? ' · les cartes changent de place' : '');
+    const extra = (lv.limit ? ` · ${fmt(lv.limit)} max` : '') + (lv.swap ? ` · ${T.cardsSwap}` : '');
     const right = locked
-      ? `<svg class="lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Gagnez ${LEVELS[i - 1].name}`
+      ? `<svg class="lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>${T.winToUnlock(LEVELS[i - 1].name)}`
       : b
-      ? `<span class="level-stars">${'★'.repeat(b.stars)}${'☆'.repeat(3 - b.stars)}</span><strong>${b.moves} coups</strong>${fmt(b.time)}`
-      : 'Pas encore joué';
-    return `<button class="level${locked ? ' locked' : ''}" data-i="${i}"${locked ? ` disabled aria-label="${lv.name}, bloqué : gagnez le niveau ${LEVELS[i - 1].name} pour le débloquer"` : ''}>
+      ? `<span class="level-stars">${'★'.repeat(b.stars)}${'☆'.repeat(3 - b.stars)}</span><strong>${T.nMoves(b.moves)}</strong>${fmt(b.time)}`
+      : T.notPlayed;
+    return `<button class="level${locked ? ' locked' : ''}" data-i="${i}"${locked ? ` disabled aria-label="${T.lockedAria(lv.name, LEVELS[i - 1].name)}"` : ''}>
       <span class="mini" style="grid-template-columns:repeat(${lv.cols},1fr)">${mini}</span>
       <span><span class="level-name">${lv.name}</span>
-      <span class="level-meta">${lv.pairs} paires · ${lv.cols}×${lv.rows} · ${lv.preview / 1000} s pour mémoriser${extra}</span></span>
+      <span class="level-meta">${T.levelMeta(lv.pairs, lv.cols, lv.rows, lv.preview / 1000)}${extra}</span></span>
       <span class="level-best">${right}</span>
     </button>`;
   }).join('');
@@ -428,11 +526,10 @@ $('tabMulti').onclick = () => setTab('multi');
 /* ---------- À plusieurs : réglages ---------- */
 const PCOLORS = ['var(--p1)', 'var(--p2)', 'var(--p3)', 'var(--p4)'];
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const pl = (n, w) => `${n} ${w}${n > 1 ? 's' : ''}`;
-// Un prénom vide affiche « Joueur N » en gris et c'est ce nom qui est utilisé
+// Un prénom vide affiche « Joueur N » / « Player N » en gris et c'est ce nom qui est utilisé
 let setup = { n: 2, names: ['', '', '', ''], size: 1, format: 'match' };
 try { Object.assign(setup, JSON.parse(localStorage.getItem('memoire-joueurs') || '{}')); } catch (e) {}
-setup.names = setup.names.map((n, i) => (n === `Joueur ${i + 1}` ? '' : n));
+setup.names = setup.names.map((n, i) => (n === `Joueur ${i + 1}` || n === `Player ${i + 1}` ? '' : n));
 function saveSetup() { try { localStorage.setItem('memoire-joueurs', JSON.stringify(setup)); } catch (e) {} }
 
 /* Match : une manche par joueur (chacun commence une fois), les paires s'additionnent */
@@ -441,23 +538,23 @@ let againAction = null;   // action du bouton principal de l'écran de résultat
 function newMatch(offset = 0) {
   match = {
     rounds: setup.format === 'single' ? 1 : setup.n, round: 1, offset,
-    players: setup.names.slice(0, setup.n).map((n, k) => ({ name: n.trim() || `Joueur ${k + 1}`, color: PCOLORS[k], total: 0, wins: 0 })),
+    players: setup.names.slice(0, setup.n).map((n, k) => ({ name: n.trim() || T.player(k + 1), color: PCOLORS[k], total: 0, wins: 0 })),
   };
 }
 const starter = () => (match.offset + match.round - 1) % match.players.length;
 
 function renderSetup() {
   $('pCount').innerHTML = [2, 3, 4].map(n =>
-    `<button class="chip" data-n="${n}" aria-pressed="${n === setup.n}">${n} joueurs</button>`).join('');
+    `<button class="chip" data-n="${n}" aria-pressed="${n === setup.n}">${T.nPlayers(n)}</button>`).join('');
   $('players').innerHTML = setup.names.slice(0, setup.n).map((name, i) =>
     `<label class="player${name ? ' filled' : ''}" style="--pc:${PCOLORS[i]}"><i></i>` +
-    `<input id="pName${i}" data-i="${i}" maxlength="12" value="${esc(name)}" placeholder="Joueur ${i + 1}" aria-label="Nom du joueur ${i + 1}" autocomplete="off" enterkeyhint="done">` +
-    `<button class="clear" data-c="${i}" aria-label="Effacer le nom du joueur ${i + 1}"><span><svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6"/></svg></span></button></label>`).join('');
+    `<input id="pName${i}" data-i="${i}" maxlength="12" value="${esc(name)}" placeholder="${T.player(i + 1)}" aria-label="${T.playerAria(i + 1)}" autocomplete="off" enterkeyhint="done">` +
+    `<button class="clear" data-c="${i}" aria-label="${T.clearAria(i + 1)}"><span><svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6"/></svg></span></button></label>`).join('');
   $('sizes').innerHTML = LEVELS.map((lv, i) =>
     `<button class="chip" data-s="${i}" aria-pressed="${i === setup.size}">${lv.pairs}<small>${lv.name}</small></button>`).join('');
   $('formats').innerHTML =
-    `<button class="chip" data-f="match" aria-pressed="${setup.format === 'match'}">Match équitable<small>${setup.n} manches, 1 par joueur</small></button>` +
-    `<button class="chip" data-f="single" aria-pressed="${setup.format === 'single'}">Partie unique<small>1 manche, 1er joueur tiré au sort</small></button>`;
+    `<button class="chip" data-f="match" aria-pressed="${setup.format === 'match'}">${T.fairMatch}<small>${T.fairSub(setup.n)}</small></button>` +
+    `<button class="chip" data-f="single" aria-pressed="${setup.format === 'single'}">${T.singleGame}<small>${T.singleSub}</small></button>`;
 }
 $('players').addEventListener('focusin', e => { if (e.target.select) e.target.select(); });
 // La croix vide un seul prénom ; le clavier reste ouvert pour taper le nouveau
@@ -486,12 +583,12 @@ function renderScores() {
   box.style.gridTemplateColumns = `repeat(${m.players.length}, 1fr)`;
   box.innerHTML = m.players.map((p, k) =>
     `<div class="pscore${k === m.turn ? ' active' : ''}" style="--pc:${p.color}"><span>${esc(p.name)}</span><b>${p.score}</b>` +
-    (multiRound ? `<small>Total ${p.ref.total + p.score}</small>` : '') + `</div>`).join('');
+    (multiRound ? `<small>${T.total(p.ref.total + p.score)}</small>` : '') + `</div>`).join('');
 }
 function announceTurn(msg) {
   const p = S.mp.players[S.mp.turn], st = $('status');
   st.className = 'status turn'; st.style.setProperty('--pc', p.color);
-  st.textContent = msg ?? `Au tour de ${p.name}`;
+  st.textContent = msg ?? T.turnOf(p.name);
 }
 
 /* ---------- Partie ---------- */
@@ -506,9 +603,9 @@ function start(i, multi = false) {
   }
 
   els.home.hidden = true; els.overlay.hidden = true; els.game.hidden = false;
-  $('gName').textContent = !multi ? lv.name : match.rounds > 1 ? `Manche ${match.round}/${match.rounds}` : 'À plusieurs';
-  $('gMeta').textContent = multi ? `${lv.name} · ${lv.pairs} paires` : `${lv.pairs} paires · ${lv.cols}×${lv.rows}`;
-  $('sTimeLabel').textContent = S.limit ? 'Reste' : 'Temps';
+  $('gName').textContent = !multi ? lv.name : match.rounds > 1 ? T.roundTitle(match.round, match.rounds) : T.multiTitle;
+  $('gMeta').textContent = multi ? T.metaMulti(lv.name, lv.pairs) : T.metaSolo(lv.pairs, lv.cols, lv.rows);
+  $('sTimeLabel').textContent = S.limit ? T.left : T.time;
   $('timeBox').classList.remove('warn');
   document.querySelector('.stats').hidden = multi;
   $('scores').hidden = !multi;
@@ -518,7 +615,7 @@ function start(i, multi = false) {
   const draw = multi && match.rounds === 1;
   if (draw) S.mp.turn = -1;
   els.board.innerHTML = S.deck.map((s, k) =>
-    `<button class="card${draw ? '' : ' up'}" data-k="${k}" aria-label="Carte ${k + 1}"><span class="inner"><span class="back"></span><span class="face">${s}</span></span></button>`
+    `<button class="card${draw ? '' : ' up'}" data-k="${k}" aria-label="${T.card(k + 1)}"><span class="inner"><span class="back"></span><span class="face">${s}</span></span></button>`
   ).join('');
   S.cards = [...els.board.children];
   updateStats(); fit();
@@ -538,13 +635,13 @@ function memorize() {
   const tEnd = Date.now() + lv.preview;
   const countdown = () => {
     const r = Math.ceil((tEnd - Date.now()) / 1000);
-    if (r > 0) { status.textContent = `Mémorisez les cartes… ${r}`; later(countdown, 200); }
+    if (r > 0) { status.textContent = T.memorize(r); later(countdown, 200); }
   };
   countdown();
   later(() => {
     S.cards.forEach(c => c.classList.remove('up'));
-    if (S.mp) { renderScores(); announceTurn(`${match.rounds > 1 ? `Manche ${match.round} : ` : ''}${S.mp.players[S.mp.turn].name} commence !`); }
-    else { status.className = 'status'; status.textContent = 'À vous ! Touchez deux cartes.'; }
+    if (S.mp) { renderScores(); announceTurn((match.rounds > 1 ? T.roundPrefix(match.round) : '') + T.starts(S.mp.players[S.mp.turn].name)); }
+    else { status.className = 'status'; status.textContent = T.yourTurn; }
     S.lock = false; S.t0 = Date.now();
     tick = setInterval(updateTime, 250);
   }, lv.preview);
@@ -554,7 +651,7 @@ function memorize() {
 function drawStarter(done) {
   const n = S.mp.players.length, chosen = Math.random() * n | 0;
   const steps = (n >= 3 ? 3 : 4) * n + chosen + 1;   // le dernier pas tombe sur le joueur tiré
-  const st = $('status'); st.className = 'status'; st.textContent = 'Tirage au sort du premier joueur…';
+  const st = $('status'); st.className = 'status'; st.textContent = T.drawing;
   let step = 0, wait = 0;
   for (; step < steps; step++) {
     const k = step % n, last = step === steps - 1;
@@ -564,7 +661,7 @@ function drawStarter(done) {
       if (!last) { play('tick'); return; }
       play('pick');
       $('scores').children[k].classList.add('chosen');
-      announceTurn(`${S.mp.players[k].name} commence !`);
+      announceTurn(T.starts(S.mp.players[k].name));
     }, wait);
   }
   later(done, wait + 1300);
@@ -606,15 +703,15 @@ els.board.addEventListener('click', e => {
       p.score++;
       a.style.setProperty('--owner', p.color); b.style.setProperty('--owner', p.color);
       renderScores();
-      announceTurn(S.found < S.lv.pairs ? `Paire pour ${p.name}, qui rejoue !` : '');
+      announceTurn(S.found < S.lv.pairs ? T.pairFor(p.name) : '');
     } else {
-      $('status').textContent = S.found < S.lv.pairs ? 'Paire trouvée !' : '';
+      $('status').textContent = S.found < S.lv.pairs ? T.pairFound : '';
     }
     updateStats();
     if (S.found === S.lv.pairs) later(() => (S.mp ? finishMulti() : finish(true)), 650);
   } else {
     S.lock = true;
-    $('status').textContent = 'Pas pareilles…';
+    $('status').textContent = T.notSame;
     later(() => { a.classList.add('wrong'); b.classList.add('wrong'); play('miss'); }, 300);
     later(() => {
       a.classList.remove('up', 'wrong'); b.classList.remove('up', 'wrong');
@@ -639,12 +736,12 @@ function swapCards(a, b) {
   [x, y].forEach(c => { c.classList.remove('swapped'); void c.offsetWidth; c.classList.add('swapped'); });
   later(() => { x.classList.remove('swapped'); y.classList.remove('swapped'); }, 700);
   play('swap');
-  if (S.mp) announceTurn(`Deux cartes ont bougé ! Au tour de ${S.mp.players[S.mp.turn].name}`);
-  else $('status').textContent = 'Deux cartes ont changé de place !';
+  if (S.mp) announceTurn(T.movedTurn(S.mp.players[S.mp.turn].name));
+  else $('status').textContent = T.swapped;
 }
 
 /* Fin d'une manche à plusieurs : points ajoutés au total, puis manche suivante ou classement final */
-const joinNames = ns => ns.length > 1 ? `${ns.slice(0, -1).join(', ')} et ${ns[ns.length - 1]}` : ns[0];
+const joinNames = ns => ns.length > 1 ? `${ns.slice(0, -1).join(', ')} ${T.and} ${ns[ns.length - 1]}` : ns[0];
 function finishMulti() {
   S.over = true; clearInterval(tick);
   play('win');
@@ -657,18 +754,18 @@ function finishMulti() {
   if (!last) {
     // Bilan de la manche, classement provisoire au total
     const next = match.players[(match.offset + match.round) % match.players.length];
-    $('rTitle').textContent = `Fin de la manche ${match.round}/${match.rounds}`;
+    $('rTitle').textContent = T.roundEnd(match.round, match.rounds);
     $('rText').textContent = roundWinners.length > 1
-      ? `${joinNames(roundWinners.map(p => p.name))} sont ex æquo dans cette manche avec ${pl(best, 'paire')}.`
-      : `${roundWinners[0].name} gagne la manche avec ${pl(best, 'paire')}.`;
+      ? T.roundTie(joinNames(roundWinners.map(p => p.name)), T.pairs(best))
+      : T.roundWin(roundWinners[0].name, T.pairs(best));
     const ps = match.players.slice().sort((x, y) => y.total - x.total);
     $('rRank').innerHTML = ps.map(p => {
       const pos = 1 + ps.filter(q => q.total > p.total).length;
       const gain = sp.find(q => q.ref === p).score;
       return `<li style="--pc:${p.color}"><i></i><span>${pos}. ${esc(p.name)}</span><em>+${gain} · total ${p.total}</em></li>`;
     }).join('');
-    $('rAgain').textContent = `Manche ${match.round + 1} : ${next.name} commence`;
-    $('rHome').textContent = 'Arrêter le match';
+    $('rAgain').textContent = T.nextRound(match.round + 1, next.name);
+    $('rHome').textContent = T.stopMatch;
     againAction = () => { match.round++; start(S.i, true); };
   } else {
     // Classement final : total des paires, puis nombre de manches gagnées
@@ -677,24 +774,23 @@ function finishMulti() {
     const top = ps[0], sameTotal = ps.filter(p => p.total === top.total), winners = sameTotal.filter(p => p.wins === top.wins);
     const multiRound = match.rounds > 1;
     if (winners.length > 1) {
-      $('rTitle').textContent = 'Égalité !';
-      $('rText').textContent = `${joinNames(winners.map(p => p.name))} sont ex æquo avec ${pl(top.total, 'paire')}` +
-        (multiRound ? ` et ${pl(top.wins, 'manche')} gagnée${top.wins > 1 ? 's' : ''}.` : '.');
+      $('rTitle').textContent = T.tie;
+      $('rText').textContent = T.tieText(joinNames(winners.map(p => p.name)), T.pairs(top.total), multiRound ? T.wonRounds(top.wins) : '');
     } else {
-      $('rTitle').textContent = multiRound ? `${top.name} remporte le match !` : `${top.name} gagne !`;
+      $('rTitle').textContent = multiRound ? T.matchWinner(top.name) : T.winner(top.name);
       $('rText').textContent = !multiRound
-        ? `${pl(top.total, 'paire')} sur ${S.lv.pairs}, en ${fmt(Math.round(S.elapsed))}.`
+        ? T.singleText(T.pairs(top.total), S.lv.pairs, fmt(Math.round(S.elapsed)))
         : sameTotal.length > 1
-        ? `Égalité à ${pl(top.total, 'paire')} : ${top.name} l'emporte grâce à ${pl(top.wins, 'manche')} gagnée${top.wins > 1 ? 's' : ''}.`
-        : `${pl(top.total, 'paire')} au total sur ${match.rounds} manches.`;
+        ? T.tieBreak(T.pairs(top.total), top.name, T.wonRounds(top.wins))
+        : T.totalText(T.pairs(top.total), match.rounds);
     }
     $('rRank').innerHTML = ps.map(p => {
       const pos = 1 + ps.filter(q => better(q, p) < 0).length;
-      const detail = multiRound ? `${pl(p.total, 'paire')} · ${pl(p.wins, 'manche')}` : pl(p.total, 'paire');
+      const detail = multiRound ? `${T.pairs(p.total)} · ${T.winsShort(p.wins)}` : T.pairs(p.total);
       return `<li class="${pos === 1 ? 'first' : ''}" style="--pc:${p.color}"><i></i><span>${pos}. ${esc(p.name)}</span><em>${detail}</em></li>`;
     }).join('');
-    $('rAgain').textContent = multiRound ? 'Nouveau match' : 'Revanche';
-    $('rHome').textContent = 'Changer les joueurs';
+    $('rAgain').textContent = multiRound ? T.newMatch : T.rematch;
+    $('rHome').textContent = T.changePlayers;
     againAction = () => { newMatch(); start(S.i, true); };
   }
   $('rRank').hidden = false; $('rGrid').hidden = true; $('rStars').hidden = true;
@@ -721,19 +817,19 @@ function finish(won) {
   }
   $('rStars').innerHTML = won ? [1, 2, 3].map(n => `<span class="${n <= stars ? '' : 'off'}">★</span>`).join('') : '';
   $('rStars').hidden = !won;
-  $('rTitle').textContent = won ? (stars === 3 ? 'Mémoire parfaite !' : 'Bravo !') : 'Temps écoulé';
+  $('rTitle').textContent = won ? (stars === 3 ? T.perfect : T.bravo) : T.timeUp;
   $('rText').textContent = won
-    ? `Vous avez trouvé les ${lv.pairs} paires du niveau ${lv.name}.`
-    : `Vous avez trouvé ${S.found} paires sur ${lv.pairs}. Réessayez !`;
+    ? T.wonText(lv.pairs, lv.name)
+    : T.lostText(S.found, lv.pairs);
   $('rMoves').textContent = S.moves;
   $('rTime').textContent = fmt(time);
   $('rRecord').hidden = !record;
   $('rUnlock').hidden = !unlocked;
-  if (unlocked) $('rUnlock').textContent = `🔓 Niveau ${next.name} débloqué !`;
+  if (unlocked) $('rUnlock').textContent = T.unlocked(next.name);
   $('rNext').hidden = !(won && next);
   $('rRank').hidden = true; $('rGrid').hidden = false;
-  $('rAgain').textContent = 'Rejouer';
-  $('rHome').textContent = 'Choisir un niveau';
+  $('rAgain').textContent = T.replay;
+  $('rHome').textContent = T.chooseLevelBtn;
   againAction = () => start(S.i);
   later(() => { els.overlay.hidden = false; (won && next ? $('rNext') : $('rAgain')).focus(); }, won ? 0 : 900);
 }
