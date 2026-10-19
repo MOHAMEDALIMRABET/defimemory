@@ -536,7 +536,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 12;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 13;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${APP_BUILD})`;
@@ -850,7 +850,8 @@ els.board.addEventListener('click', e => {
   }
 });
 
-/* Niveau Maître : après chaque erreur, deux cartes cachées échangent leur place */
+/* Niveau Maître : après chaque erreur, deux cartes cachées échangent leur place,
+   puis se retournent un instant pour montrer leur nouvelle position avant de se recacher */
 function swapCards(a, b) {
   const pool = S.cards.filter(c => c !== a && c !== b && !c.classList.contains('up') && !c.classList.contains('matched'));
   if (pool.length < 2) return;
@@ -863,6 +864,10 @@ function swapCards(a, b) {
   [x, y].forEach(c => { c.classList.remove('swapped'); void c.offsetWidth; c.classList.add('swapped'); });
   later(() => { x.classList.remove('swapped'); y.classList.remove('swapped'); }, 700);
   play('swap');
+  S.lock = true;   // pas de clic pendant que les deux cartes se montrent
+  later(() => { x.classList.add('up'); y.classList.add('up'); play('flip'); }, 380);
+  later(() => { x.classList.remove('up'); y.classList.remove('up'); }, 1700);
+  later(() => { if (S && !S.over) S.lock = false; }, 2100);
   if (S.mp) announceTurn(T.movedTurn(S.mp.players[S.mp.turn].name));
   else $('status').textContent = T.swapped;
 }
