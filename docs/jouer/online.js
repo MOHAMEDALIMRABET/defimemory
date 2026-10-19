@@ -135,15 +135,33 @@
     panel();
   };
   $('onName').oninput = () => { try { localStorage.setItem('dm-online-name', $('onName').value.trim()); } catch (e) {} };
-  $('onCode').oninput = () => { $('onCode').value = $('onCode').value.toUpperCase().replace(/[^A-Z0-9]/g, ''); };
+  // Seulement les caractères possibles dans un code ; on rejoint automatiquement au 4e caractère
+  $('onCode').oninput = () => {
+    const v = $('onCode').value.toUpperCase().replace(/[^A-HJ-NP-Z2-9]/g, '');
+    $('onCode').value = v;
+    if (v.length === 4) $('onJoin').click(); else if ($('onMsg').textContent) msg('');
+  };
   $('onCode').onkeydown = e => { if (e.key === 'Enter') $('onJoin').click(); };
   $('onName').onkeydown = e => { if (e.key === 'Enter') e.target.blur(); };
 
+  // Message précis selon la cause de l'échec
+  function explain(e) {
+    const c = String((e && (e.code || e.message)) || e || '');
+    if (/operation-not-allowed|admin-restricted/i.test(c)) return T.errAnon;
+    if (/permission[_-]denied/i.test(c)) return T.errRules;
+    if (/api-key|invalid-api|app-not-authorized|unauthorized-domain/i.test(c)) return T.errKey;
+    if (/network|timeout|offline|vendor\//i.test(c)) return T.noNet;
+    return T.noNet;
+  }
   async function busy(btn, fn) {
     if (btn.disabled) return;
     btn.disabled = true; msg(T.connecting, true);
     try { await connect(); await fn(); }
-    catch (e) { console.warn(e); msg(T.noNet); }
+    catch (e) {
+      console.warn(e);
+      const c = String((e && (e.code || e.message)) || e).slice(0, 60);
+      msg(explain(e) + ' (' + c + ')');
+    }
     finally { btn.disabled = false; }
   }
 
@@ -162,7 +180,7 @@
 
   $('onJoin').onclick = () => {
     const c = $('onCode').value.trim().toUpperCase();
-    if (!/^[A-Z2-9]{4}$/.test(c)) { msg(T.badCode); return; }
+    if (!/^[A-HJ-NP-Z2-9]{4}$/.test(c)) { msg(T.badCode); return; }
     busy($('onJoin'), async () => {
       audio();
       const r = await api.get('rooms/' + c);

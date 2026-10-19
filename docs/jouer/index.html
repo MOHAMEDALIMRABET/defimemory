@@ -471,7 +471,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
       <button class="btn primary start" id="onCreate" data-t="createRoom">Défier un ami</button>
       <div class="or"><span data-t="or">ou</span></div>
       <div class="join">
-        <input id="onCode" maxlength="4" placeholder="CODE" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Code du salon" data-ta="codeAria">
+        <input id="onCode" maxlength="4" placeholder="CODE" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Code du salon" data-ta="codeAria">
         <button class="btn" id="onJoin" data-t="join">Rejoindre</button>
       </div>
       <p class="on-msg" id="onMsg" aria-live="polite"></p>
@@ -650,7 +650,10 @@ const I18N = {
     inviteText: (c, u) => `Viens jouer à DefiMemory avec moi ! Code du salon : ${c}\n${u}`,
     connecting: 'Connexion…', noNet: 'Connexion impossible. Vérifiez votre accès à Internet, puis réessayez.',
     notAvailable: 'Le jeu en ligne n\'est pas disponible dans cette version. Jouez sur mohamedalimrabet.github.io/defimemory/jouer/',
-    badCode: 'Entrez le code à 4 caractères reçu de votre ami.', noRoom: 'Aucun salon avec ce code. Vérifiez-le.',
+    badCode: 'Entrez le code à 4 caractères affiché sur le téléphone de votre ami (il le reçoit en touchant « Défier un ami »).',
+    errAnon: 'Le serveur refuse la connexion : la connexion « Anonyme » n\'est pas activée dans Firebase.',
+    errRules: 'Le serveur refuse l\'accès : les règles de la base Firebase ne sont pas publiées.',
+    errKey: 'Le serveur refuse cette application : vérifiez la clé API dans Firebase.', noRoom: 'Aucun salon avec ce code. Vérifiez-le.',
     roomFull: 'Ce salon est déjà complet.', joined: n => `${n} a rejoint le salon !`,
     startsIn: s => `La partie commence dans ${s}…`, yourTurnOn: s => `À vous ! ${s} s`, oppTurn: (n, s) => `Au tour de ${n}… ${s} s`,
     you: 'vous', lostConn: (n, s) => `Connexion perdue avec ${n}… ${s} s`, youWin: 'Vous avez gagné !',
@@ -713,7 +716,10 @@ const I18N = {
     inviteText: (c, u) => `Come play DefiMemory with me! Room code: ${c}\n${u}`,
     connecting: 'Connecting…', noNet: 'Cannot connect. Check your Internet connection and try again.',
     notAvailable: 'Online play is not available in this version. Play at mohamedalimrabet.github.io/defimemory/jouer/',
-    badCode: 'Enter the 4-character code from your friend.', noRoom: 'No room with this code. Please check it.',
+    badCode: 'Enter the 4-character code shown on your friend\'s phone (they get it by tapping “Challenge a friend”).',
+    errAnon: 'The server refused the connection: “Anonymous” sign-in is not enabled in Firebase.',
+    errRules: 'The server denied access: the Firebase database rules are not published.',
+    errKey: 'The server refused this app: check the API key in Firebase.', noRoom: 'No room with this code. Please check it.',
     roomFull: 'This room is already full.', joined: n => `${n} joined the room!`,
     startsIn: s => `Game starts in ${s}…`, yourTurnOn: s => `Your turn! ${s} s`, oppTurn: (n, s) => `${n}'s turn… ${s} s`,
     you: 'you', lostConn: (n, s) => `Lost connection with ${n}… ${s} s`, youWin: 'You win!',
@@ -724,7 +730,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 18;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 19;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${APP_BUILD})`;
