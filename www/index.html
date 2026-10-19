@@ -140,6 +140,8 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 .pscore small { display: block; font-size: 11px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: -2px; }
 .pscore.active { border-color: var(--pc); background: color-mix(in srgb, var(--pc) 13%, var(--surface)); transform: translateY(-2px); }
 .pscore.active::before { opacity: 1; }
+.pscore.chosen { animation: chosen .45s ease 3; }
+@keyframes chosen { 50% { transform: translateY(-2px) scale(1.08); } }
 .pscore.active span { color: var(--ink); }
 .status.turn { color: var(--pc, var(--ink)); }
 .card.matched[style*="--owner"] .face { border-color: var(--owner); box-shadow: 0 0 0 3px color-mix(in srgb, var(--owner) 30%, transparent); }
@@ -230,7 +232,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 
 @media (prefers-reduced-motion: reduce) {
   .card .inner { transition-duration: .01s; }
-  .card.matched .face, .card.wrong .face, .card.swapped, .sheet { animation: none; }
+  .card.matched .face, .card.wrong .face, .card.swapped, .pscore.chosen, .sheet { animation: none; }
 }
 </style>
 </head>
@@ -357,6 +359,8 @@ const SOUNDS = {
   match: () => { tone(660, 0.14); tone(990, 0.25, { at: 0.11 }); },
   miss:  () => { tone(240, 0.16, { type: 'square', vol: 0.05, to: 180 }); tone(180, 0.24, { type: 'square', at: 0.15, vol: 0.05, to: 120 }); },
   win:   () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.25, { at: i * 0.12 })),
+  tick:  () => tone(1100, 0.035, { type: 'square', vol: 0.035 }),
+  pick:  () => { tone(660, 0.12); tone(880, 0.12, { at: 0.1 }); tone(1320, 0.3, { at: 0.2 }); },
   swap:  () => { tone(420, 0.12, { type: 'triangle', to: 840 }); tone(840, 0.14, { type: 'triangle', at: 0.13, to: 420 }); },
   lose:  () => [392, 330, 262].forEach((f, i) => tone(f, 0.32, { type: 'triangle', at: i * 0.2 })),
 };
@@ -441,7 +445,7 @@ function renderSetup() {
     `<button class="chip" data-s="${i}" aria-pressed="${i === setup.size}">${lv.pairs}<small>${lv.name}</small></button>`).join('');
   $('formats').innerHTML =
     `<button class="chip" data-f="match" aria-pressed="${setup.format === 'match'}">Match équitable<small>${setup.n} manches, 1 par joueur</small></button>` +
-    `<button class="chip" data-f="single" aria-pressed="${setup.format === 'single'}">Partie unique<small>1 manche</small></button>`;
+    `<button class="chip" data-f="single" aria-pressed="${setup.format === 'single'}">Partie unique<small>1 manche, 1er joueur tiré au sort</small></button>`;
 }
 $('formats').onclick = e => { const b = e.target.closest('[data-f]'); if (b) { setup.format = b.dataset.f; saveSetup(); renderSetup(); } };
 $('pCount').onclick = e => { const b = e.target.closest('[data-n]'); if (b) { setup.n = +b.dataset.n; saveSetup(); renderSetup(); } };
@@ -483,14 +487,22 @@ function start(i, multi = false) {
   $('scores').hidden = !multi;
   if (multi) renderScores();
 
+  // Partie unique : tirage au sort du premier joueur, cartes cachées pendant le tirage
+  const draw = multi && match.rounds === 1;
+  if (draw) S.mp.turn = -1;
   els.board.innerHTML = S.deck.map((s, k) =>
-    `<button class="card up" data-k="${k}" aria-label="Carte ${k + 1}"><span class="inner"><span class="back"></span><span class="face">${s}</span></span></button>`
+    `<button class="card${draw ? '' : ' up'}" data-k="${k}" aria-label="Carte ${k + 1}"><span class="inner"><span class="back"></span><span class="face">${s}</span></span></button>`
   ).join('');
   S.cards = [...els.board.children];
   updateStats(); fit();
+  $('bar').style.transition = 'none'; $('bar').style.width = '0%';
+  if (draw) drawStarter(memorize); else memorize();
+}
 
-  // Phase de mémorisation : cartes visibles, puis retournées
-  const bar = $('bar'), status = $('status');
+/* Phase de mémorisation : cartes visibles, puis retournées */
+function memorize() {
+  const lv = S.lv, bar = $('bar'), status = $('status');
+  S.cards.forEach(c => c.classList.add('up'));
   status.className = 'status memo';
   bar.style.transition = 'none'; bar.style.width = '100%';
   requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -504,11 +516,31 @@ function start(i, multi = false) {
   countdown();
   later(() => {
     S.cards.forEach(c => c.classList.remove('up'));
-    if (S.mp) announceTurn(`${match.rounds > 1 ? `Manche ${match.round} : ` : ''}${S.mp.players[S.mp.turn].name} commence !`);
+    if (S.mp) { renderScores(); announceTurn(`${match.rounds > 1 ? `Manche ${match.round} : ` : ''}${S.mp.players[S.mp.turn].name} commence !`); }
     else { status.className = 'status'; status.textContent = 'À vous ! Touchez deux cartes.'; }
     S.lock = false; S.t0 = Date.now();
     tick = setInterval(updateTime, 250);
   }, lv.preview);
+}
+
+/* Tirage au sort : le contour passe d'un joueur à l'autre en ralentissant, puis s'arrête */
+function drawStarter(done) {
+  const n = S.mp.players.length, chosen = Math.random() * n | 0;
+  const steps = (n >= 3 ? 3 : 4) * n + chosen + 1;   // le dernier pas tombe sur le joueur tiré
+  const st = $('status'); st.className = 'status'; st.textContent = 'Tirage au sort du premier joueur…';
+  let step = 0, wait = 0;
+  for (; step < steps; step++) {
+    const k = step % n, last = step === steps - 1;
+    wait += 70 + 330 * Math.pow(step / steps, 2.2);
+    later(() => {
+      S.mp.turn = k; renderScores();
+      if (!last) { play('tick'); return; }
+      play('pick');
+      $('scores').children[k].classList.add('chosen');
+      announceTurn(`${S.mp.players[k].name} commence !`);
+    }, wait);
+  }
+  later(done, wait + 1300);
 }
 
 function updateStats() {
@@ -636,8 +668,7 @@ function finishMulti() {
     }).join('');
     $('rAgain').textContent = multiRound ? 'Nouveau match' : 'Revanche';
     $('rHome').textContent = 'Changer les joueurs';
-    // Partie unique : le premier joueur change à chaque revanche
-    againAction = () => { newMatch(multiRound ? 0 : match.offset + 1); start(S.i, true); };
+    againAction = () => { newMatch(); start(S.i, true); };
   }
   $('rRank').hidden = false; $('rGrid').hidden = true; $('rStars').hidden = true;
   $('rRecord').hidden = true; $('rUnlock').hidden = true; $('rNext').hidden = true;
@@ -709,8 +740,8 @@ addEventListener('resize', fit);
 const P = (window.Capacitor && window.Capacitor.Plugins) || {};
 function haptic(kind) {
   try {
-    if (!P.Haptics) { if (navigator.vibrate) navigator.vibrate(kind === 'miss' ? [30, 40, 30] : 15); return; }
-    if (kind === 'flip') P.Haptics.impact({ style: 'LIGHT' });
+    if (!P.Haptics) { if (navigator.vibrate) navigator.vibrate(kind === 'miss' ? [30, 40, 30] : kind === 'tick' ? 5 : 15); return; }
+    if (kind === 'flip' || kind === 'tick') P.Haptics.impact({ style: 'LIGHT' });
     else if (kind === 'miss') P.Haptics.notification({ type: 'ERROR' });
     else P.Haptics.notification({ type: 'SUCCESS' });
   } catch (e) {}

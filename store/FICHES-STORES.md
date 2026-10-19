@@ -26,7 +26,7 @@ Au début de chaque partie, toutes les cartes sont visibles pendant quelques sec
 Gagnez un niveau pour débloquer le suivant.
 
 À PLUSIEURS SUR LE MÊME TÉLÉPHONE
-Défiez votre famille ou vos amis, de 2 à 4 joueurs ! Chacun son tour, retournez deux cartes : une paire rapporte 1 point et vous rejouez, sinon vous passez le téléphone. En match équitable, on joue une manche par joueur pour que chacun commence une fois, et les paires s'additionnent : le meilleur total remporte le match. Choisissez la taille du plateau, de 6 à 18 paires.
+Défiez votre famille ou vos amis, de 2 à 4 joueurs ! Chacun son tour, retournez deux cartes : une paire rapporte 1 point et vous rejouez, sinon vous passez le téléphone. En match équitable, on joue une manche par joueur pour que chacun commence une fois, et les paires s'additionnent : le meilleur total remporte le match. Pressé ? En partie unique, le premier joueur est tiré au sort. Choisissez la taille du plateau, de 6 à 18 paires.
 
 POUR TOUS
 • Jusqu'à 3 étoiles par niveau selon votre nombre de coups
