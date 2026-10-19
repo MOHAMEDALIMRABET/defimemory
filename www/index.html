@@ -127,6 +127,10 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 }
 .player:focus-within { border-color: var(--pc); }
 .btn.start { flex: none; }
+.link-btn {
+  align-self: flex-end; margin-top: -14px; border: 0; background: none; padding: 6px 2px;
+  color: var(--back-2); font-weight: 700; font-size: 14px; text-decoration: underline; text-underline-offset: 3px;
+}
 
 /* ---------- Scores pendant la partie ---------- */
 .scores { display: grid; gap: 6px; }
@@ -263,6 +267,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
       <p class="label">Nombre de joueurs</p>
       <div class="count" id="pCount"></div>
       <div class="players" id="players"></div>
+      <button class="link-btn" id="resetNames" hidden>Effacer les noms</button>
       <p class="label">Taille du plateau</p>
       <div class="sizes" id="sizes"></div>
       <p class="label">Format</p>
@@ -421,7 +426,8 @@ $('tabMulti').onclick = () => setTab('multi');
 const PCOLORS = ['var(--p1)', 'var(--p2)', 'var(--p3)', 'var(--p4)'];
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const pl = (n, w) => `${n} ${w}${n > 1 ? 's' : ''}`;
-let setup = { n: 2, names: ['Joueur 1', 'Joueur 2', 'Joueur 3', 'Joueur 4'], size: 1, format: 'match' };
+const DEFAULT_NAMES = ['Joueur 1', 'Joueur 2', 'Joueur 3', 'Joueur 4'];
+let setup = { n: 2, names: DEFAULT_NAMES.slice(), size: 1, format: 'match' };
 try { Object.assign(setup, JSON.parse(localStorage.getItem('memoire-joueurs') || '{}')); } catch (e) {}
 function saveSetup() { try { localStorage.setItem('memoire-joueurs', JSON.stringify(setup)); } catch (e) {} }
 
@@ -443,14 +449,18 @@ function renderSetup() {
     `<label class="player" style="--pc:${PCOLORS[i]}"><i></i><input id="pName${i}" data-i="${i}" maxlength="12" value="${esc(name)}" aria-label="Nom du joueur ${i + 1}" autocomplete="off" enterkeyhint="done"></label>`).join('');
   $('sizes').innerHTML = LEVELS.map((lv, i) =>
     `<button class="chip" data-s="${i}" aria-pressed="${i === setup.size}">${lv.pairs}<small>${lv.name}</small></button>`).join('');
+  $('resetNames').hidden = !customNames();
   $('formats').innerHTML =
     `<button class="chip" data-f="match" aria-pressed="${setup.format === 'match'}">Match équitable<small>${setup.n} manches, 1 par joueur</small></button>` +
     `<button class="chip" data-f="single" aria-pressed="${setup.format === 'single'}">Partie unique<small>1 manche, 1er joueur tiré au sort</small></button>`;
 }
+const customNames = () => setup.names.some((n, i) => n !== DEFAULT_NAMES[i]);
+$('resetNames').onclick = () => { setup.names = DEFAULT_NAMES.slice(); saveSetup(); renderSetup(); };
+$('players').addEventListener('focusin', e => { if (e.target.select) e.target.select(); });
 $('formats').onclick = e => { const b = e.target.closest('[data-f]'); if (b) { setup.format = b.dataset.f; saveSetup(); renderSetup(); } };
 $('pCount').onclick = e => { const b = e.target.closest('[data-n]'); if (b) { setup.n = +b.dataset.n; saveSetup(); renderSetup(); } };
 $('sizes').onclick = e => { const b = e.target.closest('[data-s]'); if (b) { setup.size = +b.dataset.s; saveSetup(); renderSetup(); } };
-$('players').oninput = e => { const i = e.target.dataset.i; if (i != null) { setup.names[i] = e.target.value; saveSetup(); } };
+$('players').oninput = e => { const i = e.target.dataset.i; if (i != null) { setup.names[i] = e.target.value; saveSetup(); $('resetNames').hidden = !customNames(); } };
 $('players').onkeydown = e => { if (e.key === 'Enter') e.target.blur(); };
 $('startMulti').onclick = () => { newMatch(); start(setup.size, true); };
 
