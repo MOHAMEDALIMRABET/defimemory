@@ -37,6 +37,7 @@ POUR TOUS
 • Mode clair et mode sombre
 • Fonctionne sans Internet
 • Jouez en ligne de 2 à 4 amis avec un code de salon
+• Ligue de la semaine : chaque paire compte, médailles 🥇🥈🥉 pour le podium
 • Aucune publicité, aucun compte
 
 Saurez-vous devenir une Légende de DefiMemory ?
@@ -57,7 +58,7 @@ Saurez-vous devenir une Légende de DefiMemory ?
 | Copyright | `2026 <votre nom>` |
 | URL d'assistance | `https://mohamedalimrabet.github.io/defimemory/` |
 | URL de confidentialité | `https://mohamedalimrabet.github.io/defimemory/confidentialite.html` |
-| Confidentialité de l'app | Données **non associées** à l'utilisateur et **non utilisées pour le suivi** : *Identifiants > ID utilisateur* (identifiant anonyme Firebase) et *Contenu utilisateur > Autre contenu* (pseudo du jeu en ligne). Objectif : *Fonctionnalité de l'app*. |
+| Confidentialité de l'app | Données **non associées** à l'utilisateur et **non utilisées pour le suivi** : *Identifiants > ID utilisateur* (identifiant anonyme Firebase) et *Contenu utilisateur > Autre contenu* (pseudo du jeu en ligne et de la ligue) et *Données d'utilisation > Données de jeu* (paires de la ligue). Objectif : *Fonctionnalité de l'app*. |
 | Captures d'écran (iPhone 6,7"/6,9") | dossier `screenshots/iphone/` (1290 × 2796) |
 
 ---
@@ -74,7 +75,7 @@ Saurez-vous devenir une Légende de DefiMemory ?
 | Image de présentation (1024 × 500) | `play-feature-graphic-1024x500.png` |
 | Captures d'écran téléphone | dossier `screenshots/android/` (1080 × 1920) |
 | Règles de confidentialité | `https://mohamedalimrabet.github.io/defimemory/confidentialite.html` |
-| Sécurité des données | Données collectées : *Identifiants de l'appareil ou autres > ID utilisateur* et *Activité dans l'appli > Autre contenu généré par l'utilisateur* (pseudo). Non partagées, chiffrées en transit, facultatives (seulement en mode En ligne), objectif « Fonctionnalité de l'appli », suppression automatique en fin de partie. |
+| Sécurité des données | Données collectées : *Identifiants de l'appareil ou autres > ID utilisateur* et *Activité dans l'appli > Autre contenu généré par l'utilisateur* (pseudo) et *Activité dans l'appli > Autres actions* (paires de la ligue). Non partagées, chiffrées en transit, facultatives (seulement en mode En ligne), objectif « Fonctionnalité de l'appli », suppression automatique en fin de partie. |
 | Classification du contenu | Questionnaire IARC : catégorie « Jeu », répondre « Non » partout → PEGI 3 |
 | Public cible | 13 ans et plus (le plus simple ; choisir des tranches d'âge plus jeunes impose les règles « Familles » de Google) |
 | Annonces | « Non, mon application ne contient pas d'annonces » |
@@ -124,6 +125,7 @@ FOR EVERYONE
 • Light and dark mode
 • Works offline
 • Play online with 2 to 4 friends using a room code
+• Weekly league: every pair counts, 🥇🥈🥉 medals for the podium
 • No ads, no account
 
 Can you become a DefiMemory Legend?

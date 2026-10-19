@@ -148,6 +148,26 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 .clear svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; fill: none; }
 .player:not(.filled) .clear { visibility: hidden; }
 
+/* ---------- Ligue de la semaine ---------- */
+.brand > div:nth-child(2) { flex: 1; min-width: 0; }
+.league-btn { width: 48px; height: 48px; font-size: 24px; align-self: flex-start; border-color: var(--accent); }
+.league { flex: 1; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; padding-bottom: 12px; }
+.league .rules { margin: 0; }
+.lg-mine { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--back); color: #fff; font-weight: 700; }
+.lg-mine span { flex: 1; }
+.lg-mine b { font-family: var(--font-display); font-size: 24px; }
+.lg-mine em { font-style: normal; opacity: .85; }
+.lg-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.lg-list li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: var(--surface); border: 1.5px solid var(--line); font-weight: 700; }
+.lg-list li .rank { width: 34px; flex: none; text-align: center; font-family: var(--font-display); font-size: 16px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.lg-list li.podium .rank { font-size: 24px; }
+.lg-list li span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lg-list li em { font-style: normal; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.lg-list li.me { border-color: var(--back-2); background: color-mix(in srgb, var(--back-2) 12%, var(--surface)); }
+.lg-list li.empty { justify-content: center; color: var(--muted); font-weight: 600; }
+.lg-last { margin: 0; text-align: center; color: var(--muted); font-size: 13px; }
+.lg-last span { font-weight: 700; }
+
 /* ---------- En ligne ---------- */
 .or { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; font-weight: 700; margin-block: -6px; }
 .or::before, .or::after { content: ""; flex: 1; height: 1.5px; background: var(--line); }
@@ -443,6 +463,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
         <h1>DefiMemory</h1>
         <p class="tagline" data-t="tagline">Retenez les cartes, puis retrouvez les paires.</p>
       </div>
+      <button class="icon-btn league-btn" id="leagueBtn" hidden aria-label="Ligue de la semaine" data-ta="lgTitle"><span aria-hidden="true">🏆</span></button>
     </div>
     <div class="tabs" role="tablist" aria-label="Mode de jeu" data-ta="gameMode">
       <button class="tab" role="tab" id="tabSolo" aria-selected="true" aria-controls="soloPanel" data-t="solo">Solo</button>
@@ -482,6 +503,22 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
       <p class="on-msg" id="onMsg" aria-live="polite"></p>
     </div>
     <p class="version" id="version"></p>
+  </section>
+
+  <section class="league" id="league" hidden>
+    <div class="topbar">
+      <button class="icon-btn" id="leagueBack" aria-label="Retour à l'accueil" data-ta="backHome">
+        <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <div class="game-title"><strong data-t="lgTitle">Ligue de la semaine</strong><span id="lgMeta"></span></div>
+    </div>
+    <p class="rules" data-t="lgRules">Chaque paire trouvée en Solo et En ligne compte.</p>
+    <div class="lg-mine" id="lgMine"></div>
+    <ol class="lg-list" id="lgList"></ol>
+    <p class="on-msg" id="lgMsg" aria-live="polite"></p>
+    <p class="lg-last" id="lgLast" hidden></p>
+    <p class="label" data-t="lgNameLabel">Votre pseudo dans la ligue</p>
+    <label class="player filled" style="--pc:var(--accent)"><i></i><input id="lgName" maxlength="12" autocomplete="off" enterkeyhint="done" aria-label="Votre pseudo dans la ligue" data-ta="lgNameLabel"></label>
   </section>
 
   <section class="lobby" id="lobby" hidden>
@@ -671,6 +708,11 @@ const I18N = {
     huntFind: (a, b) => `trouvez-les : ${a}/${b}`, huntDone: n => `Terminé : ${plural(n, 'carte trouvée', 'cartes trouvées')} !`,
     huntLine: r => `${plural(r.found || 0, 'carte', 'cartes')}${r.found ? ` en ${secs(r.ms)} s` : ''}`,
     huntWinner: n => `${n} remporte la prolongation !`, huntWatch: n => `Prolongation entre ${n}…`,
+    lgTitle: 'Ligue de la semaine', lgRules: 'Chaque paire trouvée en <b>Solo</b> et <b>En ligne</b> compte. Le classement repart à zéro chaque <b>lundi à minuit</b> (heure de Paris).',
+    lgEnds: (d, h, m) => `Se termine dans ${d ? d + ' j ' : ''}${h} h ${String(m).padStart(2, '0')}`,
+    lgYourRank: 'Votre place', lgNotRanked: 'Trouvez une paire en Solo ou En ligne pour entrer dans la ligue !',
+    lgEmpty: 'Personne n\'a encore joué cette semaine. Soyez le premier !', lgLastWeek: 'Semaine dernière :',
+    lgNameLabel: 'Votre pseudo dans la ligue', lgBadName: 'Ce pseudo n\'est pas accepté. Choisissez-en un autre.',
     winnerCup: 'Vainqueur', champTitle: 'Champion !', champFirst: 'Vous avez terminé tous les niveaux de DefiMemory !',
     champAgain: lv => `Vous avez encore vaincu le niveau ${lv} !`, newLevel: 'Nouveau niveau', lvUnlocked: lv => `Niveau ${lv} débloqué !`, newBadge: 'Nouveau',
   },
@@ -744,12 +786,17 @@ const I18N = {
     huntFind: (a, b) => `find them: ${a}/${b}`, huntDone: n => `Done: ${plural(n, 'card found', 'cards found')}!`,
     huntLine: r => `${plural(r.found || 0, 'card', 'cards')}${r.found ? ` in ${secs(r.ms)} s` : ''}`,
     huntWinner: n => `${n} wins overtime!`, huntWatch: n => `Overtime between ${n}…`,
+    lgTitle: 'Weekly league', lgRules: 'Every pair found in <b>Solo</b> and <b>Online</b> counts. The ranking resets every <b>Monday at midnight</b> (Paris time).',
+    lgEnds: (d, h, m) => `Ends in ${d ? d + ' d ' : ''}${h} h ${String(m).padStart(2, '0')}`,
+    lgYourRank: 'Your rank', lgNotRanked: 'Find a pair in Solo or Online to join the league!',
+    lgEmpty: 'Nobody has played this week yet. Be the first!', lgLastWeek: 'Last week:',
+    lgNameLabel: 'Your league nickname', lgBadName: 'This nickname is not allowed. Please choose another one.',
     winnerCup: 'Winner', champTitle: 'Champion!', champFirst: 'You beat every level of DefiMemory!',
     champAgain: lv => `You beat the ${lv} level again!`, newLevel: 'New level', lvUnlocked: lv => `${lv} unlocked!`, newBadge: 'New',
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 21;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 22;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${APP_BUILD})`;
@@ -857,6 +904,7 @@ function showHome() {
   clearAll(); S = null;
   els.overlay.hidden = true; els.game.hidden = true; els.home.hidden = false; $('lobby').hidden = true;
   $('unlockFx').hidden = true; $('champFx').hidden = true;   // une animation interrompue ne doit pas rester à l'écran
+  $('league').hidden = true;
   $('restart').hidden = false;
   els.home.scrollTop = 0;
   renderLevels(); renderSetup();
@@ -1174,6 +1222,7 @@ function finishMulti() {
 
 function finish(won) {
   S.over = true; clearInterval(tick);
+  if (window.League) League.add(S.found);
   play(won ? 'win' : 'lose');
   const lv = S.lv, time = Math.round(S.elapsed);
   const next = LEVELS[S.i + 1];

@@ -42,6 +42,9 @@
       },
       on(path, cb) { const r = db.ref(path), h = s => cb(s.val()); r.on('value', h); return () => r.off('value', h); },
       async get(path) { return (await withTimeout(db.ref(path).get(), 15000)).val(); },
+      // Les n meilleurs selon « pairs », et le nombre de joueurs au-dessus d'un score
+      async top(path, n) { return (await withTimeout(db.ref(path).orderByChild('pairs').limitToLast(n).get(), 15000)).val() || {}; },
+      async above(path, pairs) { return (await withTimeout(db.ref(path).orderByChild('pairs').startAt(pairs + 1).get(), 15000)).numChildren(); },
       async transaction(path, fn) { const r = await db.ref(path).transaction(fn); return r.committed ? r.snapshot.val() : undefined; },
       update: (path, v) => db.ref(path).update(v),
       remove: path => db.ref(path).remove(),
@@ -80,6 +83,8 @@
       uid, now: () => Date.now(), async init() {},
       on(path, cb) { const s = () => cb(clone(at(read(), path))); subs.add(s); setTimeout(s); return () => subs.delete(s); },
       async get(path) { return clone(at(read(), path)); },
+      async top(path, n) { const all = at(read(), path) || {}; return Object.fromEntries(Object.entries(all).sort((a, b) => b[1].pairs - a[1].pairs).slice(0, n)); },
+      async above(path, pairs) { return Object.values(at(read(), path) || {}).filter(e => e.pairs > pairs).length; },
       async transaction(path, fn) {
         const tree = read(), v = fn(clone(at(tree, path)));
         if (v === undefined) return undefined;
@@ -531,6 +536,7 @@
   /* ---------- Fin de partie et revanche ---------- */
   function showEnd(g) {
     endShown = g.n;
+    add((g.scores && g.scores[api.uid]) || 0);
     const ps = arr(g.order).map(playerById), sc = id => (g.scores && g.scores[id]) || 0;
     const stay = ps.filter(p => !outOf(g)[p.id]);
     const top = Math.max(...stay.map(p => sc(p.id)));
@@ -598,6 +604,103 @@
     }
     if (/^#[A-Z2-9]{4}$/i.test(location.hash)) setTab('online');
   }
+
+  /* ---------- Ligue de la semaine ----------
+     Chaque joueur ajoute ses paires (Solo et En ligne) à league/SEMAINE/uid.
+     La semaine commence le lundi à 0 h, heure de Paris ; son nom est la date de ce lundi. */
+  const PARIS = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' });
+  function parisNow(at = Date.now()) {
+    const o = Object.fromEntries(PARIS.formatToParts(new Date(at)).map(x => [x.type, x.value]));
+    return { y: +o.year, m: +o.month, d: +o.day, wd: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].indexOf(o.weekday), h: +o.hour, mi: +o.minute, s: +o.second };
+  }
+  function weekId(at = Date.now()) {
+    const p = parisNow(at), monday = new Date(Date.UTC(p.y, p.m - 1, p.d - p.wd));
+    return monday.toISOString().slice(0, 10);
+  }
+  const prevWeekId = () => weekId(Date.now() - 7 * 86400000);
+  // Temps restant jusqu'au lundi suivant à 0 h (heure de Paris)
+  function weekLeft() { const p = parisNow(); return ((7 - p.wd) * 86400 - (p.h * 3600 + p.mi * 60 + p.s)) * 1000; }
+
+  const BAD = /(merde|putain|pute|connard|connasse|encul|salope|batard|bâtard|nique|niqu|pd\b|fuck|shit|bitch|cunt|dick|nazi|hitler)/i;
+  const cleanName = n => { n = (n || '').trim().slice(0, 12); return !n || BAD.test(n) ? '' : n; };
+  function leagueName() {
+    let n = ''; try { n = localStorage.getItem('dm-league-name') || localStorage.getItem('dm-online-name') || ''; } catch (e) {}
+    n = cleanName(n);
+    if (!n) {
+      try { n = localStorage.getItem('dm-league-anon'); } catch (e) {}
+      if (!n) { n = T.player(1000 + Math.random() * 9000 | 0); try { localStorage.setItem('dm-league-anon', n); } catch (e) {} }
+    }
+    return n;
+  }
+  const pendingKey = () => 'dm-league-' + weekId();
+  function pending() { try { return +(localStorage.getItem(pendingKey()) || 0); } catch (e) { return 0; } }
+  let flushing = false;
+  async function flush(nameChanged) {
+    const n = pending();
+    if (flushing || (!n && !nameChanged)) return;
+    flushing = true;
+    try {
+      await connect();
+      const wk = weekId(), path = `league/${wk}/${api.uid}`;
+      const ok = await api.transaction(path, cur => ({ name: leagueName(), pairs: ((cur && cur.pairs) || 0) + n, t: Date.now() }));
+      if (ok) { try { localStorage.setItem(pendingKey(), Math.max(0, pending() - n)); } catch (e) {} }
+    } catch (e) { console.warn('ligue', e); }
+    finally { flushing = false; }
+  }
+  // Appelé à la fin d'une partie Solo ou En ligne
+  function add(pairs) {
+    if (!(pairs > 0)) return;
+    try { localStorage.setItem(pendingKey(), pending() + pairs); } catch (e) {}
+    flush();
+  }
+
+  async function openLeague() {
+    els.home.hidden = true; els.game.hidden = true; els.overlay.hidden = true; $('lobby').hidden = true;
+    $('league').hidden = false; $('league').scrollTop = 0;
+    $('lgName').value = leagueName();
+    $('lgMsg').textContent = T.connecting; $('lgMsg').className = 'on-msg ok';
+    renderLeft();
+    try {
+      await flush();
+      const wk = weekId(), board = await api.top('league/' + wk, 50);
+      const rows = Object.entries(board).map(([id, e]) => ({ id, ...e })).sort((a, b) => b.pairs - a.pairs || a.t - b.t);
+      let me = rows.find(r => r.id === api.uid), myRank = me ? rows.indexOf(me) + 1 : null;
+      if (!me) {
+        const mine = await api.get(`league/${wk}/${api.uid}`);
+        if (mine) { me = { id: api.uid, ...mine }; myRank = (await api.above('league/' + wk, mine.pairs)) + 1; }
+      }
+      $('lgMine').innerHTML = me
+        ? `<span>${T.lgYourRank}</span><b>${medal(myRank)}</b><em>${T.pairs(me.pairs)}</em>`
+        : `<span>${T.lgNotRanked}</span>`;
+      $('lgList').innerHTML = rows.length ? rows.map((r, i) =>
+        `<li class="${r.id === api.uid ? 'me' : ''}${i < 3 ? ' podium' : ''}"><b class="rank">${medal(i + 1)}</b><span>${esc(r.name)}</span><em>${T.pairs(r.pairs)}</em></li>`).join('')
+        : `<li class="empty">${T.lgEmpty}</li>`;
+      if (me && myRank > rows.length) $('lgList').insertAdjacentHTML('beforeend', `<li class="me"><b class="rank">${myRank}.</b><span>${esc(me.name)}</span><em>${T.pairs(me.pairs)}</em></li>`);
+      // Le podium de la semaine dernière
+      const last = Object.values(await api.top('league/' + prevWeekId(), 3)).sort((a, b) => b.pairs - a.pairs || a.t - b.t);
+      $('lgLast').hidden = !last.length;
+      $('lgLast').innerHTML = `<span>${T.lgLastWeek}</span> ` + last.map((r, i) => `${['🥇', '🥈', '🥉'][i]} ${esc(r.name)}`).join(' · ');
+      $('lgMsg').textContent = '';
+    } catch (e) { console.warn(e); $('lgMsg').textContent = explain(e); $('lgMsg').className = 'on-msg'; }
+  }
+  const medal = r => (r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : `${r}.`);
+  function renderLeft() {
+    const ms = weekLeft(), d = Math.floor(ms / 86400000), h = Math.floor(ms % 86400000 / 3600000), m = Math.floor(ms % 3600000 / 60000);
+    $('lgMeta').textContent = T.lgEnds(d, h, m);
+  }
+  $('lgName').onchange = () => {
+    const n = cleanName($('lgName').value);
+    if (!n) { $('lgMsg').textContent = T.lgBadName; $('lgMsg').className = 'on-msg'; $('lgName').value = leagueName(); return; }
+    try { localStorage.setItem('dm-league-name', n); } catch (e) {}
+    flush(true).then(openLeague);
+  };
+  $('lgName').onkeydown = e => { if (e.key === 'Enter') e.target.blur(); };
+  $('leagueBtn').hidden = false;
+  $('leagueBtn').onclick = () => { audio(); openLeague(); };
+  $('leagueBack').onclick = () => showHome();
+  window.League = { add, open: openLeague };
+  addEventListener('online', () => flush());
+  setTimeout(() => { if (pending()) flush(); }, 2500);
 
   window.Online = { panel, click, leave: () => { if (code) leave(); }, get active() { return !!code; }, get room() { return room; }, get uid() { return api && api.uid; } };
   addEventListener('resize', () => { if (S && S.online) fit(); });
