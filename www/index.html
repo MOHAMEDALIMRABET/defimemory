@@ -307,6 +307,43 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
   background: var(--accent); color: #2B1A00; font-family: var(--font-body); font-size: 11px; font-weight: 800; letter-spacing: .04em;
 }
 
+/* ---------- Fin du mode solo : grande coupe du monde ---------- */
+.champ-fx {
+  position: fixed; inset: 0; z-index: 30; overflow: hidden; cursor: pointer; text-align: center;
+  background: radial-gradient(circle at 50% 42%, rgb(43 53 128 / .92), rgb(10 12 30 / .94) 70%);
+  display: grid; place-content: center; justify-items: center; gap: 4px; animation: fxIn .3s ease;
+}
+.champ-stage { --cw: min(58vw, 260px); position: relative; width: calc(var(--cw) * 1.6); height: calc(var(--cw) * 1.7); display: grid; place-items: center; }
+.champ-rays {
+  position: absolute; inset: 0; border-radius: 50%; opacity: 0;
+  background: repeating-conic-gradient(from 0deg, rgb(255 214 110 / .5) 0 7deg, transparent 7deg 20deg);
+  -webkit-mask: radial-gradient(circle, #000 18%, transparent 68%); mask: radial-gradient(circle, #000 18%, transparent 68%);
+  animation: raysIn .8s ease .35s forwards, spin 14s linear infinite;
+}
+@keyframes raysIn { to { opacity: 1; } }
+@keyframes spin { to { rotate: 360deg; } }
+.champ-cup {
+  position: relative; width: var(--cw); height: calc(var(--cw) * 1.5); overflow: visible;
+  filter: drop-shadow(0 0 calc(var(--cw) * .12) rgb(255 200 80 / .65)) drop-shadow(0 10px 18px rgb(0 0 0 / .45));
+  animation: cupIn .9s cubic-bezier(.2,.9,.25,1.25) both, cupFloat 3s ease-in-out .9s infinite;
+}
+@keyframes cupIn { 0% { transform: translateY(70%) scale(.3) rotate(-12deg); opacity: 0; } 60% { opacity: 1; } 100% { transform: none; } }
+@keyframes cupFloat { 50% { transform: translateY(-8px) rotate(1.5deg); } }
+.cup-shine { transform-box: view-box; animation: shine 2.4s ease-in-out .8s infinite; }
+@keyframes shine { 0% { transform: translateX(0) skewX(-18deg); } 60%, 100% { transform: translateX(300px) skewX(-18deg); } }
+.champ-fx strong, .champ-fx small { opacity: 0; transform: translateY(12px); animation: txtIn .5s ease .7s forwards; }
+.champ-fx small { animation-delay: .9s; color: #DDE1FA; font-size: 17px; font-weight: 700; padding-inline: 20px; text-wrap: balance; }
+.champ-fx strong { color: #FFD66E; font-family: var(--font-display); font-weight: 800; font-size: clamp(38px, 11vw, 56px); line-height: 1; letter-spacing: -.01em;
+  text-shadow: 0 3px 0 #9C620A, 0 8px 24px rgb(0 0 0 / .45); }
+@keyframes txtIn { to { opacity: 1; transform: none; } }
+.confetti { position: absolute; inset: 0; pointer-events: none; }
+.confetti i {
+  position: absolute; top: -6%; left: var(--x); width: 9px; height: 15px; border-radius: 2px; background: var(--c);
+  transform: scale(var(--s)); animation: fall 3.2s linear var(--d) infinite; opacity: .95;
+}
+@keyframes fall { to { transform: translateY(112vh) rotate(var(--r)) scale(var(--s)); } }
+.champ-fx.out { opacity: 0; transition: opacity .35s; }
+
 /* ---------- Résultat ---------- */
 .overlay {
   position: fixed; inset: 0; background: rgb(10 12 30 / .55); display: grid; place-items: center; z-index: 20;
@@ -339,6 +376,9 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
   .card.matched .face, .card.wrong .face, .card.swapped, .pscore.chosen, .sheet, .countdown b.go, .trophy, .trophy::after,
   .padlock, .unlock-fx.shake .padlock, .unlock-fx.open .burst i, .level.fresh, .unlock-fx { animation: none; }
   .padlock .shackle, .padlock .khole { transition: none; }
+  .champ-rays, .champ-cup, .cup-shine, .confetti i { animation: none; }
+  .champ-rays { opacity: 1; } .confetti { display: none; }
+  .champ-fx strong, .champ-fx small { animation: none; opacity: 1; transform: none; }
 }
 </style>
 </head>
@@ -415,6 +455,39 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
   <strong id="ufxTitle"></strong>
 </div>
 
+<div class="champ-fx" id="champFx" hidden aria-live="assertive">
+  <div class="confetti" aria-hidden="true"><i style="--x:41%;--d:2.27s;--c:#8150E0;--r:-434deg;--s:1.19"></i><i style="--x:12%;--d:0.88s;--c:#F4B451;--r:-398deg;--s:0.75"></i><i style="--x:53%;--d:0.17s;--c:#F4B451;--r:420deg;--s:1.20"></i><i style="--x:15%;--d:2.27s;--c:#FFE38A;--r:-766deg;--s:0.73"></i><i style="--x:28%;--d:0.11s;--c:#3CC29E;--r:-656deg;--s:0.95"></i><i style="--x:69%;--d:0.28s;--c:#1C9A8C;--r:-465deg;--s:1.05"></i><i style="--x:81%;--d:0.45s;--c:#F4B451;--r:-421deg;--s:1.07"></i><i style="--x:63%;--d:1.63s;--c:#8150E0;--r:836deg;--s:1.05"></i><i style="--x:58%;--d:0.87s;--c:#E0533D;--r:-609deg;--s:0.75"></i><i style="--x:38%;--d:1.26s;--c:#1C9A8C;--r:654deg;--s:1.07"></i><i style="--x:9%;--d:0.28s;--c:#8150E0;--r:-710deg;--s:0.79"></i><i style="--x:62%;--d:1.01s;--c:#FFE38A;--r:-681deg;--s:0.90"></i><i style="--x:44%;--d:1.43s;--c:#5160D6;--r:430deg;--s:1.20"></i><i style="--x:34%;--d:1.14s;--c:#FFE38A;--r:-422deg;--s:1.14"></i><i style="--x:39%;--d:1.55s;--c:#FFE38A;--r:651deg;--s:1.13"></i><i style="--x:85%;--d:0.83s;--c:#8150E0;--r:532deg;--s:1.07"></i><i style="--x:63%;--d:0.14s;--c:#3CC29E;--r:492deg;--s:1.14"></i><i style="--x:50%;--d:0.94s;--c:#3CC29E;--r:442deg;--s:0.80"></i><i style="--x:51%;--d:1.32s;--c:#E0533D;--r:645deg;--s:1.12"></i><i style="--x:45%;--d:1.64s;--c:#8150E0;--r:-514deg;--s:0.75"></i><i style="--x:19%;--d:0.56s;--c:#E0533D;--r:-856deg;--s:1.20"></i><i style="--x:23%;--d:0.63s;--c:#F4B451;--r:-789deg;--s:1.02"></i><i style="--x:78%;--d:1.36s;--c:#E0533D;--r:-827deg;--s:1.24"></i><i style="--x:99%;--d:2.28s;--c:#FFE38A;--r:767deg;--s:0.94"></i><i style="--x:13%;--d:1.16s;--c:#8150E0;--r:-555deg;--s:0.74"></i><i style="--x:26%;--d:1.06s;--c:#F4B451;--r:413deg;--s:0.76"></i><i style="--x:72%;--d:0.36s;--c:#F4B451;--r:386deg;--s:0.74"></i><i style="--x:26%;--d:1.47s;--c:#E0533D;--r:715deg;--s:1.06"></i><i style="--x:60%;--d:0.29s;--c:#3CC29E;--r:837deg;--s:0.99"></i><i style="--x:39%;--d:0.21s;--c:#F4B451;--r:631deg;--s:0.99"></i><i style="--x:88%;--d:0.39s;--c:#F4B451;--r:-900deg;--s:0.92"></i><i style="--x:88%;--d:1.30s;--c:#F4B451;--r:453deg;--s:1.12"></i><i style="--x:33%;--d:1.24s;--c:#E0533D;--r:588deg;--s:1.02"></i><i style="--x:99%;--d:1.21s;--c:#FFE38A;--r:-559deg;--s:1.18"></i><i style="--x:51%;--d:1.78s;--c:#E0533D;--r:-890deg;--s:1.00"></i><i style="--x:93%;--d:0.07s;--c:#F4B451;--r:843deg;--s:0.86"></i><i style="--x:88%;--d:1.45s;--c:#1C9A8C;--r:717deg;--s:1.27"></i><i style="--x:46%;--d:0.19s;--c:#F4B451;--r:-841deg;--s:0.82"></i><i style="--x:26%;--d:1.16s;--c:#5160D6;--r:-850deg;--s:1.25"></i><i style="--x:44%;--d:1.92s;--c:#F4B451;--r:-757deg;--s:1.17"></i><i style="--x:96%;--d:0.48s;--c:#E0533D;--r:700deg;--s:0.75"></i><i style="--x:92%;--d:0.95s;--c:#8150E0;--r:-522deg;--s:0.80"></i></div>
+  <div class="champ-stage">
+    <div class="champ-rays" aria-hidden="true"></div>
+    <svg class="champ-cup" viewBox="0 0 200 300" aria-hidden="true">
+      <defs>
+        <linearGradient id="cupGold" x1="0" x2="1"><stop offset="0" stop-color="#A9690A"/><stop offset=".32" stop-color="#FFE38A"/><stop offset=".58" stop-color="#F2B233"/><stop offset="1" stop-color="#8E5606"/></linearGradient>
+        <radialGradient id="cupGlobe" cx=".34" cy=".3" r=".8"><stop offset="0" stop-color="#FFF4C4"/><stop offset=".45" stop-color="#F5C04A"/><stop offset="1" stop-color="#9C620A"/></radialGradient>
+        <linearGradient id="cupShine" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+        <clipPath id="cupClip">
+          <circle cx="100" cy="88" r="52"/>
+          <path d="M58 262 C62 230 80 214 84 196 C86 186 72 160 62 140 L138 140 C128 160 114 186 116 196 C120 214 138 230 142 262 Z"/>
+          <rect x="50" y="260" width="100" height="32" rx="6"/>
+        </clipPath>
+      </defs>
+      <path d="M64 146 C50 126 52 104 60 84" stroke="url(#cupGold)" stroke-width="13" fill="none" stroke-linecap="round"/>
+      <path d="M136 146 C150 126 148 104 140 84" stroke="url(#cupGold)" stroke-width="13" fill="none" stroke-linecap="round"/>
+      <path d="M58 262 C62 230 80 214 84 196 C86 186 72 160 62 140 L138 140 C128 160 114 186 116 196 C120 214 138 230 142 262 Z" fill="url(#cupGold)"/>
+      <path d="M72 252 C92 222 102 200 92 168" stroke="#A86A0B" stroke-width="4" fill="none" opacity=".55"/>
+      <path d="M128 252 C108 222 98 200 108 168" stroke="#A86A0B" stroke-width="4" fill="none" opacity=".55"/>
+      <circle cx="100" cy="88" r="52" fill="url(#cupGlobe)"/>
+      <ellipse cx="100" cy="88" rx="22" ry="52" fill="none" stroke="#B0740F" stroke-width="3" opacity=".5"/>
+      <ellipse cx="100" cy="88" rx="52" ry="17" fill="none" stroke="#B0740F" stroke-width="3" opacity=".5"/>
+      <rect x="50" y="260" width="100" height="32" rx="6" fill="url(#cupGold)"/>
+      <rect x="50" y="266" width="100" height="6" fill="#1F7A4D"/>
+      <rect x="50" y="279" width="100" height="6" fill="#1F7A4D"/>
+      <g clip-path="url(#cupClip)"><rect class="cup-shine" x="-70" y="0" width="46" height="300" fill="url(#cupShine)"/></g>
+    </svg>
+  </div>
+  <strong id="champTitle"></strong>
+  <small id="champSub"></small>
+</div>
+
 <div class="overlay" id="overlay" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="rTitle">
     <div class="big-stars" id="rStars"></div>
@@ -486,7 +559,8 @@ const I18N = {
     wonText: (p, lv) => `Vous avez trouvé les ${p} paires du niveau ${lv}.`,
     lostText: (f, p) => `Vous avez trouvé ${f} paires sur ${p}. Réessayez !`,
     unlocked: lv => `🔓 Niveau ${lv} débloqué !`, card: k => `Carte ${k}`,
-    winnerCup: 'Vainqueur', newLevel: 'Nouveau niveau', lvUnlocked: lv => `${lv} débloqué !`, newBadge: 'Nouveau',
+    winnerCup: 'Vainqueur', champTitle: 'Champion !', champFirst: 'Vous avez terminé tous les niveaux de DefiMemory !',
+    champAgain: 'Vous avez encore vaincu le niveau Maître !', newLevel: 'Nouveau niveau', lvUnlocked: lv => `${lv} débloqué !`, newBadge: 'Nouveau',
   },
   en: {
     tagline: 'Memorize the cards, then find the pairs.',
@@ -532,11 +606,12 @@ const I18N = {
     wonText: (p, lv) => `You found all ${p} pairs of the ${lv} level.`,
     lostText: (f, p) => `You found ${f} of the ${p} pairs. Try again!`,
     unlocked: lv => `🔓 ${lv} level unlocked!`, card: k => `Card ${k}`,
-    winnerCup: 'Winner', newLevel: 'New level', lvUnlocked: lv => `${lv} unlocked!`, newBadge: 'New',
+    winnerCup: 'Winner', champTitle: 'Champion!', champFirst: 'You beat every level of DefiMemory!',
+    champAgain: 'You beat the Master level again!', newLevel: 'New level', lvUnlocked: lv => `${lv} unlocked!`, newBadge: 'New',
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 14;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 15;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${APP_BUILD})`;
@@ -588,6 +663,8 @@ const SOUNDS = {
   click:  () => { tone(2100, 0.025, { type: 'square', vol: 0.07 }); tone(1400, 0.03, { type: 'square', at: 0.04, vol: 0.05 }); },
   unlock: () => { tone(900, 0.06, { type: 'square', vol: 0.06, to: 1800 });
                   [523, 784, 1047, 1568].forEach((f, i) => tone(f, 0.32, { at: 0.12 + i * 0.09, vol: 0.15 })); },
+  champion: () => [[523, 0], [659, .14], [784, .28], [1047, .42], [784, .62], [1047, .76], [1319, .95]]
+                    .forEach(([f, at], i) => tone(f, i === 6 ? 0.7 : 0.22, { at, vol: 0.17, type: i % 2 ? 'triangle' : 'sine' })),
   count: () => tone(740, 0.14, { type: 'triangle', vol: 0.16 }),
   pick:  () => { tone(660, 0.12); tone(880, 0.12, { at: 0.1 }); tone(1320, 0.3, { at: 0.2 }); },
   swap:  () => { tone(420, 0.12, { type: 'triangle', to: 840 }); tone(840, 0.14, { type: 'triangle', at: 0.13, to: 420 }); },
@@ -720,7 +797,7 @@ function announceTurn(msg) {
 /* ---------- Partie ---------- */
 function start(i, multi = false) {
   clearAll(); audio();
-  justUnlocked = null; $('unlockFx').hidden = true;
+  justUnlocked = null; $('unlockFx').hidden = true; $('champFx').hidden = true;
   const lv = LEVELS[i];
   const syms = shuffle(SYMBOLS.slice()).slice(0, lv.pairs);
   S = { i, lv, deck: shuffle([...syms, ...syms]), open: [], found: 0, moves: 0, lock: true, t0: 0, elapsed: 0, over: false,
@@ -949,6 +1026,7 @@ function finish(won) {
   const next = LEVELS[S.i + 1];
   let record = false, stars = 0;
   const unlocked = won && next && !best[lv.id];
+  const champion = won && !next, firstClear = champion && !best[lv.id];
   if (won) {
     stars = starsFor(lv, S.moves);
     const b = best[lv.id];
@@ -978,6 +1056,7 @@ function finish(won) {
   againAction = () => start(S.i);
   const showSheet = () => { els.overlay.hidden = false; (won && next ? $('rNext') : $('rAgain')).focus(); };
   if (unlocked) { justUnlocked = next.id; playUnlock(next.name, showSheet); }
+  else if (champion) playChampion(firstClear, showSheet);
   else later(showSheet, won ? 0 : 900);
 }
 
@@ -999,6 +1078,23 @@ function playUnlock(name, done) {
   later(() => fx.classList.add('pop'), 1060);
   later(() => { fx.classList.add('open'); play('unlock'); }, 1280);
   later(end, 3500);
+}
+
+/* Fin du mode solo (niveau Maître gagné) : grande coupe, rayons, confettis, fanfare */
+function playChampion(first, done) {
+  const fx = $('champFx');
+  $('champTitle').textContent = T.champTitle;
+  $('champSub').textContent = first ? T.champFirst : T.champAgain;
+  fx.className = 'champ-fx'; fx.hidden = false;
+  play('champion');
+  let ended = false;
+  const end = () => {
+    if (ended) return; ended = true;
+    fx.classList.add('out');
+    later(() => { fx.hidden = true; done(); }, 350);
+  };
+  fx.onclick = end;
+  later(end, 5200);
 }
 
 $('rNext').onclick = () => start(S.i + 1);
@@ -1035,6 +1131,7 @@ function haptic(kind) {
     else if (kind === 'count') P.Haptics.impact({ style: 'MEDIUM' });
     else if (kind === 'unlock') P.Haptics.impact({ style: 'HEAVY' });
     else if (kind === 'click') P.Haptics.impact({ style: 'MEDIUM' });
+    else if (kind === 'champion') P.Haptics.notification({ type: 'SUCCESS' });
     else if (kind === 'miss') P.Haptics.notification({ type: 'ERROR' });
     else P.Haptics.notification({ type: 'SUCCESS' });
   } catch (e) {}
