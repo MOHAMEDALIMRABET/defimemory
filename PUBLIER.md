@@ -68,7 +68,7 @@ Les deux stores exigent une adresse web pour la politique de confidentialité.
 1. Dans Codemagic, ouvrez *Teams > Code signing identities > Android keystores*, puis *Add keystore*.
 2. Envoyez le fichier `secrets/defimemory-upload.jks`.
 3. Recopiez les mots de passe et l'alias qui se trouvent dans `secrets/CLE-ANDROID-A-GARDER.txt`.
-4. Comme nom de référence, tapez exactement : **`defimemory`**.
+4. Comme nom de référence, tapez exactement : **`defimemory_keystore`**.
 
 ### 4b. Compiler
 Dans Codemagic, cliquez sur *Start new build* et choisissez la recette **Android (Google Play)**. Après environ 10 minutes, téléchargez le fichier **`app-release.aab`** dans les *Artifacts*.

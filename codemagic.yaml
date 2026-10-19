@@ -12,7 +12,7 @@ workflows:
       node: 22
       java: 21
       android_signing:
-        - defimemory                   # nom de référence de la clé ajoutée dans Codemagic (voir PUBLIER.md)
+        - defimemory_keystore          # nom de référence de la clé ajoutée dans Codemagic (voir PUBLIER.md)
     scripts:
       - name: Installer les dépendances
         script: npm ci
