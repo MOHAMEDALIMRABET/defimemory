@@ -56,7 +56,9 @@ body { margin: 0; }
   color-scheme: dark;
 }
 
-html, body { height: 100%; }
+html, body { height: 100%; overflow-x: hidden; }
+/* Application : pas de zoom au double toucher, pas de grossissement du texte en tournant le téléphone */
+html { touch-action: manipulation; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body {
   background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px;
   -webkit-tap-highlight-color: transparent; overscroll-behavior: none; user-select: none; -webkit-user-select: none;
@@ -699,7 +701,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 16;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 17;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${APP_BUILD})`;
@@ -1216,6 +1218,10 @@ function fit() {
 }
 addEventListener('resize', fit);
 
+
+/* ---------- Pas de zoom au pincement (iPhone, Android) ; le double toucher est bloqué par touch-action ---------- */
+['gesturestart', 'gesturechange', 'gestureend'].forEach(t => document.addEventListener(t, e => e.preventDefault(), { passive: false }));
+document.addEventListener('touchmove', e => { if (e.touches.length > 1 || (e.scale && e.scale !== 1)) e.preventDefault(); }, { passive: false });
 
 /* ---------- Application native (iOS / Android via Capacitor) ---------- */
 const P = (window.Capacitor && window.Capacitor.Plugins) || {};
