@@ -141,3 +141,9 @@ Après chaque modification de `www/`, lancez `npm run web` pour mettre à jour `
 ## En cas de refus
 - **Apple, règle 4.2 (« fonctionnalité minimale »)** : répondez dans le *Resolution Center* que DefiMemory est un jeu complet qui fonctionne hors ligne, avec 5 niveaux, des sons, des vibrations, une progression et des records. Ajouter du contenu, comme des thèmes de cartes, aide aussi.
 - **Google, nom ou icône** : vérifiez que « DefiMemory » n'est pas déjà utilisé par une autre application.
+
+## Jeu en ligne (Firebase)
+Le mode « En ligne » utilise le projet Firebase **defimemory** (Realtime Database en Europe, connexion anonyme).
+La configuration est dans `www/online.js`. Les **règles de sécurité** à coller dans la console sont dans `firebase/database.rules.json` :
+Firebase > Realtime Database > onglet **Règles** > remplacer tout le texte > **Publier**.
+Sans ces règles (mode verrouillé), le jeu en ligne affiche « Connexion impossible ».

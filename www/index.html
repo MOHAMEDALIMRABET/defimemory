@@ -112,7 +112,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 .level-stars { color: var(--accent); letter-spacing: 1px; font-size: 13px; }
 
 /* ---------- Onglets Solo / À plusieurs ---------- */
-.tabs { display: grid; grid-template-columns: 1fr 1fr; background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; padding: 4px; gap: 4px; }
+.tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; padding: 4px; gap: 4px; }
 .tab { border: 0; background: none; border-radius: 10px; min-height: 42px; font-weight: 700; color: var(--muted); }
 .tab[aria-selected="true"] { background: var(--back); color: #fff; }
 .panel { display: flex; flex-direction: column; gap: 22px; }
@@ -143,6 +143,36 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 .clear span { width: 22px; height: 22px; border-radius: 50%; background: var(--line); display: grid; place-items: center; }
 .clear svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; fill: none; }
 .player:not(.filled) .clear { visibility: hidden; }
+
+/* ---------- En ligne ---------- */
+.or { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; font-weight: 700; margin-block: -6px; }
+.or::before, .or::after { content: ""; flex: 1; height: 1.5px; background: var(--line); }
+.join { display: flex; gap: 8px; }
+.join .btn { flex: none; padding-inline: 20px; }
+#onCode {
+  flex: 1; min-width: 0; height: 48px; box-sizing: border-box; border-radius: 14px; border: 1.5px solid var(--line); background: var(--surface);
+  color: var(--ink); font-family: var(--font-display); font-weight: 800; font-size: 24px; letter-spacing: .3em; text-align: center; text-transform: uppercase;
+  user-select: text; -webkit-user-select: text; outline: none;
+}
+#onCode:focus { border-color: var(--back-2); }
+#onCode::placeholder { color: var(--line); letter-spacing: .2em; }
+.on-msg { margin: -8px 0 0; min-height: 20px; color: var(--miss); font-weight: 700; font-size: 14px; text-align: center; }
+.on-msg.ok { color: var(--match); }
+.lobby { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+.lobby-body { flex: 1; display: grid; align-content: center; justify-items: center; gap: 18px; text-align: center; padding-bottom: 40px; }
+.lobby-body p { margin: 0; color: var(--muted); font-weight: 700; }
+.room-code {
+  font-family: var(--font-display); font-weight: 800; font-size: clamp(56px, 18vw, 84px); letter-spacing: .14em; line-height: 1;
+  padding: 18px 10px 18px 24px; border-radius: 20px; background: var(--surface); border: 2px dashed var(--back-2); color: var(--back-2);
+  user-select: all; -webkit-user-select: all;
+}
+.lobby-body .btn { width: min(100%, 320px); flex: none; }
+.waiting { display: flex; align-items: center; gap: 10px; }
+.waiting::before { content: ""; width: 14px; height: 14px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--back-2); animation: spin .9s linear infinite; }
+.waiting.done::before { display: none; }
+.waiting.done { color: var(--match); }
+.pscore .you { display: block; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--pc); }
+.pscore.off { opacity: .55; }
 
 /* ---------- Scores pendant la partie ---------- */
 .scores { display: grid; gap: 6px; }
@@ -376,7 +406,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
   .card.matched .face, .card.wrong .face, .card.swapped, .pscore.chosen, .sheet, .countdown b.go, .trophy, .trophy::after,
   .padlock, .unlock-fx.shake .padlock, .unlock-fx.open .burst i, .level.fresh, .unlock-fx { animation: none; }
   .padlock .shackle, .padlock .khole { transition: none; }
-  .champ-rays, .champ-cup, .cup-shine, .confetti i { animation: none; }
+  .champ-rays, .champ-cup, .cup-shine, .confetti i, .waiting::before { animation: none; }
   .champ-rays { opacity: 1; } .confetti { display: none; }
   .champ-fx strong, .champ-fx small { animation: none; opacity: 1; transform: none; }
 }
@@ -396,6 +426,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
     <div class="tabs" role="tablist" aria-label="Mode de jeu" data-ta="gameMode">
       <button class="tab" role="tab" id="tabSolo" aria-selected="true" aria-controls="soloPanel" data-t="solo">Solo</button>
       <button class="tab" role="tab" id="tabMulti" aria-selected="false" aria-controls="multiPanel" data-t="multi">À plusieurs</button>
+      <button class="tab" role="tab" id="tabOnline" aria-selected="false" aria-controls="onlinePanel" data-t="online">En ligne</button>
     </div>
 
     <div class="panel" id="soloPanel" role="tabpanel" aria-labelledby="tabSolo">
@@ -415,7 +446,36 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
       <div class="count" id="formats"></div>
       <button class="btn primary start" id="startMulti" data-t="startGame">Commencer la partie</button>
     </div>
+    <div class="panel" id="onlinePanel" role="tabpanel" aria-labelledby="tabOnline" hidden>
+      <p class="rules" data-t="rulesOnline">Jouez à deux, chacun sur son téléphone.</p>
+      <p class="label" data-t="yourName">Votre pseudo</p>
+      <label class="player filled" style="--pc:var(--p1)"><i></i><input id="onName" maxlength="12" autocomplete="off" enterkeyhint="done" aria-label="Votre pseudo" data-ta="yourName"></label>
+      <p class="label" data-t="boardSize">Taille du plateau</p>
+      <div class="sizes" id="onSizes"></div>
+      <button class="btn primary start" id="onCreate" data-t="createRoom">Défier un ami</button>
+      <div class="or"><span data-t="or">ou</span></div>
+      <div class="join">
+        <input id="onCode" maxlength="4" placeholder="CODE" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Code du salon" data-ta="codeAria">
+        <button class="btn" id="onJoin" data-t="join">Rejoindre</button>
+      </div>
+      <p class="on-msg" id="onMsg" aria-live="polite"></p>
+    </div>
     <p class="version" id="version"></p>
+  </section>
+
+  <section class="lobby" id="lobby" hidden>
+    <div class="topbar">
+      <button class="icon-btn" id="lobbyBack" aria-label="Quitter le salon" data-ta="leaveRoom">
+        <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <div class="game-title"><strong data-t="lobbyTitle">Salon</strong><span id="lobbyMeta"></span></div>
+    </div>
+    <div class="lobby-body">
+      <p data-t="shareCode">Envoyez ce code à votre ami :</p>
+      <div class="room-code" id="roomCode" aria-live="polite"></div>
+      <button class="btn primary" id="onShare" data-t="share">Partager l'invitation</button>
+      <p class="waiting" id="lobbyStatus" aria-live="polite"></p>
+    </div>
   </section>
 
   <section class="game" id="game" hidden>
@@ -559,6 +619,20 @@ const I18N = {
     wonText: (p, lv) => `Vous avez trouvé les ${p} paires du niveau ${lv}.`,
     lostText: (f, p) => `Vous avez trouvé ${f} paires sur ${p}. Réessayez !`,
     unlocked: lv => `🔓 Niveau ${lv} débloqué !`, card: k => `Carte ${k}`,
+    online: 'En ligne',
+    rulesOnline: 'Jouez à deux, <b>chacun sur son téléphone</b>. Créez un salon et envoyez le code à un ami, ou rejoignez un salon avec le code reçu. Chacun son tour, <b>10 secondes maximum</b> par tour. Une paire = 1 point et vous rejouez.',
+    yourName: 'Votre pseudo', createRoom: 'Défier un ami', or: 'ou', join: 'Rejoindre', codeAria: 'Code du salon',
+    leaveRoom: 'Quitter le salon', lobbyTitle: 'Salon', shareCode: 'Envoyez ce code à votre ami :', share: 'Partager l\'invitation',
+    waitingOpp: 'En attente de votre ami…', copied: 'Invitation copiée : collez-la dans un message.',
+    inviteText: (c, u) => `Viens jouer à DefiMemory avec moi ! Code du salon : ${c}\n${u}`,
+    connecting: 'Connexion…', noNet: 'Connexion impossible. Vérifiez votre accès à Internet, puis réessayez.',
+    notAvailable: 'Le jeu en ligne n\'est pas disponible dans cette version. Jouez sur mohamedalimrabet.github.io/defimemory/jouer/',
+    badCode: 'Entrez le code à 4 caractères reçu de votre ami.', noRoom: 'Aucun salon avec ce code. Vérifiez-le.',
+    roomFull: 'Ce salon est déjà complet.', joined: n => `${n} a rejoint le salon !`,
+    startsIn: s => `La partie commence dans ${s}…`, yourTurnOn: s => `À vous ! ${s} s`, oppTurn: (n, s) => `Au tour de ${n}… ${s} s`,
+    you: 'vous', lostConn: (n, s) => `Connexion perdue avec ${n}… ${s} s`, youWin: 'Vous avez gagné !',
+    forfeitText: n => `${n} a quitté la partie.`, rematchWait: n => `En attente de ${n}…`, quit: 'Quitter',
+    oppLeft: n => `${n} a quitté le salon.`, vsText: n => `Partie contre ${n} !`, turnTimeout: 'Temps écoulé, au tour suivant !', scoreLine: (a, b) => `${a} à ${b}`,
     winnerCup: 'Vainqueur', champTitle: 'Champion !', champFirst: 'Vous avez terminé tous les niveaux de DefiMemory !',
     champAgain: 'Vous avez encore vaincu le niveau Maître !', newLevel: 'Nouveau niveau', lvUnlocked: lv => `${lv} débloqué !`, newBadge: 'Nouveau',
   },
@@ -606,12 +680,26 @@ const I18N = {
     wonText: (p, lv) => `You found all ${p} pairs of the ${lv} level.`,
     lostText: (f, p) => `You found ${f} of the ${p} pairs. Try again!`,
     unlocked: lv => `🔓 ${lv} level unlocked!`, card: k => `Card ${k}`,
+    online: 'Online',
+    rulesOnline: 'Play with a friend, <b>each on your own phone</b>. Create a room and send the code to a friend, or join a room with the code you received. Take turns, <b>10 seconds max</b> per turn. A pair = 1 point and you play again.',
+    yourName: 'Your nickname', createRoom: 'Challenge a friend', or: 'or', join: 'Join', codeAria: 'Room code',
+    leaveRoom: 'Leave the room', lobbyTitle: 'Room', shareCode: 'Send this code to your friend:', share: 'Share the invite',
+    waitingOpp: 'Waiting for your friend…', copied: 'Invite copied: paste it in a message.',
+    inviteText: (c, u) => `Come play DefiMemory with me! Room code: ${c}\n${u}`,
+    connecting: 'Connecting…', noNet: 'Cannot connect. Check your Internet connection and try again.',
+    notAvailable: 'Online play is not available in this version. Play at mohamedalimrabet.github.io/defimemory/jouer/',
+    badCode: 'Enter the 4-character code from your friend.', noRoom: 'No room with this code. Please check it.',
+    roomFull: 'This room is already full.', joined: n => `${n} joined the room!`,
+    startsIn: s => `Game starts in ${s}…`, yourTurnOn: s => `Your turn! ${s} s`, oppTurn: (n, s) => `${n}'s turn… ${s} s`,
+    you: 'you', lostConn: (n, s) => `Lost connection with ${n}… ${s} s`, youWin: 'You win!',
+    forfeitText: n => `${n} left the game.`, rematchWait: n => `Waiting for ${n}…`, quit: 'Leave',
+    oppLeft: n => `${n} left the room.`, vsText: n => `Playing against ${n}!`, turnTimeout: 'Time\'s up, next turn!', scoreLine: (a, b) => `${a} to ${b}`,
     winnerCup: 'Winner', champTitle: 'Champion!', champFirst: 'You beat every level of DefiMemory!',
     champAgain: 'You beat the Master level again!', newLevel: 'New level', lvUnlocked: lv => `${lv} unlocked!`, newBadge: 'New',
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 15;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 16;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${APP_BUILD})`;
@@ -708,9 +796,11 @@ function renderLevels() {
 $('levels').addEventListener('click', e => { const b = e.target.closest('.level'); if (b && !b.disabled) start(+b.dataset.i); });
 
 function showHome() {
+  if (window.Online) Online.leave();
   if (reloadWhenHome) { location.reload(); return; }
   clearAll(); S = null;
-  els.overlay.hidden = true; els.game.hidden = true; els.home.hidden = false;
+  els.overlay.hidden = true; els.game.hidden = true; els.home.hidden = false; $('lobby').hidden = true;
+  $('restart').hidden = false;
   els.home.scrollTop = 0;
   renderLevels(); renderSetup();
   justUnlocked = null;
@@ -718,13 +808,16 @@ function showHome() {
 
 /* ---------- Onglets Solo / À plusieurs ---------- */
 function setTab(t) {
-  $('tabSolo').setAttribute('aria-selected', String(t === 'solo'));
-  $('tabMulti').setAttribute('aria-selected', String(t === 'multi'));
-  $('soloPanel').hidden = t !== 'solo';
-  $('multiPanel').hidden = t !== 'multi';
+  [['solo', 'tabSolo', 'soloPanel'], ['multi', 'tabMulti', 'multiPanel'], ['online', 'tabOnline', 'onlinePanel']].forEach(([k, tab, panel]) => {
+    $(tab).setAttribute('aria-selected', String(t === k));
+    $(panel).hidden = t !== k;
+  });
+  if (t === 'online' && window.Online) Online.panel();
+  else if (t === 'online') { $('onMsg').className = 'on-msg'; $('onMsg').textContent = T.notAvailable; }
 }
 $('tabSolo').onclick = () => setTab('solo');
 $('tabMulti').onclick = () => setTab('multi');
+$('tabOnline').onclick = () => setTab('online');
 
 /* ---------- À plusieurs : réglages ---------- */
 const PCOLORS = ['var(--p1)', 'var(--p2)', 'var(--p3)', 'var(--p4)'];
@@ -891,6 +984,7 @@ function updateTime() {
 
 els.board.addEventListener('click', e => {
   const c = e.target.closest('.card');
+  if (S && S.online) { if (c) Online.click(c); return; }
   if (!c || !S || S.lock || S.over || c.classList.contains('up') || c.classList.contains('matched')) return;
   c.classList.add('up');
   play('flip');
@@ -1099,6 +1193,7 @@ function playChampion(first, done) {
 
 $('rNext').onclick = () => start(S.i + 1);
 $('rAgain').onclick = () => againAction && againAction();
+$('rCount').hidden = true;
 $('rHome').onclick = showHome;
 $('back').onclick = showHome;
 $('restart').onclick = () => S && start(S.i, !!S.mp);
@@ -1160,5 +1255,6 @@ if (!isNative && 'serviceWorker' in navigator && (location.protocol === 'https:'
 renderLevels();
 renderSetup();
 </script>
+<script src="online.js"></script>
 </body>
 </html>

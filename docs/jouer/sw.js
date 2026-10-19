@@ -2,9 +2,10 @@
 // Stratégie : la page du jeu est toujours demandée au réseau d'abord (dernière version
 // dès qu'il y a Internet), avec la copie en cache si on est hors ligne. Les autres fichiers
 // (polices, icônes) viennent du cache et sont rafraîchis en arrière-plan.
-const CACHE = 'defimemory-v3';
+const CACHE = 'defimemory-v4';
 const FILES = [
-  './', 'index.html', 'manifest.webmanifest',
+  './', 'index.html', 'online.js', 'manifest.webmanifest',
+  'vendor/firebase-app-compat.js', 'vendor/firebase-auth-compat.js', 'vendor/firebase-database-compat.js',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-192.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png',
   'fonts/bricolage-grotesque-latin-600-normal.woff2', 'fonts/bricolage-grotesque-latin-800-normal.woff2',
   'fonts/nunito-sans-latin-400-normal.woff2', 'fonts/nunito-sans-latin-600-normal.woff2', 'fonts/nunito-sans-latin-700-normal.woff2',

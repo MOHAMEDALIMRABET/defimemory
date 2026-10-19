@@ -35,7 +35,8 @@ POUR TOUS
 • Sons et vibrations (son désactivable)
 • Mode clair et mode sombre
 • Fonctionne sans Internet
-• Aucune publicité, aucun compte, aucune donnée collectée
+• Défiez un ami en ligne avec un code de salon
+• Aucune publicité, aucun compte
 
 Saurez-vous devenir Maître de DefiMemory ?
 ```
@@ -55,7 +56,7 @@ Saurez-vous devenir Maître de DefiMemory ?
 | Copyright | `2026 <votre nom>` |
 | URL d'assistance | `https://mohamedalimrabet.github.io/defimemory/` |
 | URL de confidentialité | `https://mohamedalimrabet.github.io/defimemory/confidentialite.html` |
-| Confidentialité de l'app | « Aucune donnée collectée » |
+| Confidentialité de l'app | Données **non associées** à l'utilisateur et **non utilisées pour le suivi** : *Identifiants > ID utilisateur* (identifiant anonyme Firebase) et *Contenu utilisateur > Autre contenu* (pseudo du jeu en ligne). Objectif : *Fonctionnalité de l'app*. |
 | Captures d'écran (iPhone 6,7"/6,9") | dossier `screenshots/iphone/` (1290 × 2796) |
 
 ---
@@ -72,7 +73,7 @@ Saurez-vous devenir Maître de DefiMemory ?
 | Image de présentation (1024 × 500) | `play-feature-graphic-1024x500.png` |
 | Captures d'écran téléphone | dossier `screenshots/android/` (1080 × 1920) |
 | Règles de confidentialité | `https://mohamedalimrabet.github.io/defimemory/confidentialite.html` |
-| Sécurité des données | « Aucune donnée collectée ni partagée » |
+| Sécurité des données | Données collectées : *Identifiants de l'appareil ou autres > ID utilisateur* et *Activité dans l'appli > Autre contenu généré par l'utilisateur* (pseudo). Non partagées, chiffrées en transit, facultatives (seulement en mode En ligne), objectif « Fonctionnalité de l'appli », suppression automatique en fin de partie. |
 | Classification du contenu | Questionnaire IARC : catégorie « Jeu », répondre « Non » partout → PEGI 3 |
 | Public cible | 13 ans et plus (le plus simple ; choisir des tranches d'âge plus jeunes impose les règles « Familles » de Google) |
 | Annonces | « Non, mon application ne contient pas d'annonces » |
@@ -120,7 +121,8 @@ FOR EVERYONE
 • Sounds and vibrations (sound can be muted)
 • Light and dark mode
 • Works offline
-• No ads, no account, no data collected
+• Challenge a friend online with a room code
+• No ads, no account
 
 Can you become a DefiMemory Master?
 ```
