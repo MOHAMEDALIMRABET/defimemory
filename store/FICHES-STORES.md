@@ -17,12 +17,13 @@ Entraînez votre mémoire avec DefiMemory, le jeu de paires qui devient de plus 
 COMMENT JOUER
 Au début de chaque partie, toutes les cartes sont visibles pendant quelques secondes. Mémorisez-les ! Elles se retournent ensuite : touchez deux cartes à la fois pour retrouver les paires identiques. Trouvez-les toutes en un minimum de coups.
 
-5 NIVEAUX À DÉBLOQUER
+6 NIVEAUX À DÉBLOQUER
 • Facile : 6 paires, 5 secondes pour mémoriser
 • Moyen : 8 paires, 5 secondes
 • Difficile : 10 paires, 5 secondes
 • Expert : 15 paires, 10 secondes et 2 min 30 pour finir
 • Maître : 18 paires, 10 secondes, 2 min 30… et à chaque erreur, deux cartes cachées changent de place !
+• Légende : 20 paires, 3 minutes, des cartes qui bougent… et des sosies : 🍎 et 🍏 ne font pas une paire !
 
 Gagnez un niveau pour débloquer le suivant.
 
@@ -38,7 +39,7 @@ POUR TOUS
 • Jouez en ligne de 2 à 4 amis avec un code de salon
 • Aucune publicité, aucun compte
 
-Saurez-vous devenir Maître de DefiMemory ?
+Saurez-vous devenir une Légende de DefiMemory ?
 ```
 
 ---
@@ -48,7 +49,7 @@ Saurez-vous devenir Maître de DefiMemory ?
 | Champ | Texte |
 |---|---|
 | Sous-titre (30 max) | `Mémorise. Retourne. Gagne.` |
-| Texte promotionnel (170 max) | `5 niveaux en solo et un mode de 2 à 4 joueurs sur le même téléphone. Mémorisez les cartes, retrouvez les paires. Sans publicité, sans Internet.` |
+| Texte promotionnel (170 max) | `6 niveaux en solo et un mode de 2 à 4 joueurs sur le même téléphone. Mémorisez les cartes, retrouvez les paires. Sans publicité, sans Internet.` |
 | Mots-clés (100 max, séparés par des virgules) | `memoire,memory,paires,cartes,cerveau,concentration,reflexion,enfant,puzzle,brain,jeu,memo` |
 | Catégorie principale | Jeux |
 | Sous-catégories | Réflexion, Cartes |
@@ -66,7 +67,7 @@ Saurez-vous devenir Maître de DefiMemory ?
 | Champ | Texte |
 |---|---|
 | Nom de l'application (30 max) | `DefiMemory` |
-| Description courte (80 max) | `Mémorisez les cartes, retrouvez les paires : 5 niveaux de Facile à Maître.` |
+| Description courte (80 max) | `Mémorisez les cartes, retrouvez les paires : 6 niveaux de Facile à Légende.` |
 | Catégorie | Jeux > Réflexion |
 | Tags | Réflexion, Cartes, Solo, Hors ligne |
 | Icône (512 × 512) | `play-icon-512.png` |
@@ -89,7 +90,7 @@ Dans **App Store Connect** : menu des langues en haut à droite de la fiche > *A
 
 **Subtitle (App Store, 30 max)**: `Memorize. Flip. Win.`
 
-**Short description (Google Play, 80 max)**: `Memorize the cards, find the pairs: 5 levels from Easy to Master, plus duels.`
+**Short description (Google Play, 80 max)**: `Memorize the cards, find the pairs: 6 levels from Easy to Legend, plus duels.`
 
 **Promotional text (App Store, 170 max)**: `5 solo levels and a 2 to 4 player mode on the same phone. Memorize the cards, then find all the pairs. No ads, no Internet needed.`
 
@@ -103,12 +104,13 @@ Train your memory with DefiMemory, the pair-matching game that gets tougher and 
 HOW TO PLAY
 At the start of each game, all the cards are shown for a few seconds. Memorize them! Then they flip over: tap two cards at a time to find the matching pairs. Find them all in as few moves as possible.
 
-5 LEVELS TO UNLOCK
+6 LEVELS TO UNLOCK
 • Easy: 6 pairs, 5 seconds to memorize
 • Medium: 8 pairs, 5 seconds
 • Hard: 10 pairs, 5 seconds
 • Expert: 15 pairs, 10 seconds and 2:30 to finish
 • Master: 18 pairs, 10 seconds, 2:30… and after every mistake, two hidden cards swap places!
+• Legend: 20 pairs, 3 minutes, moving cards… and look-alikes: 🍎 and 🍏 are not a pair!
 
 Win a level to unlock the next one.
 
@@ -124,7 +126,7 @@ FOR EVERYONE
 • Play online with 2 to 4 friends using a room code
 • No ads, no account
 
-Can you become a DefiMemory Master?
+Can you become a DefiMemory Legend?
 ```
 
 | Field | Value |

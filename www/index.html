@@ -127,7 +127,9 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 }
 .chip small { font-weight: 600; font-size: 11px; color: var(--muted); }
 .chip[aria-pressed="true"] { border-color: var(--back-2); background: color-mix(in srgb, var(--back-2) 12%, var(--surface)); }
-.sizes { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.sizes { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; }
+.sizes .chip { padding-inline: 2px; }
+.sizes .chip small { font-size: 10px; }
 .players { display: grid; gap: 8px; }
 .player { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px; padding: 4px 6px 4px 12px; }
 .player i { width: 14px; height: 14px; border-radius: 50%; background: var(--pc); flex: none; }
@@ -606,7 +608,8 @@ const I18N = {
     backHome: 'Retour à l\'accueil', restart: 'Recommencer', soundOn: 'Activer le son', soundOff: 'Couper le son',
     moves: 'Coups', pairsLabel: 'Paires', time: 'Temps', left: 'Reste',
     newRecord: 'Nouveau record pour ce niveau', nextLevel: 'Niveau suivant', replay: 'Rejouer', chooseLevelBtn: 'Choisir un niveau',
-    levels: { facile: 'Facile', moyen: 'Moyen', difficile: 'Difficile', expert: 'Expert', maitre: 'Maître' },
+    levels: { facile: 'Facile', moyen: 'Moyen', difficile: 'Difficile', expert: 'Expert', maitre: 'Maître', legende: 'Légende' },
+    cardsTwins: 'cartes sosies',
     cardsSwap: 'les cartes changent de place',
     winToUnlock: n => `Gagnez ${n}`,
     lockedAria: (lv, prev) => `${lv}, bloqué : gagnez le niveau ${prev} pour le débloquer`,
@@ -660,7 +663,7 @@ const I18N = {
     forfeitText: n => `${n} a quitté la partie.`, rematchWait: n => `En attente de ${n}…`, quit: 'Quitter',
     oppLeft: n => `${n} a quitté le salon.`, vsText: n => `Partie contre ${n} !`, turnTimeout: 'Temps écoulé, au tour suivant !', scoreLine: (a, b) => `${a} à ${b}`,
     winnerCup: 'Vainqueur', champTitle: 'Champion !', champFirst: 'Vous avez terminé tous les niveaux de DefiMemory !',
-    champAgain: 'Vous avez encore vaincu le niveau Maître !', newLevel: 'Nouveau niveau', lvUnlocked: lv => `${lv} débloqué !`, newBadge: 'Nouveau',
+    champAgain: lv => `Vous avez encore vaincu le niveau ${lv} !`, newLevel: 'Nouveau niveau', lvUnlocked: lv => `Niveau ${lv} débloqué !`, newBadge: 'Nouveau',
   },
   en: {
     tagline: 'Memorize the cards, then find the pairs.',
@@ -672,7 +675,8 @@ const I18N = {
     backHome: 'Back to home', restart: 'Restart', soundOn: 'Turn sound on', soundOff: 'Mute',
     moves: 'Moves', pairsLabel: 'Pairs', time: 'Time', left: 'Left',
     newRecord: 'New record for this level', nextLevel: 'Next level', replay: 'Play again', chooseLevelBtn: 'Choose a level',
-    levels: { facile: 'Easy', moyen: 'Medium', difficile: 'Hard', expert: 'Expert', maitre: 'Master' },
+    levels: { facile: 'Easy', moyen: 'Medium', difficile: 'Hard', expert: 'Expert', maitre: 'Master', legende: 'Legend' },
+    cardsTwins: 'look-alike cards',
     cardsSwap: 'cards swap places',
     winToUnlock: n => `Win ${n}`,
     lockedAria: (lv, prev) => `${lv}, locked: win ${prev} to unlock it`,
@@ -726,11 +730,11 @@ const I18N = {
     forfeitText: n => `${n} left the game.`, rematchWait: n => `Waiting for ${n}…`, quit: 'Leave',
     oppLeft: n => `${n} left the room.`, vsText: n => `Playing against ${n}!`, turnTimeout: 'Time\'s up, next turn!', scoreLine: (a, b) => `${a} to ${b}`,
     winnerCup: 'Winner', champTitle: 'Champion!', champFirst: 'You beat every level of DefiMemory!',
-    champAgain: 'You beat the Master level again!', newLevel: 'New level', lvUnlocked: lv => `${lv} unlocked!`, newBadge: 'New',
+    champAgain: lv => `You beat the ${lv} level again!`, newLevel: 'New level', lvUnlocked: lv => `${lv} unlocked!`, newBadge: 'New',
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 19;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 20;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${APP_BUILD})`;
@@ -741,7 +745,13 @@ const LEVELS = [
   { id: 'difficile', pairs: 10, cols: 4, rows: 5, preview: 5000, miss: 700 },
   { id: 'expert',    pairs: 15, cols: 5, rows: 6, preview: 10000, miss: 550, limit: 150 },
   { id: 'maitre',    pairs: 18, cols: 6, rows: 6, preview: 10000, miss: 500, limit: 150, swap: true },
+  { id: 'legende',   pairs: 20, cols: 5, rows: 8, preview: 10000, miss: 500, limit: 180, swap: true, twins: true },
 ].map(lv => ({ ...lv, name: T.levels[lv.id] }));
+// Niveau Légende : chaque symbole a un sosie presque identique
+const TWINS = [['🍎','🍏'], ['🐶','🐕'], ['🐱','🐈'], ['🌸','🌺'], ['⭐','🌟'], ['🌕','🌝'], ['🚗','🚙'], ['🐟','🐠'], ['🌲','🌳'], ['💙','💜']];
+const pickSymbols = lv => lv.twins
+  ? shuffle(TWINS.slice()).slice(0, Math.ceil(lv.pairs / 2)).flat().slice(0, lv.pairs)
+  : shuffle(SYMBOLS.slice()).slice(0, lv.pairs);
 const SYMBOLS = ['🦊','🐼','🐙','🦉','🐢','🦋','🍉','🍋','🍓','🥑','🌵','🌻','🍄','⭐','🌙','🔥','⚓','🎈','🎲','🚀','🪁','🐳','🦜','🍒'];
 
 const $ = id => document.getElementById(id);
@@ -809,7 +819,7 @@ function renderLevels() {
     const b = best[lv.id];
     const locked = i > 0 && !best[LEVELS[i - 1].id];
     const mini = Array.from({ length: lv.cols * lv.rows }, () => '<i></i>').join('');
-    const extra = (lv.limit ? ` · ${fmt(lv.limit)} max` : '') + (lv.swap ? ` · ${T.cardsSwap}` : '');
+    const extra = (lv.limit ? ` · ${fmt(lv.limit)} max` : '') + (lv.swap ? ` · ${T.cardsSwap}` : '') + (lv.twins ? ` · ${T.cardsTwins}` : '');
     const right = locked
       ? `<svg class="lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>${T.winToUnlock(LEVELS[i - 1].name)}`
       : b
@@ -831,6 +841,7 @@ function showHome() {
   if (reloadWhenHome) { location.reload(); return; }
   clearAll(); S = null;
   els.overlay.hidden = true; els.game.hidden = true; els.home.hidden = false; $('lobby').hidden = true;
+  $('unlockFx').hidden = true; $('champFx').hidden = true;   // une animation interrompue ne doit pas rester à l'écran
   $('restart').hidden = false;
   els.home.scrollTop = 0;
   renderLevels(); renderSetup();
@@ -923,7 +934,7 @@ function start(i, multi = false) {
   clearAll(); audio();
   justUnlocked = null; $('unlockFx').hidden = true; $('champFx').hidden = true;
   const lv = LEVELS[i];
-  const syms = shuffle(SYMBOLS.slice()).slice(0, lv.pairs);
+  const syms = pickSymbols(lv);
   S = { i, lv, deck: shuffle([...syms, ...syms]), open: [], found: 0, moves: 0, lock: true, t0: 0, elapsed: 0, over: false,
         limit: multi ? 0 : lv.limit, mp: null };
   if (multi) {
@@ -1209,7 +1220,7 @@ function playUnlock(name, done) {
 function playChampion(first, done) {
   const fx = $('champFx');
   $('champTitle').textContent = T.champTitle;
-  $('champSub').textContent = first ? T.champFirst : T.champAgain;
+  $('champSub').textContent = first ? T.champFirst : T.champAgain(LEVELS[LEVELS.length - 1].name);
   fx.className = 'champ-fx'; fx.hidden = false;
   play('champion');
   let ended = false;

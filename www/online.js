@@ -274,7 +274,7 @@
       const prevOrder = arr(r.g.order), i = prevOrder.indexOf(r.g.first);
       first = prevOrder.slice(i + 1).concat(prevOrder.slice(0, i + 1)).find(id => order.includes(id)) || order[0];
     }
-    const syms = shuffle(SYMBOLS.slice()).slice(0, lv.pairs);
+    const syms = pickSymbols(lv);
     const t0 = api.now() + COUNTDOWN_MS;
     const g = {
       n, order, deck: shuffle([...syms, ...syms]), first, turn: first,
