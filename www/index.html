@@ -127,10 +127,14 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 }
 .player:focus-within { border-color: var(--pc); }
 .btn.start { flex: none; }
-.link-btn {
-  align-self: flex-end; margin-top: -14px; border: 0; background: none; padding: 6px 2px;
-  color: var(--back-2); font-weight: 700; font-size: 14px; text-decoration: underline; text-underline-offset: 3px;
+.player input::placeholder { color: var(--muted); font-weight: 600; opacity: .8; }
+.clear {
+  width: 36px; height: 36px; flex: none; border: 0; border-radius: 50%; background: none; color: var(--muted);
+  display: grid; place-items: center; padding: 0;
 }
+.clear span { width: 22px; height: 22px; border-radius: 50%; background: var(--line); display: grid; place-items: center; }
+.clear svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; fill: none; }
+.player:not(.filled) .clear { visibility: hidden; }
 
 /* ---------- Scores pendant la partie ---------- */
 .scores { display: grid; gap: 6px; }
@@ -267,7 +271,6 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
       <p class="label">Nombre de joueurs</p>
       <div class="count" id="pCount"></div>
       <div class="players" id="players"></div>
-      <button class="link-btn" id="resetNames" hidden>Effacer les noms</button>
       <p class="label">Taille du plateau</p>
       <div class="sizes" id="sizes"></div>
       <p class="label">Format</p>
@@ -426,9 +429,10 @@ $('tabMulti').onclick = () => setTab('multi');
 const PCOLORS = ['var(--p1)', 'var(--p2)', 'var(--p3)', 'var(--p4)'];
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const pl = (n, w) => `${n} ${w}${n > 1 ? 's' : ''}`;
-const DEFAULT_NAMES = ['Joueur 1', 'Joueur 2', 'Joueur 3', 'Joueur 4'];
-let setup = { n: 2, names: DEFAULT_NAMES.slice(), size: 1, format: 'match' };
+// Un prénom vide affiche « Joueur N » en gris et c'est ce nom qui est utilisé
+let setup = { n: 2, names: ['', '', '', ''], size: 1, format: 'match' };
 try { Object.assign(setup, JSON.parse(localStorage.getItem('memoire-joueurs') || '{}')); } catch (e) {}
+setup.names = setup.names.map((n, i) => (n === `Joueur ${i + 1}` ? '' : n));
 function saveSetup() { try { localStorage.setItem('memoire-joueurs', JSON.stringify(setup)); } catch (e) {} }
 
 /* Match : une manche par joueur (chacun commence une fois), les paires s'additionnent */
@@ -446,21 +450,34 @@ function renderSetup() {
   $('pCount').innerHTML = [2, 3, 4].map(n =>
     `<button class="chip" data-n="${n}" aria-pressed="${n === setup.n}">${n} joueurs</button>`).join('');
   $('players').innerHTML = setup.names.slice(0, setup.n).map((name, i) =>
-    `<label class="player" style="--pc:${PCOLORS[i]}"><i></i><input id="pName${i}" data-i="${i}" maxlength="12" value="${esc(name)}" aria-label="Nom du joueur ${i + 1}" autocomplete="off" enterkeyhint="done"></label>`).join('');
+    `<label class="player${name ? ' filled' : ''}" style="--pc:${PCOLORS[i]}"><i></i>` +
+    `<input id="pName${i}" data-i="${i}" maxlength="12" value="${esc(name)}" placeholder="Joueur ${i + 1}" aria-label="Nom du joueur ${i + 1}" autocomplete="off" enterkeyhint="done">` +
+    `<button class="clear" data-c="${i}" aria-label="Effacer le nom du joueur ${i + 1}"><span><svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6"/></svg></span></button></label>`).join('');
   $('sizes').innerHTML = LEVELS.map((lv, i) =>
     `<button class="chip" data-s="${i}" aria-pressed="${i === setup.size}">${lv.pairs}<small>${lv.name}</small></button>`).join('');
-  $('resetNames').hidden = !customNames();
   $('formats').innerHTML =
     `<button class="chip" data-f="match" aria-pressed="${setup.format === 'match'}">Match équitable<small>${setup.n} manches, 1 par joueur</small></button>` +
     `<button class="chip" data-f="single" aria-pressed="${setup.format === 'single'}">Partie unique<small>1 manche, 1er joueur tiré au sort</small></button>`;
 }
-const customNames = () => setup.names.some((n, i) => n !== DEFAULT_NAMES[i]);
-$('resetNames').onclick = () => { setup.names = DEFAULT_NAMES.slice(); saveSetup(); renderSetup(); };
 $('players').addEventListener('focusin', e => { if (e.target.select) e.target.select(); });
+// La croix vide un seul prénom ; le clavier reste ouvert pour taper le nouveau
+$('players').addEventListener('pointerdown', e => { if (e.target.closest('.clear')) e.preventDefault(); });
+$('players').addEventListener('click', e => {
+  const b = e.target.closest('.clear'); if (!b) return;
+  e.preventDefault();
+  const i = +b.dataset.c, input = $('pName' + i);
+  input.value = ''; setup.names[i] = ''; saveSetup();
+  input.closest('.player').classList.remove('filled');
+  input.focus();
+});
 $('formats').onclick = e => { const b = e.target.closest('[data-f]'); if (b) { setup.format = b.dataset.f; saveSetup(); renderSetup(); } };
 $('pCount').onclick = e => { const b = e.target.closest('[data-n]'); if (b) { setup.n = +b.dataset.n; saveSetup(); renderSetup(); } };
 $('sizes').onclick = e => { const b = e.target.closest('[data-s]'); if (b) { setup.size = +b.dataset.s; saveSetup(); renderSetup(); } };
-$('players').oninput = e => { const i = e.target.dataset.i; if (i != null) { setup.names[i] = e.target.value; saveSetup(); $('resetNames').hidden = !customNames(); } };
+$('players').oninput = e => {
+  const i = e.target.dataset.i; if (i == null) return;
+  setup.names[i] = e.target.value; saveSetup();
+  e.target.closest('.player').classList.toggle('filled', e.target.value !== '');
+};
 $('players').onkeydown = e => { if (e.key === 'Enter') e.target.blur(); };
 $('startMulti').onclick = () => { newMatch(); start(setup.size, true); };
 
