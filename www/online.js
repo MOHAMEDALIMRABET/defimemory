@@ -391,7 +391,8 @@
     if (!g.over && !els.overlay.hidden) els.overlay.hidden = true;
     if (g.over) {
       // Revanche : quand tous les joueurs encore là l'ont demandée, l'hôte relance
-      const here = present(room);
+      // Joueurs encore là et connectés (un joueur déconnecté ne peut pas demander la revanche)
+      const here = present(room).filter(p => p.online !== false || p.id === api.uid);
       if (host && here.length >= 2 && here.every(p => p.rematch === g.n)) startGame(room, true);
       updateEndButtons(g, here);
     }
@@ -639,7 +640,7 @@
     const iWin = winners.some(p => p.id === api.uid), tie = winners.length > 1;
     claim(g, iWin && !tie && g.ended === 'done');
     play(iWin ? 'win' : 'lose');
-    $('rTitle').textContent = tie ? T.tie : iWin ? T.youWin : (h ? T.huntWinner(winners[0].name) : T.winner(winners[0].name));
+    $('rTitle').textContent = tie ? T.tie : iWin ? (g.ended === 'left' ? T.youWinForfeit : T.youWin) : (h ? T.huntWinner(winners[0].name) : T.winner(winners[0].name));
     $('rText').textContent = text;
     $('rRank').innerHTML = ranked.map(p => {
       const out = outOf(g)[p.id], win = winners.includes(p);

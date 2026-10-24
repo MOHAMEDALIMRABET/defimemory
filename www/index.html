@@ -778,7 +778,7 @@ const I18N = {
     emoAria: 'Réagir avec un emoji', needName: 'Choisissez un pseudo pour jouer en ligne.', badName: 'Ce pseudo n\'est pas accepté. Choisissez-en un autre.', namePh: 'Choisissez un pseudo', onSizeLabel: 'Niveau du salon que vous créez',
     lvMemo: s => `👀 ${s} s pour mémoriser`, lvTurn: '⏱ 10 s par tour', lvTwins: '👯 symboles sosies', joined: n => `${n} a rejoint le salon !`, leftRoom: n => `${n} a quitté le salon.`, offline: 'absent',
     startsIn: s => `La partie commence dans ${s}…`, yourTurnOn: s => `À vous ! ${s} s`, oppTurn: (n, s) => `Au tour de ${n}… ${s} s`,
-    you: 'vous', lostConn: (n, s) => `Connexion perdue avec ${n}… ${s} s`, youWin: 'Vous avez gagné !',
+    you: 'vous', lostConn: (n, s) => `Connexion perdue avec ${n}… ${s} s`, youWin: 'Vous avez gagné !', youWinForfeit: 'Victoire par abandon',
     forfeitText: n => `${n} a quitté la partie.`, rematchWait: n => `En attente de ${n}…`, quit: 'Quitter',
     oppLeft: n => `${n} a quitté le salon.`, vsText: n => `Partie contre ${n} !`, turnTimeout: 'Temps écoulé, au tour suivant !', scoreLine: (a, b) => `${a} à ${b}`,
     prolong: 'Prolongation', huntTitle: 'Égalité ! Prolongation',
@@ -869,7 +869,7 @@ const I18N = {
     emoAria: 'React with an emoji', needName: 'Choose a nickname to play online.', badName: 'This nickname is not allowed. Please choose another one.', namePh: 'Choose a nickname', onSizeLabel: 'Level of the room you create',
     lvMemo: s => `👀 ${s} s to memorize`, lvTurn: '⏱ 10 s per turn', lvTwins: '👯 look-alike symbols', joined: n => `${n} joined the room!`, leftRoom: n => `${n} left the room.`, offline: 'away',
     startsIn: s => `Game starts in ${s}…`, yourTurnOn: s => `Your turn! ${s} s`, oppTurn: (n, s) => `${n}'s turn… ${s} s`,
-    you: 'you', lostConn: (n, s) => `Lost connection with ${n}… ${s} s`, youWin: 'You win!',
+    you: 'you', lostConn: (n, s) => `Lost connection with ${n}… ${s} s`, youWin: 'You win!', youWinForfeit: 'Win by forfeit',
     forfeitText: n => `${n} left the game.`, rematchWait: n => `Waiting for ${n}…`, quit: 'Leave',
     oppLeft: n => `${n} left the room.`, vsText: n => `Playing against ${n}!`, turnTimeout: 'Time\'s up, next turn!', scoreLine: (a, b) => `${a} to ${b}`,
     prolong: 'Overtime', huntTitle: 'Tie! Overtime',
@@ -898,7 +898,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 44;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 45;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.querySelectorAll('[data-tp]').forEach(el => el.setAttribute('placeholder', T[el.dataset.tp]));
