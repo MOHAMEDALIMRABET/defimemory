@@ -328,7 +328,7 @@
   }
 
   /* ---------- Réactions emoji (liste fixe, pas de texte libre) ---------- */
-  const EMOS = ['👋', '👍', '😂', '😮', '😅', '🔥', '👏', '🤞', '👑', '🏆'];
+  const EMOS = ['👋', '👍', '😂', '😮', '😅', '🔥', '👏', '🤞', '👑', '🏆', '😴', '😛'];
   let emoSeen = {}, emoLast = 0;
   $('emoPick').innerHTML = EMOS.map(e => `<button data-e="${e}">${e}</button>`).join('');
   // Le bouton se place dans la barre du haut de l'écran affiché (null : caché)
