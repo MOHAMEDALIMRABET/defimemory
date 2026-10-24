@@ -89,18 +89,19 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 .rules b { color: var(--ink); }
 .label { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 -10px; }
 
-.levels { display: grid; gap: 10px; }
+.levels { display: grid; gap: 7px; }
 .level {
-  display: grid; grid-template-columns: 54px 1fr auto; align-items: center; gap: 14px; text-align: left;
-  background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; padding: 12px 14px;
+  display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 12px; text-align: left;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: 14px; padding: 8px 12px; min-height: 58px;
   transition: transform .12s, border-color .12s;
 }
 .level:active { transform: scale(.98); }
 .level:hover { border-color: var(--back-2); }
-.mini { display: grid; gap: 2px; width: 54px; }
-.mini i { display: block; aspect-ratio: 3/4; border-radius: 2px; background: var(--back); }
-.level-name { font-family: var(--font-display); font-weight: 800; font-size: 20px; display: block; }
-.level-meta { color: var(--muted); font-size: 13px; display: block; margin-top: 2px; }
+/* Aperçu du plateau : toujours la même petite hauteur, quel que soit le nombre de cartes */
+.mini { display: grid; gap: 1.5px; width: 34px; height: 42px; grid-auto-rows: 1fr; }
+.mini i { display: block; border-radius: 1.5px; background: var(--back); }
+.level-name { font-family: var(--font-display); font-weight: 800; font-size: 18px; display: block; line-height: 1.15; }
+.level-meta { color: var(--muted); font-size: 12.5px; display: block; margin-top: 1px; line-height: 1.3; }
 .level-best { text-align: right; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; line-height: 1.35; min-width: 64px; }
 .level-best strong { display: block; color: var(--ink); font-size: 14px; }
 .level.locked { cursor: not-allowed; background: transparent; border-style: dashed; }
@@ -108,7 +109,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 .level.locked:active { transform: none; }
 .level.locked .mini i { background: var(--line); }
 .level.locked .level-name, .level.locked .level-meta { opacity: .55; }
-.lock { display: block; width: 22px; height: 22px; margin: 0 0 3px auto; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; }
+.lock { display: block; width: 18px; height: 18px; margin: 0 0 2px auto; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; }
 .unlock { color: var(--back-2); font-weight: 700; }
 .version { margin: auto 0 0; padding-top: 4px; text-align: center; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .level-stars { color: var(--accent); letter-spacing: 1px; font-size: 13px; }
@@ -694,12 +695,12 @@ const I18N = {
     moves: 'Coups', pairsLabel: 'Paires', time: 'Temps', left: 'Reste',
     newRecord: 'Nouveau record pour ce niveau', nextLevel: 'Niveau suivant', replay: 'Rejouer', chooseLevelBtn: 'Choisir un niveau',
     levels: { facile: 'Facile', moyen: 'Moyen', difficile: 'Difficile', expert: 'Expert', maitre: 'Maître', legende: 'Légende' },
-    cardsTwins: 'cartes sosies',
-    cardsSwap: 'les cartes changent de place',
+    cardsTwins: '👯 sosies',
+    cardsSwap: '🔀 cartes mobiles',
     winToUnlock: n => `Gagnez ${n}`,
     lockedAria: (lv, prev) => `${lv}, bloqué : gagnez le niveau ${prev} pour le débloquer`,
     nMoves: n => plural(n, 'coup', 'coups'), notPlayed: 'Pas encore joué',
-    levelMeta: (p, c, r, sec) => `${p} paires · ${c}×${r} · ${sec} s pour mémoriser`,
+    levelMeta: (p, c, r, sec) => `${p} paires · ${c}×${r} · 👀 ${sec} s`,
     nPlayers: n => `${n} joueurs`, player: k => `Joueur ${k}`,
     playerAria: k => `Nom du joueur ${k}`, clearAria: k => `Effacer le nom du joueur ${k}`,
     total: n => `Total ${n}`, turnOf: n => `Au tour de ${n}`,
@@ -783,12 +784,12 @@ const I18N = {
     moves: 'Moves', pairsLabel: 'Pairs', time: 'Time', left: 'Left',
     newRecord: 'New record for this level', nextLevel: 'Next level', replay: 'Play again', chooseLevelBtn: 'Choose a level',
     levels: { facile: 'Easy', moyen: 'Medium', difficile: 'Hard', expert: 'Expert', maitre: 'Master', legende: 'Legend' },
-    cardsTwins: 'look-alike cards',
-    cardsSwap: 'cards swap places',
+    cardsTwins: '👯 look-alikes',
+    cardsSwap: '🔀 moving cards',
     winToUnlock: n => `Win ${n}`,
     lockedAria: (lv, prev) => `${lv}, locked: win ${prev} to unlock it`,
     nMoves: n => plural(n, 'move', 'moves'), notPlayed: 'Not played yet',
-    levelMeta: (p, c, r, sec) => `${p} pairs · ${c}×${r} · ${sec} s to memorize`,
+    levelMeta: (p, c, r, sec) => `${p} pairs · ${c}×${r} · 👀 ${sec} s`,
     nPlayers: n => `${n} players`, player: k => `Player ${k}`,
     playerAria: k => `Name of player ${k}`, clearAria: k => `Clear the name of player ${k}`,
     total: n => `Total ${n}`, turnOf: n => `${n}'s turn`,
@@ -863,7 +864,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 30;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 31;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${APP_BUILD})`;
@@ -948,7 +949,7 @@ function renderLevels() {
     const b = best[lv.id];
     const locked = i > 0 && !best[LEVELS[i - 1].id];
     const mini = Array.from({ length: lv.cols * lv.rows }, () => '<i></i>').join('');
-    const extra = (lv.limit ? ` · ${fmt(lv.limit)} max` : '') + (lv.swap ? ` · ${T.cardsSwap}` : '') + (lv.twins ? ` · ${T.cardsTwins}` : '');
+    const extra = (lv.limit ? ` · ⏱ ${fmt(lv.limit)}` : '') + (lv.swap ? ` · ${T.cardsSwap}` : '') + (lv.twins ? ` · ${T.cardsTwins}` : '');
     const right = locked
       ? `<svg class="lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>${T.winToUnlock(LEVELS[i - 1].name)}`
       : b
