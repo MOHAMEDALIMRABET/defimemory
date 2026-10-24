@@ -205,11 +205,14 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 .lobby-players li b { font-size: 14px; }
 .lobby-players li.free { border-style: dashed; border-color: var(--line); color: var(--muted); font-weight: 600; animation: none; }
 .lobby-players li.free i { background: var(--line); }
+.lobby-players li.off { opacity: .55; animation: none; }
+.lobby-players li.off small { color: var(--muted); }
 #onStart:disabled { opacity: .45; }
 .waiting { display: flex; align-items: center; gap: 10px; }
 .waiting::before { content: ""; width: 14px; height: 14px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--back-2); animation: spin .9s linear infinite; }
 .waiting.done::before { display: none; }
 .waiting.done { color: var(--match); }
+#onLeave { flex: none; min-width: 200px; background: transparent; border-color: transparent; color: var(--miss); }
 .pscore .you { display: block; font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--pc); }
 .pscore.off { opacity: .55; }
 
@@ -558,6 +561,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
       </div>
       <button class="btn primary" id="onStart" data-t="startGame" hidden>Commencer la partie</button>
       <p class="waiting" id="lobbyStatus" aria-live="polite"></p>
+      <button class="btn ghost" id="onLeave" data-t="leaveRoom">Quitter le salon</button>
     </div>
   </section>
 
@@ -736,7 +740,7 @@ const I18N = {
     roomFull: 'Ce salon est déjà complet.', invTitle: 'Vous êtes invité !', invJoin: 'Rejoindre la partie', invLater: 'Plus tard',
     invText: c => `Salon ${c}. Choisissez le pseudo que les autres joueurs verront.`,
     invFrom: (n, c) => `${n} vous défie dans le salon ${c}. Choisissez le pseudo que les autres joueurs verront.`,
-    invNeedName: 'Choisissez un pseudo pour continuer.', joined: n => `${n} a rejoint le salon !`,
+    invNeedName: 'Choisissez un pseudo pour continuer.', joined: n => `${n} a rejoint le salon !`, leftRoom: n => `${n} a quitté le salon.`, offline: 'absent',
     startsIn: s => `La partie commence dans ${s}…`, yourTurnOn: s => `À vous ! ${s} s`, oppTurn: (n, s) => `Au tour de ${n}… ${s} s`,
     you: 'vous', lostConn: (n, s) => `Connexion perdue avec ${n}… ${s} s`, youWin: 'Vous avez gagné !',
     forfeitText: n => `${n} a quitté la partie.`, rematchWait: n => `En attente de ${n}…`, quit: 'Quitter',
@@ -826,7 +830,7 @@ const I18N = {
     roomFull: 'This room is already full.', invTitle: 'You\'re invited!', invJoin: 'Join the game', invLater: 'Later',
     invText: c => `Room ${c}. Choose the nickname other players will see.`,
     invFrom: (n, c) => `${n} challenges you in room ${c}. Choose the nickname other players will see.`,
-    invNeedName: 'Choose a nickname to continue.', joined: n => `${n} joined the room!`,
+    invNeedName: 'Choose a nickname to continue.', joined: n => `${n} joined the room!`, leftRoom: n => `${n} left the room.`, offline: 'away',
     startsIn: s => `Game starts in ${s}…`, yourTurnOn: s => `Your turn! ${s} s`, oppTurn: (n, s) => `${n}'s turn… ${s} s`,
     you: 'you', lostConn: (n, s) => `Lost connection with ${n}… ${s} s`, youWin: 'You win!',
     forfeitText: n => `${n} left the game.`, rematchWait: n => `Waiting for ${n}…`, quit: 'Leave',
@@ -856,7 +860,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 27;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 28;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${APP_BUILD})`;

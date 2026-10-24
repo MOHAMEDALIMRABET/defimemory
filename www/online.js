@@ -116,7 +116,7 @@
   /* ---------- État local ---------- */
   const MAX = 4;
   let code = null, room = null, unsub = null, stopPresence = null, loop = null;
-  let huntN = 0, shownN = 0, prev = null, endShown = 0, known = new Set(), lastNames = {}, starting = 0;
+  let huntN = 0, shownN = 0, prev = null, endShown = 0, known = new Set(), lastNames = {}, starting = 0, notice = null;
   let size = 1;
   try { size = +(localStorage.getItem('dm-online-size') ?? 1); } catch (e) {}
   const msg = (text, ok) => { const m = $('onMsg'); m.textContent = text || ''; m.className = 'on-msg' + (ok ? ' ok' : ''); };
@@ -239,7 +239,7 @@
     try { await navigator.clipboard.writeText(text); setLobbyStatus(T.copied, true); }
     catch (e) { const sel = getSelection(), r = document.createRange(); r.selectNodeContents($('roomCode')); sel.removeAllRanges(); sel.addRange(r); }
   };
-  $('lobbyBack').onclick = () => showHome();
+  $('lobbyBack').onclick = $('onLeave').onclick = () => showHome();
   $('onStart').onclick = () => { if (room && room.host === api.uid) { audio(); startGame(room, true); } };
 
   // Quitter : le joueur sort de la partie en cours ; l'hôte passe la main ; le salon disparaît quand il est vide
@@ -342,14 +342,24 @@
   function renderLobby(ps, host) {
     const here = ps.filter(p => !p.left);
     $('lobbyPlayers').innerHTML = here.map(p =>
-      `<li style="--pc:${colorOf(p)}"><i></i><span>${esc(p.name)}</span>${p.id === api.uid ? `<small>${T.you}</small>` : ''}${p.id === room.host ? '<b>👑</b>' : ''}</li>`).join('')
+      `<li style="--pc:${colorOf(p)}"${p.online === false ? ' class="off"' : ''}><i></i><span>${esc(p.name)}</span>${p.online === false ? `<small>${T.offline}</small>` : ''}${p.id === api.uid ? `<small>${T.you}</small>` : ''}${p.id === room.host ? '<b>👑</b>' : ''}</li>`).join('')
       + Array.from({ length: MAX - here.length }, () => `<li class="free"><i></i><span>${T.freeSeat}</span></li>`).join('');
     $('lobbyCount').textContent = T.playersCount(here.length, MAX);
     here.forEach(p => { if (!known.has(p.id)) { if (known.size) play('pick'); known.add(p.id); } });
-    $('onStart').hidden = !host;
-    $('onStart').disabled = here.length < 2;
+    // Un joueur est parti avant le début : on l'annonce quelques secondes
+    known.forEach(id => { if (!here.some(p => p.id === id)) { known.delete(id); notice = { text: T.leftRoom(lastNames[id] || ''), until: Date.now() + 3000 }; setTimeout(render, 3100); } });
     const hostP = ps.find(p => p.id === room.host);
-    if (host) setLobbyStatus(here.length < 2 ? T.waitingOpp : T.readyToStart, here.length >= 2);
+    // Hôte déconnecté (application fermée) : le premier joueur encore là devient l'hôte
+    if (!host && (!hostP || hostP.online === false) && here.filter(p => p.online !== false)[0]?.id === api.uid) {
+      const c = code;
+      api.transaction(`rooms/${c}/host`, h => (h === room.host ? api.uid : undefined))
+        .then(v => { if (v === api.uid && code === c && room) { room.host = v; render(); } }).catch(() => {});
+    }
+    $('onStart').hidden = !host;
+    const ready = here.filter(p => p.online !== false).length;
+    $('onStart').disabled = ready < 2;
+    if (notice && Date.now() < notice.until) setLobbyStatus(notice.text, false);
+    else if (host) setLobbyStatus(ready < 2 ? T.waitingOpp : T.readyToStart, ready >= 2);
     else setLobbyStatus(T.waitHost(hostP ? hostP.name : ''), false);
   }
 
