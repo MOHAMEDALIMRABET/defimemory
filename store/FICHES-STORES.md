@@ -28,7 +28,7 @@ Au début de chaque partie, toutes les cartes sont visibles pendant quelques sec
 Gagnez un niveau pour débloquer le suivant.
 
 À PLUSIEURS SUR LE MÊME TÉLÉPHONE
-Défiez votre famille ou vos amis, de 2 à 4 joueurs ! Chacun son tour, retournez deux cartes : une paire rapporte 1 point et vous rejouez, sinon vous passez le téléphone. En match équitable, on joue une manche par joueur pour que chacun commence une fois, et les paires s'additionnent : le meilleur total remporte le match. Pressé ? En partie unique, le premier joueur est tiré au sort. Égalité ? Place à la prolongation : une chasse au symbole de 20 secondes pour départager les joueurs. Choisissez la taille du plateau, de 6 à 18 paires.
+Défiez votre famille ou vos amis, de 2 à 4 joueurs ! Chacun son tour, retournez deux cartes : une paire rapporte 1 point et vous rejouez, sinon vous passez le téléphone. Le premier joueur est tiré au sort, et celui qui a le plus de paires gagne. Égalité ? Place à la prolongation : une chasse au symbole de 20 secondes pour départager les joueurs. Choisissez la taille du plateau, de 6 à 18 paires.
 
 POUR TOUS
 • Jusqu'à 3 étoiles par niveau selon votre nombre de coups
@@ -116,7 +116,7 @@ At the start of each game, all the cards are shown for a few seconds. Memorize t
 Win a level to unlock the next one.
 
 MULTIPLAYER ON ONE PHONE
-Challenge your family or friends, 2 to 4 players! Take turns flipping two cards: a pair is worth 1 point and you play again, otherwise you pass the phone. In a fair match, there is one round per player so everyone goes first once, and the pairs add up: the best total wins the match. In a hurry? In a single game, the first player is drawn at random. A tie? Time for overtime: a 20-second symbol hunt decides the winner. Choose the board size, from 6 to 18 pairs.
+Challenge your family or friends, 2 to 4 players! Take turns flipping two cards: a pair is worth 1 point and you play again, otherwise you pass the phone. The first player is drawn at random, and whoever has the most pairs wins. A tie? Time for overtime: a 20-second symbol hunt decides the winner. Choose the board size, from 6 to 18 pairs.
 
 FOR EVERYONE
 • Up to 3 stars per level depending on your number of moves

@@ -505,8 +505,6 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
       <div class="players" id="players"></div>
       <p class="label" data-t="boardSize">Taille du plateau</p>
       <div class="sizes" id="sizes"></div>
-      <p class="label" data-t="format">Format</p>
-      <div class="count" id="formats"></div>
       <button class="btn primary start" id="startMulti" data-t="startGame">Commencer la partie</button>
     </div>
     <div class="panel" id="onlinePanel" role="tabpanel" aria-labelledby="tabOnline" hidden>
@@ -683,8 +681,8 @@ const I18N = {
     gameMode: 'Mode de jeu', solo: 'Solo', multi: 'À plusieurs',
     rulesSolo: 'Au début, toutes les cartes sont <b>visibles quelques secondes</b>, puis elles se retournent. Touchez deux cartes à la fois : si elles sont identiques, elles restent ouvertes. Trouvez <b>toutes les paires</b> en un minimum de coups. Gagnez un niveau pour <b>débloquer le suivant</b>.',
     chooseLevel: 'Choisissez un niveau',
-    rulesMulti: 'De 2 à 4 joueurs sur le même téléphone. Chacun son tour, retournez deux cartes. <b>Une paire = 1 point, et vous rejouez.</b> Sinon, passez le téléphone au joueur suivant. En <b>match équitable</b>, on joue une manche par joueur pour que chacun commence une fois, et les points s\'additionnent.',
-    nbPlayers: 'Nombre de joueurs', boardSize: 'Taille du plateau', format: 'Format', startGame: 'Commencer la partie',
+    rulesMulti: 'De 2 à 4 joueurs sur le même téléphone. Chacun son tour, retournez deux cartes. <b>Une paire = 1 point, et vous rejouez.</b> Sinon, passez le téléphone au joueur suivant. Le premier joueur est tiré au sort.',
+    nbPlayers: 'Nombre de joueurs', boardSize: 'Taille du plateau', startGame: 'Commencer la partie',
     backHome: 'Retour à l\'accueil', restart: 'Recommencer', soundOn: 'Activer le son', soundOff: 'Couper le son',
     moves: 'Coups', pairsLabel: 'Paires', time: 'Temps', left: 'Reste',
     newRecord: 'Nouveau record pour ce niveau', nextLevel: 'Niveau suivant', replay: 'Rejouer', chooseLevelBtn: 'Choisir un niveau',
@@ -697,8 +695,6 @@ const I18N = {
     levelMeta: (p, c, r, sec) => `${p} paires · ${c}×${r} · ${sec} s pour mémoriser`,
     nPlayers: n => `${n} joueurs`, player: k => `Joueur ${k}`,
     playerAria: k => `Nom du joueur ${k}`, clearAria: k => `Effacer le nom du joueur ${k}`,
-    fairMatch: 'Match équitable', fairSub: n => `${n} manches, 1 par joueur`,
-    singleGame: 'Partie unique', singleSub: '1 manche, 1er joueur tiré au sort',
     total: n => `Total ${n}`, turnOf: n => `Au tour de ${n}`,
     roundTitle: (r, n) => `Manche ${r}/${n}`, multiTitle: 'À plusieurs',
     metaMulti: (lv, p) => `${lv} · ${p} paires`, metaSolo: (p, c, r) => `${p} paires · ${c}×${r}`,
@@ -773,8 +769,8 @@ const I18N = {
     gameMode: 'Game mode', solo: 'Solo', multi: 'Multiplayer',
     rulesSolo: 'At the start, all the cards are <b>shown for a few seconds</b>, then they flip over. Tap two cards at a time: if they match, they stay face up. Find <b>all the pairs</b> in as few moves as possible. Win a level to <b>unlock the next one</b>.',
     chooseLevel: 'Choose a level',
-    rulesMulti: '2 to 4 players on the same phone. Take turns flipping two cards. <b>A pair = 1 point, and you play again.</b> Otherwise, pass the phone to the next player. In a <b>fair match</b>, there is one round per player so everyone goes first once, and the points add up.',
-    nbPlayers: 'Number of players', boardSize: 'Board size', format: 'Format', startGame: 'Start the game',
+    rulesMulti: '2 to 4 players on the same phone. Take turns flipping two cards. <b>A pair = 1 point, and you play again.</b> Otherwise, pass the phone to the next player. The first player is drawn at random.',
+    nbPlayers: 'Number of players', boardSize: 'Board size', startGame: 'Start the game',
     backHome: 'Back to home', restart: 'Restart', soundOn: 'Turn sound on', soundOff: 'Mute',
     moves: 'Moves', pairsLabel: 'Pairs', time: 'Time', left: 'Left',
     newRecord: 'New record for this level', nextLevel: 'Next level', replay: 'Play again', chooseLevelBtn: 'Choose a level',
@@ -787,8 +783,6 @@ const I18N = {
     levelMeta: (p, c, r, sec) => `${p} pairs · ${c}×${r} · ${sec} s to memorize`,
     nPlayers: n => `${n} players`, player: k => `Player ${k}`,
     playerAria: k => `Name of player ${k}`, clearAria: k => `Clear the name of player ${k}`,
-    fairMatch: 'Fair match', fairSub: n => `${n} rounds, 1 per player`,
-    singleGame: 'Single game', singleSub: '1 round, random first player',
     total: n => `Total ${n}`, turnOf: n => `${n}'s turn`,
     roundTitle: (r, n) => `Round ${r}/${n}`, multiTitle: 'Multiplayer',
     metaMulti: (lv, p) => `${lv} · ${p} pairs`, metaSolo: (p, c, r) => `${p} pairs · ${c}×${r}`,
@@ -860,7 +854,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 28;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 29;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${APP_BUILD})`;
@@ -992,8 +986,9 @@ $('tabOnline').onclick = () => setTab('online');
 const PCOLORS = ['var(--p1)', 'var(--p2)', 'var(--p3)', 'var(--p4)'];
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 // Un prénom vide affiche « Joueur N » / « Player N » en gris et c'est ce nom qui est utilisé
-let setup = { n: 2, names: ['', '', '', ''], size: 1, format: 'match' };
+let setup = { n: 2, names: ['', '', '', ''], size: 1 };
 try { Object.assign(setup, JSON.parse(localStorage.getItem('memoire-joueurs') || '{}')); } catch (e) {}
+setup.format = 'single';   // une seule manche, 1er joueur tiré au sort (le match équitable a été retiré)
 setup.names = setup.names.map((n, i) => (n === `Joueur ${i + 1}` || n === `Player ${i + 1}` ? '' : n));
 function saveSetup() { try { localStorage.setItem('memoire-joueurs', JSON.stringify(setup)); } catch (e) {} }
 
@@ -1017,9 +1012,6 @@ function renderSetup() {
     `<button class="clear" data-c="${i}" aria-label="${T.clearAria(i + 1)}"><span><svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6"/></svg></span></button></label>`).join('');
   $('sizes').innerHTML = LEVELS.map((lv, i) =>
     `<button class="chip" data-s="${i}" aria-pressed="${i === setup.size}">${lv.pairs}<small>${lv.name}</small></button>`).join('');
-  $('formats').innerHTML =
-    `<button class="chip" data-f="match" aria-pressed="${setup.format === 'match'}">${T.fairMatch}<small>${T.fairSub(setup.n)}</small></button>` +
-    `<button class="chip" data-f="single" aria-pressed="${setup.format === 'single'}">${T.singleGame}<small>${T.singleSub}</small></button>`;
 }
 $('players').addEventListener('focusin', e => { if (e.target.select) e.target.select(); });
 // La croix vide un seul prénom ; le clavier reste ouvert pour taper le nouveau
@@ -1032,7 +1024,6 @@ $('players').addEventListener('click', e => {
   input.closest('.player').classList.remove('filled');
   input.focus();
 });
-$('formats').onclick = e => { const b = e.target.closest('[data-f]'); if (b) { setup.format = b.dataset.f; saveSetup(); renderSetup(); } };
 $('pCount').onclick = e => { const b = e.target.closest('[data-n]'); if (b) { setup.n = +b.dataset.n; saveSetup(); renderSetup(); } };
 $('sizes').onclick = e => { const b = e.target.closest('[data-s]'); if (b) { setup.size = +b.dataset.s; saveSetup(); renderSetup(); } };
 $('players').oninput = e => {
