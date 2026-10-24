@@ -23,7 +23,7 @@ Au début de chaque partie, toutes les cartes sont visibles pendant quelques sec
 • Difficile : 10 paires, 5 secondes
 • Expert : 15 paires, 10 secondes et 2 min 30 pour finir
 • Maître : 18 paires, 10 secondes, 2 min 30… et à chaque erreur, une carte cachée se dévoile un instant : retenez-la !
-• Légende : 20 paires, 3 minutes, des cartes qui bougent… et des sosies : 🍎 et 🍏 ne font pas une paire !
+• Légende : 28 paires sur un plateau 7×8, 4 minutes… et des sosies : 🍎 et 🍏 ne font pas une paire !
 
 Gagnez un niveau pour débloquer le suivant.
 
@@ -111,7 +111,7 @@ At the start of each game, all the cards are shown for a few seconds. Memorize t
 • Hard: 10 pairs, 5 seconds
 • Expert: 15 pairs, 10 seconds and 2:30 to finish
 • Master: 18 pairs, 10 seconds, 2:30… and after every mistake, a hidden card shows for a moment: remember it!
-• Legend: 20 pairs, 3 minutes, moving cards… and look-alikes: 🍎 and 🍏 are not a pair!
+• Legend: 28 pairs on a 7×8 board, 4 minutes… and look-alikes: 🍎 and 🍏 are not a pair!
 
 Win a level to unlock the next one.
 
