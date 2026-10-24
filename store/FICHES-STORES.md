@@ -18,7 +18,7 @@ COMMENT JOUER
 Au début de chaque partie, toutes les cartes sont visibles pendant quelques secondes. Mémorisez-les ! Elles se retournent ensuite : touchez deux cartes à la fois pour retrouver les paires identiques. Trouvez-les toutes en un minimum de coups.
 
 6 NIVEAUX À DÉBLOQUER
-• Facile : 6 paires, 5 secondes pour mémoriser
+• Facile : 6 paires, 5 secondes pour mémoriser et 15 secondes pour tout trouver
 • Moyen : 8 paires, 5 secondes
 • Difficile : 10 paires, 5 secondes
 • Expert : 15 paires, 10 secondes et 2 min 30 pour finir
@@ -106,7 +106,7 @@ HOW TO PLAY
 At the start of each game, all the cards are shown for a few seconds. Memorize them! Then they flip over: tap two cards at a time to find the matching pairs. Find them all in as few moves as possible.
 
 6 LEVELS TO UNLOCK
-• Easy: 6 pairs, 5 seconds to memorize
+• Easy: 6 pairs, 5 seconds to memorize and 15 seconds to find them all
 • Medium: 8 pairs, 5 seconds
 • Hard: 10 pairs, 5 seconds
 • Expert: 15 pairs, 10 seconds and 2:30 to finish
