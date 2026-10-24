@@ -877,7 +877,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 37;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 38;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.querySelectorAll('[data-tp]').forEach(el => el.setAttribute('placeholder', T[el.dataset.tp]));
@@ -886,7 +886,7 @@ document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${A
 const LEVELS = [
   { id: 'facile',    pairs: 6,  cols: 3, rows: 4, preview: 5000, miss: 1000, limit: 15 },
   { id: 'moyen',     pairs: 8,  cols: 4, rows: 4, preview: 5000, miss: 850, limit: 40 },
-  { id: 'difficile', pairs: 10, cols: 4, rows: 5, preview: 5000, miss: 700 },
+  { id: 'difficile', pairs: 10, cols: 4, rows: 5, preview: 5000, miss: 700, limit: 80 },
   { id: 'expert',    pairs: 15, cols: 5, rows: 6, preview: 10000, miss: 550, limit: 150 },
   { id: 'maitre',    pairs: 18, cols: 6, rows: 6, preview: 10000, miss: 500, limit: 150, peek: true },
   { id: 'legende',   pairs: 28, cols: 7, rows: 8, preview: 10000, miss: 500, limit: 240, twins: true },
