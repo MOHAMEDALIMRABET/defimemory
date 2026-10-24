@@ -470,7 +470,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 .emo { position: relative; z-index: 25; flex: none; }   /* placé dans la barre du haut (salon ou partie) */
 .emo-btn { width: 42px; height: 42px; border-radius: 12px; border: 1.5px solid var(--accent); background: var(--surface); font-size: 22px; line-height: 1; padding: 0; cursor: pointer; }
 .emo-btn[aria-expanded="true"] { border-color: var(--back-2); }
-.emo-pick { position: absolute; top: calc(100% + 6px); right: 0; display: grid; grid-template-columns: repeat(4, 46px); gap: 4px; padding: 8px; border-radius: 18px; background: var(--surface); border: 1.5px solid var(--line); box-shadow: 0 6px 20px rgb(10 12 30 / .2); animation: rise .2s ease; }
+.emo-pick { position: absolute; top: calc(100% + 6px); right: 0; display: grid; grid-template-columns: repeat(5, 46px); gap: 4px; padding: 8px; border-radius: 18px; background: var(--surface); border: 1.5px solid var(--line); box-shadow: 0 6px 20px rgb(10 12 30 / .2); animation: rise .2s ease; }
 .emo-pick button { width: 46px; height: 46px; border: 0; border-radius: 12px; background: transparent; font-size: 28px; cursor: pointer; }
 .emo-pick button:active { background: var(--bg); transform: scale(.9); }
 .emo-pick button:disabled { opacity: .35; }
@@ -898,7 +898,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 42;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 43;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.querySelectorAll('[data-tp]').forEach(el => el.setAttribute('placeholder', T[el.dataset.tp]));
