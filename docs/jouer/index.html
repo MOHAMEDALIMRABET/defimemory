@@ -502,7 +502,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
         <button class="btn" id="onJoin" data-t="join">Rejoindre</button>
       </div>
       <p class="on-msg" id="onMsg" aria-live="polite"></p>
-      <a class="btn primary full-link" id="onFull" href="https://mohamedalimrabet.github.io/defimemory/jouer/" target="_blank" rel="noopener" hidden data-t="openFull">Ouvrir le jeu complet</a>
+      <a class="btn primary full-link" id="onFull" href="https://defimemory.web.app/" target="_blank" rel="noopener" hidden data-t="openFull">Ouvrir le jeu complet</a>
     </div>
     <p class="version" id="version"></p>
   </section>
@@ -518,7 +518,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
     <div class="lg-mine" id="lgMine"></div>
     <ol class="lg-list" id="lgList"></ol>
     <p class="on-msg" id="lgMsg" aria-live="polite"></p>
-    <a class="btn primary full-link" id="lgFull" href="https://mohamedalimrabet.github.io/defimemory/jouer/" target="_blank" rel="noopener" hidden data-t="openFull">Ouvrir le jeu complet</a>
+    <a class="btn primary full-link" id="lgFull" href="https://defimemory.web.app/" target="_blank" rel="noopener" hidden data-t="openFull">Ouvrir le jeu complet</a>
     <p class="lg-last" id="lgLast" hidden></p>
     <p class="label" data-t="lgNameLabel">Votre pseudo dans la ligue</p>
     <label class="player filled" style="--pc:var(--accent)"><i></i><input id="lgName" maxlength="12" autocomplete="off" enterkeyhint="done" aria-label="Votre pseudo dans la ligue" data-ta="lgNameLabel"></label>
@@ -695,7 +695,7 @@ const I18N = {
     roomClosed: 'Le salon a été fermé.', othersLeft: n => `${n} : partie quittée.`, alone: 'Tous les autres joueurs sont partis.', copied: 'Invitation copiée : collez-la dans un message.',
     inviteText: (c, u) => `Viens jouer à DefiMemory avec moi ! Code du salon : ${c}\n${u}`,
     enterName: 'Entrez votre pseudo, puis touchez « Rejoindre ».', connecting: 'Connexion…', noNet: 'Connexion impossible. Vérifiez votre accès à Internet, puis réessayez.',
-    notAvailable: 'Le jeu en ligne n\'est pas disponible dans cette version. Jouez sur mohamedalimrabet.github.io/defimemory/jouer/',
+    notAvailable: 'Le jeu en ligne n\'est pas disponible dans cette version. Jouez sur defimemory.web.app',
     badCode: 'Entrez le code à 4 caractères affiché sur le téléphone de votre ami (il le reçoit en touchant « Défier un ami »).',
     errAnon: 'Le serveur refuse la connexion : la connexion « Anonyme » n\'est pas activée dans Firebase.',
     errRules: 'Le serveur refuse l\'accès : les règles de la base Firebase ne sont pas publiées.',
@@ -774,7 +774,7 @@ const I18N = {
     roomClosed: 'The room was closed.', othersLeft: n => `${n}: left the game.`, alone: 'All the other players left.', copied: 'Invite copied: paste it in a message.',
     inviteText: (c, u) => `Come play DefiMemory with me! Room code: ${c}\n${u}`,
     enterName: 'Enter your nickname, then tap “Join”.', connecting: 'Connecting…', noNet: 'Cannot connect. Check your Internet connection and try again.',
-    notAvailable: 'Online play is not available in this version. Play at mohamedalimrabet.github.io/defimemory/jouer/',
+    notAvailable: 'Online play is not available in this version. Play at defimemory.web.app',
     badCode: 'Enter the 4-character code shown on your friend\'s phone (they get it by tapping “Challenge a friend”).',
     errAnon: 'The server refused the connection: “Anonymous” sign-in is not enabled in Firebase.',
     errRules: 'The server denied access: the Firebase database rules are not published.',
@@ -801,7 +801,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 24;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 25;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${APP_BUILD})`;

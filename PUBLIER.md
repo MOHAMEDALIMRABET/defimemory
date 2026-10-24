@@ -51,8 +51,8 @@ Les deux stores exigent une adresse web pour la politique de confidentialité.
 2. Sur GitHub, ouvrez le dépôt, puis *Settings > Pages*. Dans *Source*, choisissez la branche **main** et le dossier **/docs**, puis cliquez sur *Save*.
    GitHub Pages n'est gratuit que pour un dépôt public. Si votre dépôt est privé, créez un second dépôt **public** `defimemory-site` qui ne contient que les 2 fichiers de `docs/`.
 3. Après une minute, vos pages sont en ligne :
-   - Assistance : `https://<votre-pseudo>.github.io/defimemory/`
-   - Confidentialité : `https://<votre-pseudo>.github.io/defimemory/confidentialite.html`
+   - Assistance : `https://defimemory.web.app/aide.html` (site officiel sur Firebase Hosting, voir plus bas)
+   - Confidentialité : `https://defimemory.web.app/confidentialite.html`
 
 ## Étape 3 : relier Codemagic
 

@@ -56,8 +56,8 @@ Saurez-vous devenir une Légende de DefiMemory ?
 | Sous-catégories | Réflexion, Cartes |
 | Âge | 4+ (répondre « Aucun » à toutes les questions) |
 | Copyright | `2026 <votre nom>` |
-| URL d'assistance | `https://mohamedalimrabet.github.io/defimemory/` |
-| URL de confidentialité | `https://mohamedalimrabet.github.io/defimemory/confidentialite.html` |
+| URL d'assistance | `https://defimemory.web.app/aide.html` |
+| URL de confidentialité | `https://defimemory.web.app/confidentialite.html` |
 | Confidentialité de l'app | Données **non associées** à l'utilisateur et **non utilisées pour le suivi** : *Identifiants > ID utilisateur* (identifiant anonyme Firebase) et *Contenu utilisateur > Autre contenu* (pseudo du jeu en ligne et de la ligue) et *Données d'utilisation > Données de jeu* (paires de la ligue). Objectif : *Fonctionnalité de l'app*. |
 | Captures d'écran (iPhone 6,7"/6,9") | dossier `screenshots/iphone/` (1290 × 2796) |
 
@@ -74,7 +74,7 @@ Saurez-vous devenir une Légende de DefiMemory ?
 | Icône (512 × 512) | `play-icon-512.png` |
 | Image de présentation (1024 × 500) | `play-feature-graphic-1024x500.png` |
 | Captures d'écran téléphone | dossier `screenshots/android/` (1080 × 1920) |
-| Règles de confidentialité | `https://mohamedalimrabet.github.io/defimemory/confidentialite.html` |
+| Règles de confidentialité | `https://defimemory.web.app/confidentialite.html` |
 | Sécurité des données | Données collectées : *Identifiants de l'appareil ou autres > ID utilisateur* et *Activité dans l'appli > Autre contenu généré par l'utilisateur* (pseudo) et *Activité dans l'appli > Autres actions* (paires de la ligue). Non partagées, chiffrées en transit, facultatives (seulement en mode En ligne), objectif « Fonctionnalité de l'appli », suppression automatique en fin de partie. |
 | Classification du contenu | Questionnaire IARC : catégorie « Jeu », répondre « Non » partout → PEGI 3 |
 | Public cible | 13 ans et plus (le plus simple ; choisir des tranches d'âge plus jeunes impose les règles « Familles » de Google) |
@@ -133,7 +133,7 @@ Can you become a DefiMemory Legend?
 
 | Field | Value |
 |---|---|
-| Support URL | `https://mohamedalimrabet.github.io/defimemory/support.html` |
-| Privacy Policy URL | `https://mohamedalimrabet.github.io/defimemory/privacy.html` |
+| Support URL | `https://defimemory.web.app/support.html` |
+| Privacy Policy URL | `https://defimemory.web.app/privacy.html` |
 | Screenshots (iPhone 6.7"/6.9") | folder `screenshots/iphone-en/` (1290 × 2796) |
 | Screenshots (Android phone) | folder `screenshots/android-en/` (1080 × 1920) |
