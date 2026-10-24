@@ -163,7 +163,13 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 .lg-list li .rank { width: 34px; flex: none; text-align: center; font-family: var(--font-display); font-size: 16px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .lg-list li.podium .rank { font-size: 24px; }
 .lg-list li span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.lg-list li em { font-style: normal; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.lg-list li em { font-style: normal; color: var(--ink); font-family: var(--font-display); font-size: 16px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lg-list li span small { display: block; font-size: 12px; font-weight: 600; color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
+.lg-you { text-align: center; color: var(--muted); font-size: 14px; }
+.lg-you b { color: var(--ink); }
+.lg-you small { display: block; font-size: 12px; margin-top: 2px; }
+.link { border: 0; background: none; padding: 4px; color: var(--back-2); font-weight: 700; text-decoration: underline; cursor: pointer; }
+#lgPlay { flex: none; }
 .lg-list li.me { border-color: var(--back-2); background: color-mix(in srgb, var(--back-2) 12%, var(--surface)); }
 .lg-list li.empty { justify-content: center; color: var(--muted); font-weight: 600; }
 .btn.full-link { display: grid; place-items: center; text-decoration: none; flex: none; color: #fff; }
@@ -541,12 +547,12 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
     </div>
     <p class="rules" data-t="lgRules">Chaque paire trouvée en Solo et En ligne compte.</p>
     <div class="lg-mine" id="lgMine"></div>
+    <button class="btn primary" id="lgPlay" hidden data-t="lgPlay">Jouer en ligne</button>
     <ol class="lg-list" id="lgList"></ol>
     <p class="on-msg" id="lgMsg" aria-live="polite"></p>
     <a class="btn primary full-link" id="lgFull" href="https://defimemory.web.app/" target="_blank" rel="noopener" hidden data-t="openFull">Ouvrir le jeu complet</a>
     <p class="lg-last" id="lgLast" hidden></p>
-    <p class="label" data-t="lgNameLabel">Votre pseudo dans la ligue</p>
-    <label class="player filled" style="--pc:var(--accent)"><i></i><input id="lgName" maxlength="12" autocomplete="off" enterkeyhint="done" aria-label="Votre pseudo dans la ligue" data-ta="lgNameLabel"></label>
+    <div class="lg-you"><span data-t="lgNameLabel">Votre pseudo :</span> <b id="lgName"></b> <button class="link" id="lgEdit" data-t="lgEdit">Modifier</button><small data-t="lgNameNote">Un nouveau pseudo apparaît dans la ligue après votre prochaine partie.</small></div>
   </section>
 
   <section class="lobby" id="lobby" hidden>
@@ -767,11 +773,12 @@ const I18N = {
     huntMemo: s => `Retenez où sont les symboles… ${s}`, huntSeek: 'Cherchez', huntNew: 'Nouveau symbole !',
     huntStartsLabel: 'La prolongation commence dans…',
     openFull: 'Ouvrir le jeu complet', fullOnly: 'La ligue et le jeu en ligne fonctionnent uniquement dans le jeu complet (site ou application), pas dans cette version d\'essai.',
-    lgTitle: 'Ligue de la semaine', lgRules: 'Chaque paire trouvée en <b>Solo</b> et <b>En ligne</b> compte. Le classement repart à zéro chaque <b>lundi à minuit</b> (heure de Paris).',
+    lgTitle: 'Ligue de la semaine', lgRules: 'Seules les parties <b>En ligne</b> comptent : <b>1 point par paire</b> trouvée et <b>+5 points par victoire</b>. Le classement repart à zéro chaque <b>lundi à minuit</b> (heure de Paris).',
     lgEnds: (d, h, m) => `Se termine dans ${d ? d + ' j ' : ''}${h} h ${String(m).padStart(2, '0')}`,
-    lgYourRank: 'Votre place', lgNotRanked: 'Trouvez une paire en Solo ou En ligne pour entrer dans la ligue !',
+    lgYourRank: 'Votre place', lgNotRanked: 'Jouez une partie En ligne pour entrer dans la ligue !', lgPlay: 'Jouer en ligne',
+    pts: n => plural(n, 'pt', 'pts'), lgDetail: (w, p) => `${plural(w, 'victoire', 'victoires')} · ${plural(p, 'partie', 'parties')}`, lgEdit: 'Modifier',
     lgEmpty: 'Personne n\'a encore joué cette semaine. Soyez le premier !', lgLastWeek: 'Semaine dernière :',
-    lgNameLabel: 'Votre pseudo dans la ligue', lgBadName: 'Ce pseudo n\'est pas accepté. Choisissez-en un autre.',
+    lgNameLabel: 'Votre pseudo :', lgNameNote: 'Un nouveau pseudo apparaît dans la ligue après votre prochaine partie.',
     winnerCup: 'Vainqueur', champTitle: 'Champion !', champFirst: 'Vous avez terminé tous les niveaux de DefiMemory !',
     champAgain: lv => `Vous avez encore vaincu le niveau ${lv} !`, newLevel: 'Nouveau niveau', lvUnlocked: lv => `Niveau ${lv} débloqué !`, newBadge: 'Nouveau',
   },
@@ -857,17 +864,18 @@ const I18N = {
     huntMemo: s => `Remember where the symbols are… ${s}`, huntSeek: 'Find', huntNew: 'New symbol!',
     huntStartsLabel: 'Overtime starts in…',
     openFull: 'Open the full game', fullOnly: 'The league and online play only work in the full game (website or app), not in this preview.',
-    lgTitle: 'Weekly league', lgRules: 'Every pair found in <b>Solo</b> and <b>Online</b> counts. The ranking resets every <b>Monday at midnight</b> (Paris time).',
+    lgTitle: 'Weekly league', lgRules: 'Only <b>Online</b> games count: <b>1 point per pair</b> found and <b>+5 points per win</b>. The ranking resets every <b>Monday at midnight</b> (Paris time).',
     lgEnds: (d, h, m) => `Ends in ${d ? d + ' d ' : ''}${h} h ${String(m).padStart(2, '0')}`,
-    lgYourRank: 'Your rank', lgNotRanked: 'Find a pair in Solo or Online to join the league!',
+    lgYourRank: 'Your rank', lgNotRanked: 'Play an Online game to join the league!', lgPlay: 'Play online',
+    pts: n => plural(n, 'pt', 'pts'), lgDetail: (w, p) => `${plural(w, 'win', 'wins')} · ${plural(p, 'game', 'games')}`, lgEdit: 'Change',
     lgEmpty: 'Nobody has played this week yet. Be the first!', lgLastWeek: 'Last week:',
-    lgNameLabel: 'Your league nickname', lgBadName: 'This nickname is not allowed. Please choose another one.',
+    lgNameLabel: 'Your nickname:', lgNameNote: 'A new nickname shows in the league after your next game.',
     winnerCup: 'Winner', champTitle: 'Champion!', champFirst: 'You beat every level of DefiMemory!',
     champAgain: lv => `You beat the ${lv} level again!`, newLevel: 'New level', lvUnlocked: lv => `${lv} unlocked!`, newBadge: 'New',
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 32;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 33;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${APP_BUILD})`;
@@ -1313,7 +1321,6 @@ function finishMulti() {
 
 function finish(won) {
   S.over = true; clearInterval(tick); $('rHelp').hidden = true;
-  if (window.League) League.add(S.found);
   play(won ? 'win' : 'lose');
   const lv = S.lv, time = Math.round(S.elapsed);
   const next = LEVELS[S.i + 1];

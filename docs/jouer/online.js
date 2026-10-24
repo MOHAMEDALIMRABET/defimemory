@@ -44,9 +44,9 @@
       },
       on(path, cb) { const r = db.ref(path), h = s => cb(s.val()); r.on('value', h); return () => r.off('value', h); },
       async get(path) { return (await withTimeout(db.ref(path).get(), 15000)).val(); },
-      // Les n meilleurs selon « pairs », et le nombre de joueurs au-dessus d'un score
-      async top(path, n) { return (await withTimeout(db.ref(path).orderByChild('pairs').limitToLast(n).get(), 15000)).val() || {}; },
-      async above(path, pairs) { return (await withTimeout(db.ref(path).orderByChild('pairs').startAt(pairs + 1).get(), 15000)).numChildren(); },
+      // Les n meilleurs selon « pts », et le nombre de joueurs au-dessus d'un score
+      async top(path, n) { return (await withTimeout(db.ref(path).orderByChild('pts').limitToLast(n).get(), 15000)).val() || {}; },
+      async above(path, pts) { return (await withTimeout(db.ref(path).orderByChild('pts').startAt(pts + 1).get(), 15000)).numChildren(); },
       async transaction(path, fn) { const r = await db.ref(path).transaction(fn); return r.committed ? r.snapshot.val() : undefined; },
       update: (path, v) => db.ref(path).update(v),
       remove: path => db.ref(path).remove(),
@@ -85,8 +85,8 @@
       uid, now: () => Date.now(), async init() {},
       on(path, cb) { const s = () => cb(clone(at(read(), path))); subs.add(s); setTimeout(s); return () => subs.delete(s); },
       async get(path) { return clone(at(read(), path)); },
-      async top(path, n) { const all = at(read(), path) || {}; return Object.fromEntries(Object.entries(all).sort((a, b) => b[1].pairs - a[1].pairs).slice(0, n)); },
-      async above(path, pairs) { return Object.values(at(read(), path) || {}).filter(e => e.pairs > pairs).length; },
+      async top(path, n) { const all = at(read(), path) || {}; return Object.fromEntries(Object.entries(all).sort((a, b) => b[1].pts - a[1].pts).slice(0, n)); },
+      async above(path, pts) { return Object.values(at(read(), path) || {}).filter(e => e.pts > pts).length; },
       async transaction(path, fn) {
         const tree = read(), v = fn(clone(at(tree, path)));
         if (v === undefined) return undefined;
@@ -155,7 +155,7 @@
   function explain(e) {
     const c = String((e && (e.code || e.message)) || e || '');
     if (/operation-not-allowed|admin-restricted/i.test(c)) return T.errAnon;
-    if (/permission[_-]denied/i.test(c)) return T.errRules;
+    if (/permission[ _-]?denied/i.test(c)) return T.errRules;
     if (/api-key|invalid-api|app-not-authorized|unauthorized-domain/i.test(c)) return T.errKey;
     if (/network|timeout|offline|vendor\//i.test(c)) return T.noNet;
     return T.noNet;
@@ -563,7 +563,6 @@
   /* ---------- Fin de partie et revanche ---------- */
   function showEnd(g) {
     endShown = g.n; $('rHelp').hidden = true;
-    add((g.scores && g.scores[api.uid]) || 0);
     const ps = arr(g.order).map(playerById), sc = id => (g.scores && g.scores[id]) || 0;
     const stay = ps.filter(p => !outOf(g)[p.id]);
     const top = Math.max(...stay.map(p => sc(p.id)));
@@ -584,6 +583,7 @@
       posOf = p => (tied.includes(p) ? 1 + tied.filter(q => huntBetter(rOf(q), rOf(p)) < 0).length : tied.length + 1 + stay.filter(q => !tied.includes(q) && sc(q.id) > sc(p.id)).length);
     }
     const iWin = winners.some(p => p.id === api.uid), tie = winners.length > 1;
+    claim(g, iWin && !tie && g.ended === 'done');
     play(iWin ? 'win' : 'lose');
     $('rTitle').textContent = tie ? T.tie : iWin ? T.youWin : (h ? T.huntWinner(winners[0].name) : T.winner(winners[0].name));
     $('rText').textContent = text;
@@ -682,9 +682,12 @@
     if (NP.App.getLaunchUrl) NP.App.getLaunchUrl().then(r => { const c = r && codeFromUrl(r.url); if (c) openInvite(c); }).catch(() => {});
   }
 
-  /* ---------- Ligue de la semaine ----------
-     Chaque joueur ajoute ses paires (Solo et En ligne) à league/SEMAINE/uid.
+  /* ---------- Ligue de la semaine (parties En ligne uniquement) ----------
+     À la fin de chaque partie en ligne, chaque joueur inscrit son résultat dans ligue/SEMAINE/uid :
+     1 point par paire trouvée, +5 points pour une victoire (partie allée au bout, sans égalité).
+     Les règles Firebase vérifient ce résultat dans le salon (partie terminée, paires, une seule fois par partie).
      La semaine commence le lundi à 0 h, heure de Paris ; son nom est la date de ce lundi. */
+  const WIN_PTS = 5, LG = 'ligue/';
   const PARIS = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Paris', year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' });
   function parisNow(at = Date.now()) {
     const o = Object.fromEntries(PARIS.formatToParts(new Date(at)).map(x => [x.type, x.value]));
@@ -700,84 +703,80 @@
 
   const BAD = /(merde|putain|pute|connard|connasse|encul|salope|batard|bâtard|nique|niqu|pd\b|fuck|shit|bitch|cunt|dick|nazi|hitler)/i;
   const cleanName = n => { n = (n || '').trim().slice(0, 12); return !n || BAD.test(n) ? '' : n; };
-  function leagueName() {
-    let n = ''; try { n = localStorage.getItem('dm-league-name') || localStorage.getItem('dm-online-name') || ''; } catch (e) {}
-    n = cleanName(n);
-    if (!n) {
-      try { n = localStorage.getItem('dm-league-anon'); } catch (e) {}
-      if (!n) { n = T.player(1000 + Math.random() * 9000 | 0); try { localStorage.setItem('dm-league-anon', n); } catch (e) {} }
-    }
-    return n;
-  }
-  const pendingKey = () => 'dm-league-' + weekId();
-  function pending() { try { return +(localStorage.getItem(pendingKey()) || 0); } catch (e) { return 0; } }
-  let flushing = false;
-  async function flush(nameChanged) {
-    const n = pending();
-    if (flushing || (!n && !nameChanged)) return;
-    flushing = true;
+  // Le pseudo de la ligue est celui du jeu en ligne
+  const leagueName = () => {
+    let n = $('onName').value.trim(); try { n = n || localStorage.getItem('dm-online-name') || ''; } catch (e) {}
+    return cleanName(n) || T.player(1);
+  };
+
+  let claimed = '';
+  async function claim(g, win, retry = 1) {
+    const key = code + '#' + g.n, c = code;
+    if (!c || claimed === key) return;
+    claimed = key;
+    const score = (g.scores && g.scores[api.uid]) || 0;
     try {
-      await connect();
-      const wk = weekId(), path = `league/${wk}/${api.uid}`;
-      const ok = await api.transaction(path, cur => ({ name: leagueName(), pairs: ((cur && cur.pairs) || 0) + n, t: Date.now() }));
-      if (ok) { try { localStorage.setItem(pendingKey(), Math.max(0, pending() - n)); } catch (e) {} }
-    } catch (e) { console.warn('ligue', e); }
-    finally { flushing = false; }
-  }
-  // Appelé à la fin d'une partie Solo ou En ligne
-  function add(pairs) {
-    if (!(pairs > 0)) return;
-    try { localStorage.setItem(pendingKey(), pending() + pairs); } catch (e) {}
-    flush();
+      await api.transaction(`${LG}${weekId(api.now())}/${api.uid}`, cur => {
+        cur = cur || { pairs: 0, wins: 0, played: 0, games: {} };
+        if (cur.games && cur.games[c] === g.n) return undefined;           // déjà compté
+        const pairs = (cur.pairs || 0) + score, wins = (cur.wins || 0) + (win ? 1 : 0);
+        return { name: leagueName(), room: c, t: api.now() - 2000, pairs, wins, played: (cur.played || 0) + 1,
+          pts: pairs + wins * WIN_PTS, games: { ...(cur.games || {}), [c]: g.n } };
+      });
+    } catch (e) {
+      console.warn('ligue', e);
+      if (retry) setTimeout(() => { if (claimed === key) claimed = ''; claim(g, win, 0); }, 3000);
+    }
   }
 
   async function openLeague() {
     els.home.hidden = true; els.game.hidden = true; els.overlay.hidden = true; $('lobby').hidden = true;
     $('league').hidden = false; $('league').scrollTop = 0;
-    $('lgName').value = leagueName();
+    $('lgName').textContent = leagueName();
+    $('lgMine').innerHTML = ''; $('lgList').innerHTML = ''; $('lgLast').hidden = true; $('lgPlay').hidden = true;
     $('lgMsg').textContent = T.connecting; $('lgMsg').className = 'on-msg ok';
     renderLeft();
     try {
-      await flush();
-      const wk = weekId(), board = await api.top('league/' + wk, 50);
-      const rows = Object.entries(board).map(([id, e]) => ({ id, ...e })).sort((a, b) => b.pairs - a.pairs || a.t - b.t);
+      await connect();
+      const wk = weekId(api.now()), board = await api.top(LG + wk, 50);
+      const rows = Object.entries(board).map(([id, e]) => ({ id, ...e })).sort((a, b) => b.pts - a.pts || b.wins - a.wins || a.t - b.t);
       let me = rows.find(r => r.id === api.uid), myRank = me ? rows.indexOf(me) + 1 : null;
       if (!me) {
-        const mine = await api.get(`league/${wk}/${api.uid}`);
-        if (mine) { me = { id: api.uid, ...mine }; myRank = (await api.above('league/' + wk, mine.pairs)) + 1; }
+        const mine = await api.get(`${LG}${wk}/${api.uid}`);
+        if (mine) { me = { id: api.uid, ...mine }; myRank = (await api.above(LG + wk, mine.pts)) + 1; }
       }
       $('lgMine').innerHTML = me
-        ? `<span>${T.lgYourRank}</span><b>${medal(myRank)}</b><em>${T.pairs(me.pairs)}</em>`
+        ? `<span>${T.lgYourRank}</span><b>${medal(myRank)}</b><em>${T.pts(me.pts)}</em>`
         : `<span>${T.lgNotRanked}</span>`;
-      $('lgList').innerHTML = rows.length ? rows.map((r, i) =>
-        `<li class="${r.id === api.uid ? 'me' : ''}${i < 3 ? ' podium' : ''}"><b class="rank">${medal(i + 1)}</b><span>${esc(r.name)}</span><em>${T.pairs(r.pairs)}</em></li>`).join('')
+      $('lgPlay').hidden = !!me;
+      const row = (r, rank, cls) => `<li class="${cls}"><b class="rank">${medal(rank)}</b><span>${esc(r.name)}<small>${T.lgDetail(r.wins || 0, r.played || 0)}</small></span><em>${T.pts(r.pts)}</em></li>`;
+      $('lgList').innerHTML = rows.length
+        ? rows.map((r, i) => row(r, i + 1, (r.id === api.uid ? 'me' : '') + (i < 3 ? ' podium' : ''))).join('')
         : `<li class="empty">${T.lgEmpty}</li>`;
-      if (me && myRank > rows.length) $('lgList').insertAdjacentHTML('beforeend', `<li class="me"><b class="rank">${myRank}.</b><span>${esc(me.name)}</span><em>${T.pairs(me.pairs)}</em></li>`);
+      if (me && myRank > rows.length) $('lgList').insertAdjacentHTML('beforeend', row(me, myRank, 'me'));
       // Le podium de la semaine dernière
-      const last = Object.values(await api.top('league/' + prevWeekId(), 3)).sort((a, b) => b.pairs - a.pairs || a.t - b.t);
+      const last = Object.values(await api.top(LG + prevWeekId(), 3)).sort((a, b) => b.pts - a.pts || b.wins - a.wins || a.t - b.t);
       $('lgLast').hidden = !last.length;
       $('lgLast').innerHTML = `<span>${T.lgLastWeek}</span> ` + last.map((r, i) => `${['🥇', '🥈', '🥉'][i]} ${esc(r.name)}`).join(' · ');
       $('lgMsg').textContent = '';
-    } catch (e) { console.warn(e); $('lgMsg').textContent = explain(e); $('lgMsg').className = 'on-msg'; }
+    } catch (e) {
+      console.warn(e);
+      const c = String((e && (e.code || e.message)) || e).slice(0, 60);
+      $('lgMsg').textContent = explain(e) + ' (' + c + ')'; $('lgMsg').className = 'on-msg';
+    }
   }
   const medal = r => (r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : `${r}.`);
   function renderLeft() {
     const ms = weekLeft(), d = Math.floor(ms / 86400000), h = Math.floor(ms % 86400000 / 3600000), m = Math.floor(ms % 3600000 / 60000);
     $('lgMeta').textContent = T.lgEnds(d, h, m);
   }
-  $('lgName').onchange = () => {
-    const n = cleanName($('lgName').value);
-    if (!n) { $('lgMsg').textContent = T.lgBadName; $('lgMsg').className = 'on-msg'; $('lgName').value = leagueName(); return; }
-    try { localStorage.setItem('dm-league-name', n); } catch (e) {}
-    flush(true).then(openLeague);
-  };
-  $('lgName').onkeydown = e => { if (e.key === 'Enter') e.target.blur(); };
+  // « Jouer en ligne » et « Modifier » ramènent à l'écran En ligne
+  $('lgPlay').onclick = () => { showHome(); setTab('online'); };
+  $('lgEdit').onclick = () => { showHome(); setTab('online'); $('onName').focus(); };
   $('leagueBtn').hidden = false;
   $('leagueBtn').onclick = () => { audio(); openLeague(); };
   $('leagueBack').onclick = () => showHome();
-  window.League = { add, open: openLeague };
-  addEventListener('online', () => flush());
-  setTimeout(() => { if (pending()) flush(); }, 2500);
+  window.League = { open: openLeague };
 
   window.Online = { panel, click, leave: () => { if (code) leave(); }, get active() { return !!code; }, get room() { return room; }, get uid() { return api && api.uid; } };
   addEventListener('resize', () => { if (S && S.online) fit(); });

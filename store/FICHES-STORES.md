@@ -37,7 +37,7 @@ POUR TOUS
 • Mode clair et mode sombre
 • Fonctionne sans Internet
 • Jouez en ligne de 2 à 4 amis avec un code de salon
-• Ligue de la semaine : chaque paire compte, médailles 🥇🥈🥉 pour le podium
+• Ligue de la semaine en ligne : 1 point par paire, +5 par victoire, médailles 🥇🥈🥉 pour le podium
 • Aucune publicité, aucun compte
 
 Saurez-vous devenir une Légende de DefiMemory ?
@@ -125,7 +125,7 @@ FOR EVERYONE
 • Light and dark mode
 • Works offline
 • Play online with 2 to 4 friends using a room code
-• Weekly league: every pair counts, 🥇🥈🥉 medals for the podium
+• Weekly online league: 1 point per pair, +5 per win, 🥇🥈🥉 medals for the podium
 • No ads, no account
 
 Can you become a DefiMemory Legend?

@@ -147,6 +147,12 @@ Le mode « En ligne » utilise le projet Firebase **defimemory** (Realtime Datab
 La configuration est dans `www/online.js`. Les **règles de sécurité** à coller dans la console sont dans `firebase/database.rules.json` :
 Firebase > Realtime Database > onglet **Règles** > remplacer tout le texte > **Publier**.
 Sans ces règles (mode verrouillé), le jeu en ligne affiche « Connexion impossible ».
+**À refaire à chaque changement de ce fichier** (sinon la ligue ou le jeu en ligne sont refusés par le serveur).
+
+### Ligue de la semaine
+Seules les parties **En ligne** comptent : 1 point par paire, +5 points par victoire (partie terminée, sans égalité).
+Les résultats sont dans `ligue/LUNDI/uid`. Les règles vérifient chaque résultat dans le salon (partie terminée,
+paires réellement trouvées, une seule inscription par partie), ce qui empêche la plupart des triches simples.
 
 ## Site officiel : Firebase Hosting (https://defimemory.web.app)
 Le jeu, les pages d'aide (`/aide.html`, `/support.html`), la confidentialité (`/confidentialite.html`, `/privacy.html`)
