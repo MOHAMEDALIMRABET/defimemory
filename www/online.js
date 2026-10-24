@@ -141,7 +141,7 @@
     size = +b.dataset.s; try { localStorage.setItem('dm-online-size', size); } catch (er) {}
     panel();
   };
-  $('onName').oninput = () => { try { localStorage.setItem('dm-online-name', $('onName').value.trim()); } catch (e) {} };
+  $('onName').oninput = () => { $('onName').closest('.player').classList.remove('need'); if ($('onMsg').textContent === T.needName || $('onMsg').textContent === T.badName) msg(''); try { localStorage.setItem('dm-online-name', $('onName').value.trim()); } catch (e) {} };
   // Seulement les caractères possibles dans un code ; on rejoint automatiquement au 4e caractère
   $('onCode').oninput = () => {
     const v = $('onCode').value.toUpperCase().replace(/[^A-HJ-NP-Z2-9]/g, '');
@@ -172,7 +172,16 @@
     finally { btn.disabled = false; }
   }
 
-  $('onCreate').onclick = () => busy($('onCreate'), async () => {
+  // Pseudo obligatoire (et correct) pour jouer en ligne : c'est aussi le nom affiché dans la ligue
+  function nameProblem(input, out) {
+    const n = input.value.trim(), bad = !n ? T.needName : !cleanName(n) ? T.badName : '';
+    const box = input.closest('.player');
+    box.classList.toggle('need', !!bad);
+    if (bad) { out(bad); box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake'); input.focus(); }
+    return !!bad;
+  }
+  $('onCreate').onclick = () => { if (!nameProblem($('onName'), msg)) create(); };
+  const create = () => busy($('onCreate'), async () => {
     audio();
     for (let tries = 0; tries < 6; tries++) {
       const c = Array.from({ length: 4 }, () => CHARS[Math.random() * CHARS.length | 0]).join('');
@@ -666,14 +675,14 @@
   }
   $('invJoin').onclick = () => {
     const n = $('invName').value.trim();
-    if (!n) { $('invMsg').textContent = T.invNeedName; $('invName').focus(); return; }
+    if (nameProblem($('invName'), t => { $('invMsg').textContent = t; })) return;
     $('onName').value = n;
     try { localStorage.setItem('dm-online-name', n); } catch (e) {}
     $('invite').hidden = true;
     doJoin();
   };
   $('invLater').onclick = () => { $('invite').hidden = true; };
-  $('invName').oninput = () => { $('invMsg').textContent = ''; };
+  $('invName').oninput = () => { $('invMsg').textContent = ''; $('invName').closest('.player').classList.remove('need'); };
   $('invName').onkeydown = e => { if (e.key === 'Enter') $('invJoin').click(); };
   // Application installée : lien touché alors que l'application était fermée ou déjà ouverte
   const NP = (window.Capacitor && window.Capacitor.Plugins) || {};
