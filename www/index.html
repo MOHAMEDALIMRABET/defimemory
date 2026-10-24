@@ -325,6 +325,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 .card.wrong .face { border-color: var(--miss); animation: shake .35s ease; }
 .card.swapped { animation: wobble .65s ease; }
 .card.swapped .back { border-color: var(--accent); }
+.card.peek .back, .card.peek .face { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent); }
 @keyframes wobble { 30% { transform: scale(.86) rotate(-6deg); } 65% { transform: scale(.86) rotate(6deg); } }
 @keyframes pop { 50% { transform: rotateY(180deg) scale(1.08); } }
 @keyframes shake { 25% { translate: -4px 0; } 75% { translate: 4px 0; } }
@@ -710,6 +711,7 @@ const I18N = {
     yourTurn: 'À vous ! Touchez deux cartes.', drawing: 'Tirage au sort du premier joueur…',
     pairFor: n => `Paire pour ${n}, qui rejoue !`, pairFound: 'Paire trouvée !', notSame: 'Pas pareilles…',
     movedTurn: n => `Deux cartes ont bougé ! Au tour de ${n}`, swapped: 'Deux cartes ont changé de place !',
+    peekTurn: n => `Une carte s'est dévoilée ! Au tour de ${n}`, peeked: 'Une carte se dévoile un instant : retenez-la !', cardsPeek: '🔦 carte dévoilée',
     and: 'et', pairs: n => plural(n, 'paire', 'paires'),
     wonRounds: n => `${plural(n, 'manche', 'manches')} gagnée${n > 1 ? 's' : ''}`, winsShort: n => plural(n, 'manche', 'manches'),
     roundEnd: (r, n) => `Fin de la manche ${r}/${n}`,
@@ -799,6 +801,7 @@ const I18N = {
     yourTurn: 'Your turn! Tap two cards.', drawing: 'Drawing who goes first…',
     pairFor: n => `Pair for ${n}, play again!`, pairFound: 'Pair found!', notSame: 'Not a match…',
     movedTurn: n => `Two cards moved! ${n}'s turn`, swapped: 'Two cards swapped places!',
+    peekTurn: n => `A card was revealed! ${n}'s turn`, peeked: 'A card shows for a moment: remember it!', cardsPeek: '🔦 card reveal',
     and: 'and', pairs: n => plural(n, 'pair', 'pairs'),
     wonRounds: n => `${plural(n, 'round', 'rounds')} won`, winsShort: n => plural(n, 'win', 'wins'),
     roundEnd: (r, n) => `End of round ${r}/${n}`,
@@ -864,7 +867,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 31;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 32;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${APP_BUILD})`;
@@ -874,7 +877,7 @@ const LEVELS = [
   { id: 'moyen',     pairs: 8,  cols: 4, rows: 4, preview: 5000, miss: 850 },
   { id: 'difficile', pairs: 10, cols: 4, rows: 5, preview: 5000, miss: 700 },
   { id: 'expert',    pairs: 15, cols: 5, rows: 6, preview: 10000, miss: 550, limit: 150 },
-  { id: 'maitre',    pairs: 18, cols: 6, rows: 6, preview: 10000, miss: 500, limit: 150, swap: true },
+  { id: 'maitre',    pairs: 18, cols: 6, rows: 6, preview: 10000, miss: 500, limit: 150, peek: true },
   { id: 'legende',   pairs: 20, cols: 5, rows: 8, preview: 10000, miss: 500, limit: 180, swap: true, twins: true },
 ].map(lv => ({ ...lv, name: T.levels[lv.id] }));
 // Niveau Légende : chaque symbole a un sosie presque identique
@@ -949,7 +952,7 @@ function renderLevels() {
     const b = best[lv.id];
     const locked = i > 0 && !best[LEVELS[i - 1].id];
     const mini = Array.from({ length: lv.cols * lv.rows }, () => '<i></i>').join('');
-    const extra = (lv.limit ? ` · ⏱ ${fmt(lv.limit)}` : '') + (lv.swap ? ` · ${T.cardsSwap}` : '') + (lv.twins ? ` · ${T.cardsTwins}` : '');
+    const extra = (lv.limit ? ` · ⏱ ${fmt(lv.limit)}` : '') + (lv.swap ? ` · ${T.cardsSwap}` : '') + (lv.peek ? ` · ${T.cardsPeek}` : '') + (lv.twins ? ` · ${T.cardsTwins}` : '');
     const right = locked
       ? `<svg class="lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>${T.winToUnlock(LEVELS[i - 1].name)}`
       : b
@@ -1195,6 +1198,7 @@ els.board.addEventListener('click', e => {
       if (S) { S.lock = false; $('status').textContent = ''; }
       if (S && S.mp && !S.over) { S.mp.turn = (S.mp.turn + 1) % S.mp.players.length; renderScores(); announceTurn(); }
       if (S && S.lv.swap && !S.over) swapCards(a, b);
+      else if (S && S.lv.peek && !S.over) peekCard(a, b);
     }, S.lv.miss);
     updateStats();
   }
@@ -1220,6 +1224,20 @@ function swapCards(a, b) {
   later(() => { if (S && !S.over) S.lock = false; }, 2100);
   if (S.mp) announceTurn(T.movedTurn(S.mp.players[S.mp.turn].name));
   else $('status').textContent = T.swapped;
+}
+
+/* Niveau Maître : après une erreur, une seule carte cachée se montre un instant, sans changer de place */
+function peekCard(a, b) {
+  const pool = S.cards.filter(c => c !== a && c !== b && !c.classList.contains('up') && !c.classList.contains('matched'));
+  if (!pool.length) return;
+  const x = pool[Math.random() * pool.length | 0];
+  x.classList.add('peek');
+  S.lock = true;   // pas de clic pendant que la carte se montre
+  later(() => { x.classList.add('up'); play('flip'); }, 300);
+  later(() => x.classList.remove('up'), 1600);
+  later(() => { x.classList.remove('peek'); if (S && !S.over) S.lock = false; }, 2000);
+  if (S.mp) announceTurn(T.peekTurn(S.mp.players[S.mp.turn].name));
+  else $('status').textContent = T.peeked;
 }
 
 /* Fin d'une manche à plusieurs : points ajoutés au total, puis manche suivante ou classement final */
