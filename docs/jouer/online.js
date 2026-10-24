@@ -185,9 +185,14 @@
     msg(T.noNet);
   });
 
+  // « Rejoindre » (ou 4e caractère du code) : on montre d'abord le salon (hôte, niveau) et on demande le pseudo
   $('onJoin').onclick = () => {
     const c = $('onCode').value.trim().toUpperCase();
     if (!/^[A-HJ-NP-Z2-9]{4}$/.test(c)) { msg(T.badCode); return; }
+    $('onCode').blur(); msg(''); showInvite(c);
+  };
+  const doJoin = () => {
+    const c = $('onCode').value.trim().toUpperCase();
     busy($('onJoin'), async () => {
       audio();
       const r = await api.get('rooms/' + c);
@@ -220,7 +225,7 @@
     els.home.hidden = true; els.game.hidden = true; els.overlay.hidden = true;
     $('lobby').hidden = false;
     $('roomCode').textContent = c;
-    $('lobbyMeta').textContent = '';
+    $('lobbyMeta').textContent = ''; $('lobbyLevel').hidden = true;
     $('lobbyPlayers').innerHTML = '';
     setLobbyStatus(T.connecting, false);
     stopPresence = api.presence(`rooms/${c}/players/${api.uid}`);
@@ -318,6 +323,7 @@
     ps.forEach(p => { lastNames[p.id] = p.name; });
     const lv = LEVELS[room.size];
     $('lobbyMeta').textContent = `${lv.name} · ${T.pairs(lv.pairs)}`;
+    $('lobbyLevel').innerHTML = levelTag(lv); $('lobbyLevel').hidden = false;
 
     if (!room.g) { renderLobby(ps, host); return; }
     const g = room.g;
@@ -627,25 +633,35 @@
     if (c2) openInvite(c2);
   }
 
-  // Ouverture par un lien d'invitation : on demande d'abord le pseudo, puis on rejoint le salon
+  // Niveau du salon, tel qu'il sera joué en ligne
+  const levelTag = lv => `<b>🎯 ${lv.name} · ${T.pairs(lv.pairs)}</b>` +
+    `<small>${T.lvMemo(lv.preview / 1000)} · ${T.lvTurn}${lv.twins ? ' · ' + T.lvTwins : ''}</small>`;
+
+  // Ouverture par un lien d'invitation
   function openInvite(c) {
     if (code === c) return;
     if (code) leave();
     showHome(); setTab('online');
     $('onCode').value = c; msg('');
-    let name = ''; try { name = localStorage.getItem('dm-online-name') || ''; } catch (e) {}
+    showInvite(c);
+  }
+  // Fenêtre « Vous êtes invité ! » : qui invite, niveau du salon, choix du pseudo
+  function showInvite(c) {
+    let name = $('onName').value.trim(); try { name = name || localStorage.getItem('dm-online-name') || ''; } catch (e) {}
     $('invName').value = name;
     $('invText').textContent = T.invText(c);
+    $('invLevel').hidden = true;
     $('invMsg').textContent = ''; $('invJoin').disabled = false;
     $('invite').hidden = false;
     setTimeout(() => { $('invName').focus(); $('invName').select(); }, 50);
-    // Nom de l'hôte et salon encore ouvert ? (sans bloquer si le réseau est lent)
+    // Nom de l'hôte, niveau et salon encore ouvert ? (sans bloquer si le réseau est lent)
     connect().then(() => api.get('rooms/' + c)).then(r => {
       if ($('invite').hidden || $('onCode').value !== c) return;
       if (!r) { $('invMsg').textContent = T.noRoom; $('invJoin').disabled = true; return; }
       const ps = r.players || {}, host = ps[r.host];
       if (!ps[api.uid] && (r.status !== 'waiting' || Object.keys(ps).length >= MAX)) { $('invMsg').textContent = T.roomFull; $('invJoin').disabled = true; return; }
       if (host && host.name) $('invText').textContent = T.invFrom(host.name, c);
+      if (LEVELS[r.size]) { $('invLevel').innerHTML = levelTag(LEVELS[r.size]); $('invLevel').hidden = false; }
     }).catch(() => {});
   }
   $('invJoin').onclick = () => {
@@ -654,7 +670,7 @@
     $('onName').value = n;
     try { localStorage.setItem('dm-online-name', n); } catch (e) {}
     $('invite').hidden = true;
-    $('onJoin').click();
+    doJoin();
   };
   $('invLater').onclick = () => { $('invite').hidden = true; };
   $('invName').oninput = () => { $('invMsg').textContent = ''; };

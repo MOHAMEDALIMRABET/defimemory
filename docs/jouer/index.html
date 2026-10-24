@@ -192,6 +192,11 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
   user-select: all; -webkit-user-select: all;
 }
 .lobby-body .btn { width: min(100%, 320px); flex: none; }
+/* Niveau d'un salon en ligne */
+.lv-tag { display: grid; gap: 3px; padding: 10px 16px; border-radius: 14px; background: var(--bg); border: 1.5px solid var(--line); justify-self: center; }
+.lobby-body .lv-tag { background: var(--surface); }
+.lv-tag b { font-family: var(--font-display); font-size: 19px; font-weight: 800; color: var(--ink); }
+.sheet .lv-tag small, .lv-tag small { font-size: 13px; font-weight: 600; color: var(--muted); }
 .lobby-list { width: min(100%, 360px); display: grid; gap: 10px; text-align: left; }
 .lobby-list .label { margin: 0; }
 .lobby-players { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -511,7 +516,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
       <p class="rules" data-t="rulesOnline">Jouez à deux, chacun sur son téléphone.</p>
       <p class="label" data-t="yourName">Votre pseudo</p>
       <label class="player filled" style="--pc:var(--p1)"><i></i><input id="onName" maxlength="12" autocomplete="off" enterkeyhint="done" aria-label="Votre pseudo" data-ta="yourName"></label>
-      <p class="label" data-t="boardSize">Taille du plateau</p>
+      <p class="label" data-t="onSizeLabel">Niveau du salon que vous créez</p>
       <div class="sizes" id="onSizes"></div>
       <button class="btn primary start" id="onCreate" data-t="createRoom">Défier un ami</button>
       <div class="or"><span data-t="or">ou</span></div>
@@ -552,6 +557,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
     <div class="lobby-body">
       <p data-t="shareCode">Envoyez ce code à votre ami :</p>
       <div class="room-code" id="roomCode" aria-live="polite"></div>
+      <p class="lv-tag" id="lobbyLevel" hidden></p>
       <button class="btn" id="onShare" data-t="share">Partager l'invitation</button>
       <div class="lobby-list">
         <p class="label" id="lobbyCount"></p>
@@ -638,6 +644,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
     <div class="inv-icon">🎮</div>
     <h2 id="invTitle" data-t="invTitle">Vous êtes invité !</h2>
     <p id="invText"></p>
+    <p class="lv-tag" id="invLevel" hidden></p>
     <p class="label" data-t="yourName">Votre pseudo</p>
     <label class="player filled" style="--pc:var(--p1)"><i></i><input id="invName" maxlength="12" autocomplete="off" enterkeyhint="go" aria-label="Votre pseudo" data-ta="yourName"></label>
     <p class="on-msg" id="invMsg" aria-live="polite"></p>
@@ -736,7 +743,8 @@ const I18N = {
     roomFull: 'Ce salon est déjà complet.', invTitle: 'Vous êtes invité !', invJoin: 'Rejoindre la partie', invLater: 'Plus tard',
     invText: c => `Salon ${c}. Choisissez le pseudo que les autres joueurs verront.`,
     invFrom: (n, c) => `${n} vous défie dans le salon ${c}. Choisissez le pseudo que les autres joueurs verront.`,
-    invNeedName: 'Choisissez un pseudo pour continuer.', joined: n => `${n} a rejoint le salon !`, leftRoom: n => `${n} a quitté le salon.`, offline: 'absent',
+    invNeedName: 'Choisissez un pseudo pour continuer.', onSizeLabel: 'Niveau du salon que vous créez',
+    lvMemo: s => `👀 ${s} s pour mémoriser`, lvTurn: '⏱ 10 s par tour', lvTwins: '👯 symboles sosies', joined: n => `${n} a rejoint le salon !`, leftRoom: n => `${n} a quitté le salon.`, offline: 'absent',
     startsIn: s => `La partie commence dans ${s}…`, yourTurnOn: s => `À vous ! ${s} s`, oppTurn: (n, s) => `Au tour de ${n}… ${s} s`,
     you: 'vous', lostConn: (n, s) => `Connexion perdue avec ${n}… ${s} s`, youWin: 'Vous avez gagné !',
     forfeitText: n => `${n} a quitté la partie.`, rematchWait: n => `En attente de ${n}…`, quit: 'Quitter',
@@ -824,7 +832,8 @@ const I18N = {
     roomFull: 'This room is already full.', invTitle: 'You\'re invited!', invJoin: 'Join the game', invLater: 'Later',
     invText: c => `Room ${c}. Choose the nickname other players will see.`,
     invFrom: (n, c) => `${n} challenges you in room ${c}. Choose the nickname other players will see.`,
-    invNeedName: 'Choose a nickname to continue.', joined: n => `${n} joined the room!`, leftRoom: n => `${n} left the room.`, offline: 'away',
+    invNeedName: 'Choose a nickname to continue.', onSizeLabel: 'Level of the room you create',
+    lvMemo: s => `👀 ${s} s to memorize`, lvTurn: '⏱ 10 s per turn', lvTwins: '👯 look-alike symbols', joined: n => `${n} joined the room!`, leftRoom: n => `${n} left the room.`, offline: 'away',
     startsIn: s => `Game starts in ${s}…`, yourTurnOn: s => `Your turn! ${s} s`, oppTurn: (n, s) => `${n}'s turn… ${s} s`,
     you: 'you', lostConn: (n, s) => `Lost connection with ${n}… ${s} s`, youWin: 'You win!',
     forfeitText: n => `${n} left the game.`, rematchWait: n => `Waiting for ${n}…`, quit: 'Leave',
@@ -854,7 +863,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 29;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 30;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${APP_BUILD})`;
