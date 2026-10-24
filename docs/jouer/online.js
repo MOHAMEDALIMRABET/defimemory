@@ -229,6 +229,7 @@
   /* ---------- Salon ---------- */
   function enter(c) {
     code = c; room = null; shownN = 0; prev = null; endShown = 0; known = new Set(); lastNames = {}; starting = 0;
+    emoSeen = {}; emoMount($('lobby').querySelector('.topbar')); emoOpen(false); $('emoFx').innerHTML = '';
     try { localStorage.setItem('dm-room', c); } catch (e) {}
     if (codeFromUrl(location.href)) history.replaceState(null, '', location.pathname.replace(/salon\/[A-Z0-9]{4}\/?$/i, '') + location.search);
     els.home.hidden = true; els.game.hidden = true; els.overlay.hidden = true;
@@ -261,6 +262,7 @@
     if (!code) return;
     const c = code, me = api.uid, r = room;
     code = null; room = null;
+    emoMount(null); $('emoFx').innerHTML = '';
     clearInterval(loop); loop = null;
     if (unsub) unsub(); unsub = null;
     if (stopPresence) stopPresence(); stopPresence = null;
@@ -325,9 +327,51 @@
     return g;
   }
 
+  /* ---------- Réactions emoji (liste fixe, pas de texte libre) ---------- */
+  const EMOS = ['👋', '👍', '😂', '😮', '😅', '🔥', '👏', '🤞'];
+  let emoSeen = {}, emoLast = 0;
+  $('emoPick').innerHTML = EMOS.map(e => `<button data-e="${e}">${e}</button>`).join('');
+  // Le bouton se place dans la barre du haut de l'écran affiché (null : caché)
+  function emoMount(bar) {
+    const el = $('emo');
+    if (!bar) { el.hidden = true; document.body.append(el); return; }
+    if (el.parentNode !== bar) bar.append(el);
+    el.hidden = false;
+  }
+  const emoOpen = open => { $('emoPick').hidden = !open; $('emoBtn').setAttribute('aria-expanded', open); };
+  $('emoBtn').onclick = () => emoOpen($('emoPick').hidden);
+  document.addEventListener('pointerdown', e => { if (!$('emoPick').hidden && !e.target.closest('#emo')) emoOpen(false); });
+  $('emoPick').onclick = e => {
+    const b = e.target.closest('[data-e]'); if (!b || !code || Date.now() - emoLast < 1200) return;
+    emoLast = Date.now(); emoOpen(false);
+    const bs = [...$('emoPick').children]; bs.forEach(x => { x.disabled = true; }); setTimeout(() => bs.forEach(x => { x.disabled = false; }), 1200);
+    const t = api.now();
+    emoSeen[api.uid] = t;
+    showEmo({ id: api.uid, ...(room && room.players && room.players[api.uid]) }, b.dataset.e);
+    api.update(`rooms/${code}/emo/${api.uid}`, { e: b.dataset.e, t }).catch(() => {});
+  };
+  function showEmo(p, e) {
+    const d = document.createElement('div');
+    d.style.setProperty('--pc', colorOf(p));
+    d.innerHTML = `<b>${e}</b><span>${esc(p.name || lastNames[p.id] || '')}</span>`;
+    $('emoFx').append(d);
+    while ($('emoFx').children.length > 3) $('emoFx').firstChild.remove();
+    setTimeout(() => d.remove(), 2700);
+    play('pick');
+  }
+  // Nouvelles réactions des autres joueurs (récentes, une fois chacune)
+  function readEmo(r) {
+    Object.entries(r.emo || {}).forEach(([id, x]) => {
+      if (!x || !EMOS.includes(x.e) || !(x.t > (emoSeen[id] || 0))) return;
+      emoSeen[id] = x.t;
+      if (id !== api.uid && api.now() - x.t < 6000) showEmo({ id, ...((r.players || {})[id] || {}) }, x.e);
+    });
+  }
+
   function render() {
     if (!code) return;
     if (!room) { endWith(T.roomClosed); return; }
+    readEmo(room);
     const ps = playersOf(room), host = room.host === api.uid;
     ps.forEach(p => { lastNames[p.id] = p.name; });
     const lv = LEVELS[room.size];
@@ -381,6 +425,7 @@
   function buildBoard(g, lv) {
     shownN = g.n; prev = null;
     $('lobby').hidden = true; els.home.hidden = true; els.overlay.hidden = true; els.game.hidden = false;
+    emoMount(els.game.querySelector('.topbar'));
     S = { online: true, lv, cards: [], lock: true, over: false, mp: null };
     $('gName').textContent = T.online;
     $('gMeta').textContent = `${lv.name} · ${T.pairs(lv.pairs)}`;
@@ -619,6 +664,7 @@
 
   function endWith(text) {
     const c = code; code = null;
+    emoMount(null); $('emoFx').innerHTML = '';
     clearInterval(loop); loop = null;
     if (unsub) unsub(); unsub = null;
     if (stopPresence) stopPresence(); stopPresence = null;

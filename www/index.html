@@ -466,6 +466,19 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 .result-grid b { font-family: var(--font-display); font-size: 24px; font-variant-numeric: tabular-nums; }
 .record { color: var(--match); font-weight: 700; }
 .sheet .actions { display: grid; gap: 8px; }
+/* Réactions emoji en ligne */
+.emo { position: relative; z-index: 25; flex: none; }   /* placé dans la barre du haut (salon ou partie) */
+.emo-btn { width: 42px; height: 42px; border-radius: 12px; border: 1.5px solid var(--accent); background: var(--surface); font-size: 22px; line-height: 1; padding: 0; cursor: pointer; }
+.emo-btn[aria-expanded="true"] { border-color: var(--back-2); }
+.emo-pick { position: absolute; top: calc(100% + 6px); right: 0; display: grid; grid-template-columns: repeat(4, 46px); gap: 4px; padding: 8px; border-radius: 18px; background: var(--surface); border: 1.5px solid var(--line); box-shadow: 0 6px 20px rgb(10 12 30 / .2); animation: rise .2s ease; }
+.emo-pick button { width: 46px; height: 46px; border: 0; border-radius: 12px; background: transparent; font-size: 28px; cursor: pointer; }
+.emo-pick button:active { background: var(--bg); transform: scale(.9); }
+.emo-pick button:disabled { opacity: .35; }
+.emo-fx { position: fixed; left: 0; right: 0; top: max(70px, env(safe-area-inset-top, 0px)); z-index: 31; display: grid; justify-items: center; gap: 6px; pointer-events: none; }
+.emo-fx div { display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 8px; border-radius: 999px; background: var(--surface); border: 2px solid var(--pc, var(--line)); box-shadow: 0 6px 18px rgb(10 12 30 / .2); font-weight: 800; animation: emoIn 2.6s ease forwards; }
+.emo-fx div b { font-size: 34px; line-height: 1; }
+.emo-fx div span { color: var(--pc, var(--ink)); max-width: 9em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@keyframes emoIn { 0% { transform: translateY(-10px) scale(.6); opacity: 0; } 12% { transform: none; opacity: 1; } 80% { opacity: 1; } 100% { transform: translateY(-14px); opacity: 0; } }
 /* Invitation reçue : choix du pseudo */
 .inv-icon { font-size: 44px; line-height: 1; }
 .invite .player { text-align: left; }
@@ -481,6 +494,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 @media (prefers-reduced-motion: reduce) {
   .card .inner { transition-duration: .01s; }
   .card.matched .face, .card.wrong .face, .card.swapped, .pscore.chosen, .sheet, .countdown b.go, .hunt-sym, .trophy, .trophy::after,
+  .emo-fx div, .emo-pick,
   .padlock, .unlock-fx.shake .padlock, .unlock-fx.open .burst i, .level.fresh, .unlock-fx { animation: none; }
   .padlock .shackle, .padlock .khole { transition: none; }
   .champ-rays, .champ-cup, .cup-shine, .confetti i, .waiting::before { animation: none; }
@@ -649,6 +663,13 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
   <small id="champSub"></small>
 </div>
 
+<!-- Réactions emoji entre joueurs en ligne (pas de texte libre) -->
+<div class="emo-fx" id="emoFx" aria-live="polite"></div>
+<div class="emo" id="emo" hidden>
+  <div class="emo-pick" id="emoPick" hidden></div>
+  <button class="emo-btn" id="emoBtn" aria-expanded="false" aria-label="Réagir avec un emoji" data-ta="emoAria"><span aria-hidden="true">😀</span></button>
+</div>
+
 <div class="overlay invite" id="invite" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="invTitle">
     <div class="inv-icon">🎮</div>
@@ -754,7 +775,7 @@ const I18N = {
     roomFull: 'Ce salon est déjà complet.', invTitle: 'Vous êtes invité !', invJoin: 'Rejoindre la partie', invLater: 'Plus tard',
     invText: c => `Salon ${c}. Choisissez le pseudo que les autres joueurs verront.`,
     invFrom: (n, c) => `${n} vous défie dans le salon ${c}. Choisissez le pseudo que les autres joueurs verront.`,
-    needName: 'Choisissez un pseudo pour jouer en ligne.', badName: 'Ce pseudo n\'est pas accepté. Choisissez-en un autre.', namePh: 'Choisissez un pseudo', onSizeLabel: 'Niveau du salon que vous créez',
+    emoAria: 'Réagir avec un emoji', needName: 'Choisissez un pseudo pour jouer en ligne.', badName: 'Ce pseudo n\'est pas accepté. Choisissez-en un autre.', namePh: 'Choisissez un pseudo', onSizeLabel: 'Niveau du salon que vous créez',
     lvMemo: s => `👀 ${s} s pour mémoriser`, lvTurn: '⏱ 10 s par tour', lvTwins: '👯 symboles sosies', joined: n => `${n} a rejoint le salon !`, leftRoom: n => `${n} a quitté le salon.`, offline: 'absent',
     startsIn: s => `La partie commence dans ${s}…`, yourTurnOn: s => `À vous ! ${s} s`, oppTurn: (n, s) => `Au tour de ${n}… ${s} s`,
     you: 'vous', lostConn: (n, s) => `Connexion perdue avec ${n}… ${s} s`, youWin: 'Vous avez gagné !',
@@ -845,7 +866,7 @@ const I18N = {
     roomFull: 'This room is already full.', invTitle: 'You\'re invited!', invJoin: 'Join the game', invLater: 'Later',
     invText: c => `Room ${c}. Choose the nickname other players will see.`,
     invFrom: (n, c) => `${n} challenges you in room ${c}. Choose the nickname other players will see.`,
-    needName: 'Choose a nickname to play online.', badName: 'This nickname is not allowed. Please choose another one.', namePh: 'Choose a nickname', onSizeLabel: 'Level of the room you create',
+    emoAria: 'React with an emoji', needName: 'Choose a nickname to play online.', badName: 'This nickname is not allowed. Please choose another one.', namePh: 'Choose a nickname', onSizeLabel: 'Level of the room you create',
     lvMemo: s => `👀 ${s} s to memorize`, lvTurn: '⏱ 10 s per turn', lvTwins: '👯 look-alike symbols', joined: n => `${n} joined the room!`, leftRoom: n => `${n} left the room.`, offline: 'away',
     startsIn: s => `Game starts in ${s}…`, yourTurnOn: s => `Your turn! ${s} s`, oppTurn: (n, s) => `${n}'s turn… ${s} s`,
     you: 'you', lostConn: (n, s) => `Lost connection with ${n}… ${s} s`, youWin: 'You win!',
@@ -877,7 +898,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 40;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 42;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.querySelectorAll('[data-tp]').forEach(el => el.setAttribute('placeholder', T[el.dataset.tp]));

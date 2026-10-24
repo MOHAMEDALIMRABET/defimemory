@@ -37,6 +37,7 @@ POUR TOUS
 • Mode clair et mode sombre
 • Fonctionne sans Internet
 • Jouez en ligne de 2 à 4 amis avec un code de salon
+• Réactions emoji pendant les parties en ligne 👋😂🔥
 • Ligue de la semaine en ligne : 1 point par paire, +5 par victoire, médailles 🥇🥈🥉 pour le podium
 • Aucune publicité, aucun compte
 
@@ -125,6 +126,7 @@ FOR EVERYONE
 • Light and dark mode
 • Works offline
 • Play online with 2 to 4 friends using a room code
+• Emoji reactions during online games 👋😂🔥
 • Weekly online league: 1 point per pair, +5 per win, 🥇🥈🥉 medals for the podium
 • No ads, no account
 
