@@ -448,6 +448,11 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 .result-grid b { font-family: var(--font-display); font-size: 24px; font-variant-numeric: tabular-nums; }
 .record { color: var(--match); font-weight: 700; }
 .sheet .actions { display: grid; gap: 8px; }
+/* Invitation reçue : choix du pseudo */
+.inv-icon { font-size: 44px; line-height: 1; }
+.invite .player { text-align: left; }
+.invite .player input { font-size: 18px; }
+.invite .on-msg { margin: -6px 0 0; }
 /* Compte à rebours entre deux manches */
 .countdown { display: grid; justify-items: center; gap: 2px; padding-top: 2px; }
 .countdown small { font-size: 14px; font-weight: 700; color: var(--pc, var(--ink)); }
@@ -626,6 +631,21 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
   <small id="champSub"></small>
 </div>
 
+<div class="overlay invite" id="invite" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="invTitle">
+    <div class="inv-icon">🎮</div>
+    <h2 id="invTitle" data-t="invTitle">Vous êtes invité !</h2>
+    <p id="invText"></p>
+    <p class="label" data-t="yourName">Votre pseudo</p>
+    <label class="player filled" style="--pc:var(--p1)"><i></i><input id="invName" maxlength="12" autocomplete="off" enterkeyhint="go" aria-label="Votre pseudo" data-ta="yourName"></label>
+    <p class="on-msg" id="invMsg" aria-live="polite"></p>
+    <div class="actions">
+      <button class="btn primary" id="invJoin" data-t="invJoin">Rejoindre la partie</button>
+      <button class="btn" id="invLater" data-t="invLater">Plus tard</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="overlay" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="rTitle">
     <div class="big-stars" id="rStars"></div>
@@ -713,7 +733,10 @@ const I18N = {
     errAnon: 'Le serveur refuse la connexion : la connexion « Anonyme » n\'est pas activée dans Firebase.',
     errRules: 'Le serveur refuse l\'accès : les règles de la base Firebase ne sont pas publiées.',
     errKey: 'Le serveur refuse cette application : vérifiez la clé API dans Firebase.', noRoom: 'Aucun salon avec ce code. Vérifiez-le.',
-    roomFull: 'Ce salon est déjà complet.', joined: n => `${n} a rejoint le salon !`,
+    roomFull: 'Ce salon est déjà complet.', invTitle: 'Vous êtes invité !', invJoin: 'Rejoindre la partie', invLater: 'Plus tard',
+    invText: c => `Salon ${c}. Choisissez le pseudo que les autres joueurs verront.`,
+    invFrom: (n, c) => `${n} vous défie dans le salon ${c}. Choisissez le pseudo que les autres joueurs verront.`,
+    invNeedName: 'Choisissez un pseudo pour continuer.', joined: n => `${n} a rejoint le salon !`,
     startsIn: s => `La partie commence dans ${s}…`, yourTurnOn: s => `À vous ! ${s} s`, oppTurn: (n, s) => `Au tour de ${n}… ${s} s`,
     you: 'vous', lostConn: (n, s) => `Connexion perdue avec ${n}… ${s} s`, youWin: 'Vous avez gagné !',
     forfeitText: n => `${n} a quitté la partie.`, rematchWait: n => `En attente de ${n}…`, quit: 'Quitter',
@@ -800,7 +823,10 @@ const I18N = {
     errAnon: 'The server refused the connection: “Anonymous” sign-in is not enabled in Firebase.',
     errRules: 'The server denied access: the Firebase database rules are not published.',
     errKey: 'The server refused this app: check the API key in Firebase.', noRoom: 'No room with this code. Please check it.',
-    roomFull: 'This room is already full.', joined: n => `${n} joined the room!`,
+    roomFull: 'This room is already full.', invTitle: 'You\'re invited!', invJoin: 'Join the game', invLater: 'Later',
+    invText: c => `Room ${c}. Choose the nickname other players will see.`,
+    invFrom: (n, c) => `${n} challenges you in room ${c}. Choose the nickname other players will see.`,
+    invNeedName: 'Choose a nickname to continue.', joined: n => `${n} joined the room!`,
     startsIn: s => `Game starts in ${s}…`, yourTurnOn: s => `Your turn! ${s} s`, oppTurn: (n, s) => `${n}'s turn… ${s} s`,
     you: 'you', lostConn: (n, s) => `Lost connection with ${n}… ${s} s`, youWin: 'You win!',
     forfeitText: n => `${n} left the game.`, rematchWait: n => `Waiting for ${n}…`, quit: 'Leave',
@@ -830,7 +856,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 26;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 27;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${APP_BUILD})`;
@@ -937,7 +963,7 @@ function showHome() {
   if (reloadWhenHome) { location.reload(); return; }
   clearAll(); S = null;
   els.overlay.hidden = true; els.game.hidden = true; els.home.hidden = false; $('lobby').hidden = true;
-  $('unlockFx').hidden = true; $('champFx').hidden = true;   // une animation interrompue ne doit pas rester à l'écran
+  $('unlockFx').hidden = true; $('champFx').hidden = true; $('invite').hidden = true;   // une animation interrompue ne doit pas rester à l'écran
   $('league').hidden = true;
   $('restart').hidden = false;
   els.home.scrollTop = 0;

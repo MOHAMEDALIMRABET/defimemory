@@ -617,16 +617,38 @@
     if (c2) openInvite(c2);
   }
 
-  // Ouverture par un lien d'invitation : on rejoint directement le salon (si un pseudo est déjà connu)
+  // Ouverture par un lien d'invitation : on demande d'abord le pseudo, puis on rejoint le salon
   function openInvite(c) {
     if (code === c) return;
     if (code) leave();
     showHome(); setTab('online');
-    $('onCode').value = c;
+    $('onCode').value = c; msg('');
     let name = ''; try { name = localStorage.getItem('dm-online-name') || ''; } catch (e) {}
-    if (name) $('onJoin').click();
-    else { msg(T.enterName, true); $('onName').focus(); }
+    $('invName').value = name;
+    $('invText').textContent = T.invText(c);
+    $('invMsg').textContent = ''; $('invJoin').disabled = false;
+    $('invite').hidden = false;
+    setTimeout(() => { $('invName').focus(); $('invName').select(); }, 50);
+    // Nom de l'hôte et salon encore ouvert ? (sans bloquer si le réseau est lent)
+    connect().then(() => api.get('rooms/' + c)).then(r => {
+      if ($('invite').hidden || $('onCode').value !== c) return;
+      if (!r) { $('invMsg').textContent = T.noRoom; $('invJoin').disabled = true; return; }
+      const ps = r.players || {}, host = ps[r.host];
+      if (!ps[api.uid] && (r.status !== 'waiting' || Object.keys(ps).length >= MAX)) { $('invMsg').textContent = T.roomFull; $('invJoin').disabled = true; return; }
+      if (host && host.name) $('invText').textContent = T.invFrom(host.name, c);
+    }).catch(() => {});
   }
+  $('invJoin').onclick = () => {
+    const n = $('invName').value.trim();
+    if (!n) { $('invMsg').textContent = T.invNeedName; $('invName').focus(); return; }
+    $('onName').value = n;
+    try { localStorage.setItem('dm-online-name', n); } catch (e) {}
+    $('invite').hidden = true;
+    $('onJoin').click();
+  };
+  $('invLater').onclick = () => { $('invite').hidden = true; };
+  $('invName').oninput = () => { $('invMsg').textContent = ''; };
+  $('invName').onkeydown = e => { if (e.key === 'Enter') $('invJoin').click(); };
   // Application installée : lien touché alors que l'application était fermée ou déjà ouverte
   const NP = (window.Capacitor && window.Capacitor.Plugins) || {};
   if (NP.App) {
