@@ -694,7 +694,7 @@ const I18N = {
     waitHost: n => `En attente que ${n} lance la partie…`, freeSeat: 'Place libre', playersCount: (n, m) => `Joueurs ${n}/${m}`,
     roomClosed: 'Le salon a été fermé.', othersLeft: n => `${n} : partie quittée.`, alone: 'Tous les autres joueurs sont partis.', copied: 'Invitation copiée : collez-la dans un message.',
     inviteText: (c, u) => `Viens jouer à DefiMemory avec moi ! Code du salon : ${c}\n${u}`,
-    connecting: 'Connexion…', noNet: 'Connexion impossible. Vérifiez votre accès à Internet, puis réessayez.',
+    enterName: 'Entrez votre pseudo, puis touchez « Rejoindre ».', connecting: 'Connexion…', noNet: 'Connexion impossible. Vérifiez votre accès à Internet, puis réessayez.',
     notAvailable: 'Le jeu en ligne n\'est pas disponible dans cette version. Jouez sur mohamedalimrabet.github.io/defimemory/jouer/',
     badCode: 'Entrez le code à 4 caractères affiché sur le téléphone de votre ami (il le reçoit en touchant « Défier un ami »).',
     errAnon: 'Le serveur refuse la connexion : la connexion « Anonyme » n\'est pas activée dans Firebase.',
@@ -773,7 +773,7 @@ const I18N = {
     waitHost: n => `Waiting for ${n} to start the game…`, freeSeat: 'Free seat', playersCount: (n, m) => `Players ${n}/${m}`,
     roomClosed: 'The room was closed.', othersLeft: n => `${n}: left the game.`, alone: 'All the other players left.', copied: 'Invite copied: paste it in a message.',
     inviteText: (c, u) => `Come play DefiMemory with me! Room code: ${c}\n${u}`,
-    connecting: 'Connecting…', noNet: 'Cannot connect. Check your Internet connection and try again.',
+    enterName: 'Enter your nickname, then tap “Join”.', connecting: 'Connecting…', noNet: 'Cannot connect. Check your Internet connection and try again.',
     notAvailable: 'Online play is not available in this version. Play at mohamedalimrabet.github.io/defimemory/jouer/',
     badCode: 'Enter the 4-character code shown on your friend\'s phone (they get it by tapping “Challenge a friend”).',
     errAnon: 'The server refused the connection: “Anonymous” sign-in is not enabled in Firebase.',
@@ -801,7 +801,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 23;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 24;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${APP_BUILD})`;

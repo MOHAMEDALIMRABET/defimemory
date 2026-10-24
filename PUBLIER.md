@@ -147,3 +147,13 @@ Le mode « En ligne » utilise le projet Firebase **defimemory** (Realtime Datab
 La configuration est dans `www/online.js`. Les **règles de sécurité** à coller dans la console sont dans `firebase/database.rules.json` :
 Firebase > Realtime Database > onglet **Règles** > remplacer tout le texte > **Publier**.
 Sans ces règles (mode verrouillé), le jeu en ligne affiche « Connexion impossible ».
+
+## Site officiel : Firebase Hosting (https://defimemory.web.app)
+Le jeu, les pages d'aide (`/aide.html`, `/support.html`), la confidentialité (`/confidentialite.html`, `/privacy.html`)
+et le fichier de vérification Android (`/.well-known/assetlinks.json`) sont publiés sur Firebase Hosting.
+Les invitations en ligne utilisent `https://defimemory.web.app/salon/CODE` : ce lien ouvre l'application Android si elle est installée.
+
+Publication automatique : le fichier `.github/workflows/firebase-hosting.yml` publie le site à chaque envoi sur `main`.
+Il a besoin du secret GitHub **FIREBASE_SERVICE_ACCOUNT_DEFIMEMORY** (contenu du fichier JSON de clé de compte de service Firebase).
+Pour la version Google Play, ajoutez dans `firebase/well-known/assetlinks.json` l'empreinte SHA-256 de la « clé de signature d'application »
+(Play Console > Intégrité de l'application > Signature d'application).

@@ -3,3 +3,4 @@ secrets/
 *.jks
 *.keystore
 .DS_Store
+hosting/

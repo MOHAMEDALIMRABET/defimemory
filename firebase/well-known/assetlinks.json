@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.defimemory.app",
+      "sha256_cert_fingerprints": [
+        "A4:58:9B:74:D7:C5:6D:88:B5:E5:A9:84:A2:69:D3:89:5D:E0:C8:08:17:11:34:C0:26:DA:EC:1E:90:23:03:9B"
+      ]
+    }
+  }
+]

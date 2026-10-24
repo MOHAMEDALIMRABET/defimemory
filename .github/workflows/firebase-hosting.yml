@@ -1,0 +1,23 @@
+# Publie automatiquement le jeu sur https://defimemory.web.app à chaque envoi sur la branche main.
+# Nécessite le secret GitHub FIREBASE_SERVICE_ACCOUNT_DEFIMEMORY (voir PUBLIER.md).
+name: Publier sur Firebase Hosting
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Préparer le site
+        run: node scripts/build-hosting.mjs
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEFIMEMORY }}
+          projectId: defimemory
+          channelId: live

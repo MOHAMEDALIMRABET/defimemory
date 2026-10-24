@@ -14,7 +14,9 @@
   const FORFEIT_MS = 30000;     // délai pour revenir après une coupure
   const COUNTDOWN_MS = 3000;    // « La partie commence dans 3… »
   const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  const SHARE_URL = 'https://mohamedalimrabet.github.io/defimemory/jouer/';
+  // Lien d'invitation : ouvre l'application si elle est installée (Android App Links), le site sinon
+  const SHARE_URL = 'https://defimemory.web.app/salon/';
+  const codeFromUrl = u => { const m = /\/salon\/([A-Z2-9]{4})\b|#([A-Z2-9]{4})$/i.exec(u || ''); return m ? (m[1] || m[2]).toUpperCase() : null; };
   const COLORS = ['var(--p1)', 'var(--p2)', 'var(--p3)', 'var(--p4)'];
 
   /* ---------- Accès au serveur ----------
@@ -130,8 +132,8 @@
     try { $('onName').value = localStorage.getItem('dm-online-name') || ''; } catch (e) {}
     $('onSizes').innerHTML = LEVELS.map((lv, i) =>
       `<button class="chip" data-s="${i}" aria-pressed="${i === size}">${lv.pairs}<small>${lv.name}</small></button>`).join('');
-    const m = /^#([A-Z2-9]{4})$/i.exec(location.hash);
-    if (m && !$('onCode').value) $('onCode').value = m[1].toUpperCase();
+    const c = codeFromUrl(location.href);
+    if (c && !$('onCode').value) $('onCode').value = c;
     if ($('onMsg').textContent === T.notAvailable) msg('');
   }
   $('onSizes').onclick = e => {
@@ -214,7 +216,7 @@
   function enter(c) {
     code = c; room = null; shownN = 0; prev = null; endShown = 0; known = new Set(); lastNames = {}; starting = 0;
     try { localStorage.setItem('dm-room', c); } catch (e) {}
-    if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+    if (codeFromUrl(location.href)) history.replaceState(null, '', location.pathname.replace(/salon\/[A-Z0-9]{4}\/?$/i, '') + location.search);
     els.home.hidden = true; els.game.hidden = true; els.overlay.hidden = true;
     $('lobby').hidden = false;
     $('roomCode').textContent = c;
@@ -228,7 +230,7 @@
   const setLobbyStatus = (t, done) => { const el = $('lobbyStatus'); el.textContent = t; el.classList.toggle('done', !!done); };
 
   $('onShare').onclick = async () => {
-    const url = SHARE_URL + '#' + code, text = T.inviteText(code, url);
+    const url = SHARE_URL + code, text = T.inviteText(code, url);
     const P = (window.Capacitor && window.Capacitor.Plugins) || {};
     try {
       if (P.Share) { await P.Share.share({ title: 'DefiMemory', text, dialogTitle: T.share }); return; }
@@ -602,7 +604,25 @@
       } catch (e) { console.warn(e); }
       try { localStorage.removeItem('dm-room'); } catch (e) {}
     }
-    if (/^#[A-Z2-9]{4}$/i.test(location.hash)) setTab('online');
+    const c2 = codeFromUrl(location.href);
+    if (c2) openInvite(c2);
+  }
+
+  // Ouverture par un lien d'invitation : on rejoint directement le salon (si un pseudo est déjà connu)
+  function openInvite(c) {
+    if (code === c) return;
+    if (code) leave();
+    showHome(); setTab('online');
+    $('onCode').value = c;
+    let name = ''; try { name = localStorage.getItem('dm-online-name') || ''; } catch (e) {}
+    if (name) $('onJoin').click();
+    else { msg(T.enterName, true); $('onName').focus(); }
+  }
+  // Application installée : lien touché alors que l'application était fermée ou déjà ouverte
+  const NP = (window.Capacitor && window.Capacitor.Plugins) || {};
+  if (NP.App) {
+    NP.App.addListener('appUrlOpen', e => { const c = codeFromUrl(e && e.url); if (c) openInvite(c); });
+    if (NP.App.getLaunchUrl) NP.App.getLaunchUrl().then(r => { const c = r && codeFromUrl(r.url); if (c) openInvite(c); }).catch(() => {});
   }
 
   /* ---------- Ligue de la semaine ----------
