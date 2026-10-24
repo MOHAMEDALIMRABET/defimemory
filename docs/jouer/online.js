@@ -498,7 +498,7 @@
     if (!g.hunt) {
       if (host) {
         const h = makeHunt();
-        api.transaction(gPath(), x => (x && x.over && !x.hunt ? { ...x, hunt: { ...h, tied, start: api.now() + COUNTDOWN_MS + 2500 } } : undefined));
+        api.transaction(gPath(), x => (x && x.over && !x.hunt ? { ...x, hunt: { ...h, tied, start: api.now() + 10000 } } : undefined));   // 10 s pour lire les règles
       }
       return;
     }
@@ -510,15 +510,24 @@
           now: api.now, startAt: h.start, who: T.huntWatch(joinNames(names)),
           board: () => huntBoardOnline(),
           onProgress: r => api.update(`${gPath()}/hunt/res/${api.uid}`, r),
-          onDone: () => {},
+          onDone: () => {}, intro: true,
         });
+        // Règles affichées jusqu'au début, avec le compte à rebours
         $('rTitle').textContent = T.huntTitle;
+        $('rText').textContent = T.huntWho(joinNames(names));
+        huntHelp();
+        $('rRank').hidden = true; $('rGrid').hidden = true; $('rStars').hidden = true; $('rRecord').hidden = true;
+        $('rUnlock').hidden = true; $('rNext').hidden = true; $('rAgain').hidden = true;
+        $('rHome').textContent = T.quit;
+        $('rCount').style.setProperty('--pc', 'var(--accent)'); $('rCountLabel').textContent = T.huntStartsLabel;
+        $('rCount').hidden = false; els.overlay.hidden = false;
       }
       huntBoardOnline();
     } else {
       // Les autres joueurs regardent la prolongation en direct
       $('rTitle').textContent = T.huntTitle;
       $('rText').textContent = T.huntWatch(joinNames(names));
+      huntHelp();
       $('rRank').innerHTML = arr(h.tied).map(id => { const p = playerById(id); return `<li style="--pc:${colorOf(p)}"><i></i><span>${esc(p.name)}</span><em>${res[id] ? T.huntLine(res[id]) : '…'}</em></li>`; }).join('');
       $('rRank').hidden = false; $('rGrid').hidden = true; $('rStars').hidden = true; $('rCount').hidden = true;
       $('rRecord').hidden = true; $('rUnlock').hidden = true; $('rNext').hidden = true; $('rAgain').hidden = true;
@@ -537,7 +546,7 @@
 
   /* ---------- Fin de partie et revanche ---------- */
   function showEnd(g) {
-    endShown = g.n;
+    endShown = g.n; $('rHelp').hidden = true;
     add((g.scores && g.scores[api.uid]) || 0);
     const ps = arr(g.order).map(playerById), sc = id => (g.scores && g.scores[id]) || 0;
     const stay = ps.filter(p => !outOf(g)[p.id]);

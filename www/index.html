@@ -230,7 +230,19 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 .pscore.active span { color: var(--ink); }
 .status.turn { color: var(--pc, var(--ink)); }
 .status.hunt { color: var(--ink); display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; font-size: 16px; }
-.hunt-sym { font-size: 34px; line-height: 1; animation: pop .4s ease; }
+.status.hunt {
+  margin-inline: auto; padding: 6px 14px; border-radius: 99px; border: 2px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface)); gap: 10px; font-weight: 800;
+}
+.hunt-label { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; }
+.hunt-label.new { color: var(--match); }
+.hunt-sym { font-size: 36px; line-height: 1; display: inline-block; animation: symIn .45s cubic-bezier(.2,.9,.3,1.4); }
+@keyframes symIn { from { transform: scale(.3); opacity: 0; } }
+.hunt-time { color: var(--muted); font-variant-numeric: tabular-nums; }
+.hunt-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; text-align: left; }
+.hunt-steps li { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 1.35; color: var(--ink); }
+.hunt-steps li .ic { flex: none; width: 26px; font-size: 19px; line-height: 1.1; text-align: center; }
+.hunt-steps li .tx { flex: 1; min-width: 0; }
 .hunt-pen { color: var(--miss); }
 .card.matched[style*="--owner"] .face { border-color: var(--owner); box-shadow: 0 0 0 3px color-mix(in srgb, var(--owner) 30%, transparent); }
 
@@ -445,7 +457,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 
 @media (prefers-reduced-motion: reduce) {
   .card .inner { transition-duration: .01s; }
-  .card.matched .face, .card.wrong .face, .card.swapped, .pscore.chosen, .sheet, .countdown b.go, .trophy, .trophy::after,
+  .card.matched .face, .card.wrong .face, .card.swapped, .pscore.chosen, .sheet, .countdown b.go, .hunt-sym, .trophy, .trophy::after,
   .padlock, .unlock-fx.shake .padlock, .unlock-fx.open .burst i, .level.fresh, .unlock-fx { animation: none; }
   .padlock .shackle, .padlock .khole { transition: none; }
   .champ-rays, .champ-cup, .cup-shine, .confetti i, .waiting::before { animation: none; }
@@ -619,6 +631,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
     <div class="big-stars" id="rStars"></div>
     <h2 id="rTitle">Bravo !</h2>
     <p id="rText"></p>
+    <ol class="hunt-steps" id="rHelp" hidden></ol>
     <ol class="rank" id="rRank" hidden></ol>
     <div class="result-grid" id="rGrid">
       <div><small data-t="moves">Coups</small><b id="rMoves">0</b></div>
@@ -711,6 +724,14 @@ const I18N = {
     huntFind: (a, b) => `trouvez-les : ${a}/${b}`, huntDone: n => `Terminé : ${plural(n, 'carte trouvée', 'cartes trouvées')} !`,
     huntLine: r => `${plural(r.found || 0, 'carte', 'cartes')}${r.found ? ` en ${secs(r.ms)} s` : ''}`,
     huntWinner: n => `${n} remporte la prolongation !`, huntWatch: n => `Prolongation entre ${n}…`,
+    huntWho: n => `${n} sont à égalité. Une courte épreuve va les départager :`,
+    huntSteps: [['👀', 'Mémorisez les <b>16 cartes</b> pendant 5 secondes.'],
+      ['🎯', 'Un <b>symbole</b> s\'affiche en haut : touchez <b>toutes les cartes</b> qui ont ce symbole.'],
+      ['🔁', 'Quand vous les avez toutes trouvées, un <b>nouveau symbole</b> apparaît.'],
+      ['⚠️', 'Une erreur vous fait perdre <b>2 secondes</b>.'],
+      ['🏆', 'Après <b>20 secondes</b>, celui qui a trouvé <b>le plus de cartes</b> gagne. À égalité : le plus rapide.']],
+    huntMemo: s => `Retenez où sont les symboles… ${s}`, huntSeek: 'Cherchez', huntNew: 'Nouveau symbole !',
+    huntStartsLabel: 'La prolongation commence dans…',
     openFull: 'Ouvrir le jeu complet', fullOnly: 'La ligue et le jeu en ligne fonctionnent uniquement dans le jeu complet (site ou application), pas dans cette version d\'essai.',
     lgTitle: 'Ligue de la semaine', lgRules: 'Chaque paire trouvée en <b>Solo</b> et <b>En ligne</b> compte. Le classement repart à zéro chaque <b>lundi à minuit</b> (heure de Paris).',
     lgEnds: (d, h, m) => `Se termine dans ${d ? d + ' j ' : ''}${h} h ${String(m).padStart(2, '0')}`,
@@ -790,6 +811,14 @@ const I18N = {
     huntFind: (a, b) => `find them: ${a}/${b}`, huntDone: n => `Done: ${plural(n, 'card found', 'cards found')}!`,
     huntLine: r => `${plural(r.found || 0, 'card', 'cards')}${r.found ? ` in ${secs(r.ms)} s` : ''}`,
     huntWinner: n => `${n} wins overtime!`, huntWatch: n => `Overtime between ${n}…`,
+    huntWho: n => `${n} are tied. A short challenge will decide the winner:`,
+    huntSteps: [['👀', 'Memorize the <b>16 cards</b> for 5 seconds.'],
+      ['🎯', 'A <b>symbol</b> appears at the top: tap <b>every card</b> showing that symbol.'],
+      ['🔁', 'Once you have found them all, a <b>new symbol</b> appears.'],
+      ['⚠️', 'A mistake costs you <b>2 seconds</b>.'],
+      ['🏆', 'After <b>20 seconds</b>, whoever found <b>the most cards</b> wins. If tied: the fastest.']],
+    huntMemo: s => `Remember where the symbols are… ${s}`, huntSeek: 'Find', huntNew: 'New symbol!',
+    huntStartsLabel: 'Overtime starts in…',
     openFull: 'Open the full game', fullOnly: 'The league and online play only work in the full game (website or app), not in this preview.',
     lgTitle: 'Weekly league', lgRules: 'Every pair found in <b>Solo</b> and <b>Online</b> counts. The ranking resets every <b>Monday at midnight</b> (Paris time).',
     lgEnds: (d, h, m) => `Ends in ${d ? d + ' d ' : ''}${h} h ${String(m).padStart(2, '0')}`,
@@ -801,7 +830,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 25;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 26;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.getElementById('version').textContent = `DefiMemory ${APP_VERSION} (${APP_BUILD})`;
@@ -1165,7 +1194,7 @@ function swapCards(a, b) {
 /* Fin d'une manche à plusieurs : points ajoutés au total, puis manche suivante ou classement final */
 const joinNames = ns => ns.length > 1 ? `${ns.slice(0, -1).join(', ')} ${T.and} ${ns[ns.length - 1]}` : ns[0];
 function finishMulti() {
-  S.over = true; clearInterval(tick);
+  S.over = true; clearInterval(tick); $('rHelp').hidden = true;
   play('win');
   const sp = S.mp.players, best = Math.max(...sp.map(p => p.score));
   const roundWinners = sp.filter(p => p.score === best);
@@ -1234,7 +1263,7 @@ function finishMulti() {
 }
 
 function finish(won) {
-  S.over = true; clearInterval(tick);
+  S.over = true; clearInterval(tick); $('rHelp').hidden = true;
   if (window.League) League.add(S.found);
   play(won ? 'win' : 'lose');
   const lv = S.lv, time = Math.round(S.elapsed);
@@ -1315,9 +1344,10 @@ function huntTick() {
   bar.style.transition = 'none';
   if (t < S.startAt) {
     st.className = 'status memo'; st.textContent = T.huntStartsIn(Math.ceil((S.startAt - t) / 1000)); bar.style.width = '0%';
+    if (S.o.intro) $('rCountNum').textContent = Math.ceil((S.startAt - t) / 1000);
   } else if (t < S.playStart) {
-    if (S.phase !== 'memo') { S.phase = 'memo'; S.cards.forEach(c => c.classList.add('up')); }
-    st.className = 'status memo'; st.textContent = T.memorize(Math.ceil((S.playStart - t) / 1000));
+    if (S.phase !== 'memo') { S.phase = 'memo'; S.cards.forEach(c => c.classList.add('up')); if (S.o.intro) els.overlay.hidden = true; }
+    st.className = 'status memo'; st.textContent = T.huntMemo(Math.ceil((S.playStart - t) / 1000));
     bar.style.background = ''; bar.style.width = `${100 * (S.playStart - t) / HUNT.memo}%`;
   } else {
     if (S.phase !== 'play') {
@@ -1331,11 +1361,19 @@ function huntTick() {
     if (left <= 0) huntEnd();
   }
 }
+// Bandeau « Cherchez : 🐳  1/3  ⏱ 18 s »
 function huntStatus(left) {
-  const sym = huntTarget(), st = $('status');
+  const sym = huntTarget(), st = $('status'), isNew = S.newT && S.now() < S.newT;
   st.className = 'status hunt';
-  st.innerHTML = `<span class="hunt-sym">${sym}</span> ${T.huntFind(S.inTarget, huntCount(sym))} · ${Math.ceil(left / 1000)} s` +
-    (S.flash && S.now() < S.flash ? ' <b class="hunt-pen">−2 s</b>' : '');
+  st.innerHTML = `<span class="hunt-label${isNew ? ' new' : ''}">${isNew ? T.huntNew : T.huntSeek}</span>` +
+    `<span class="hunt-sym">${sym}</span><span>${S.inTarget}/${huntCount(sym)}</span>` +
+    `<span class="hunt-time">⏱ ${Math.ceil(left / 1000)} s</span>` +
+    (S.flash && S.now() < S.flash ? '<b class="hunt-pen">−2 s</b>' : '');
+}
+// Les règles de la prolongation, en étapes illustrées
+function huntHelp() {
+  $('rHelp').innerHTML = T.huntSteps.map(([icon, text]) => `<li><span class="ic">${icon}</span><span class="tx">${text}</span></li>`).join('');
+  $('rHelp').hidden = false;
 }
 
 function huntClick(c) {
@@ -1348,7 +1386,7 @@ function huntClick(c) {
     if (S.inTarget >= huntCount(sym)) {
       S.ti++; S.inTarget = 0;
       if (S.ti >= S.h.targets.length) { play('win'); return huntEnd(); }
-      play('match');
+      play('match'); S.newT = S.now() + 1300;
     }
     if (S.o.onProgress) S.o.onProgress({ found: S.found, ms: S.ms });
   } else {
@@ -1389,9 +1427,10 @@ function prolongLocal(tied, ranked, multiRound) {
     clearAll();
     els.game.hidden = false;
     $('rTitle').textContent = T.huntTitle;
-    $('rText').textContent = T.huntRules;
+    $('rText').textContent = i === 0 ? T.huntWho(joinNames(tied.map(q => q.name))) : '';
+    huntHelp();
     $('rRank').innerHTML = tied.map((q, k) => `<li style="--pc:${q.color}"><i></i><span>${esc(q.name)}</span><em>${results[k] && !results[k].live ? T.huntLine(results[k]) : ''}</em></li>`).join('');
-    $('rRank').hidden = false; $('rGrid').hidden = true; $('rStars').hidden = true; $('rRecord').hidden = true;
+    $('rRank').hidden = i === 0; $('rGrid').hidden = true; $('rStars').hidden = true; $('rRecord').hidden = true;
     $('rUnlock').hidden = true; $('rNext').hidden = true; $('rAgain').hidden = true;
     $('rHome').textContent = T.stopMatch;
     const box = $('rCount'), num = $('rCountNum');
@@ -1400,13 +1439,14 @@ function prolongLocal(tied, ranked, multiRound) {
     num.textContent = ''; box.hidden = false;
     els.overlay.hidden = false;
     if (i === 0) play('pick');
+    const read = i === 0 ? 5000 : 1500;   // le premier joueur a le temps de lire les règles
     [5, 4, 3, 2, 1].forEach((n, k) => later(() => {
       num.textContent = n; num.classList.remove('go'); void num.offsetWidth; num.classList.add('go'); play('count');
-    }, 1200 + k * 1000));
-    later(() => { els.overlay.hidden = true; box.hidden = true; go(); }, 6200);
+    }, read + k * 1000));
+    later(() => { els.overlay.hidden = true; box.hidden = true; $('rHelp').hidden = true; go(); }, read + 5000);
   }
   function prolongEnd() {
-    clearAll();
+    clearAll(); $('rHelp').hidden = true;
     const order = tied.map((p, k) => ({ p, r: results[k] })).sort((a, b) => huntBetter(a.r, b.r));
     const bestR = order[0].r, wins = order.filter(x => huntBetter(x.r, bestR) === 0);
     play('win');
