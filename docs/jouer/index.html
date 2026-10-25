@@ -363,7 +363,6 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 .card.wrong .face { border-color: var(--miss); animation: shake .35s ease; }
 .card.swapped { animation: wobble .65s ease; }
 .card.swapped .back { border-color: var(--accent); }
-.card.peek .back, .card.peek .face { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent); }
 @keyframes wobble { 30% { transform: scale(.86) rotate(-6deg); } 65% { transform: scale(.86) rotate(6deg); } }
 @keyframes pop { 50% { transform: rotateY(180deg) scale(1.08); } }
 @keyframes shake { 25% { translate: -4px 0; } 75% { translate: 4px 0; } }
@@ -951,7 +950,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 54;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 55;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.querySelectorAll('[data-tp]').forEach(el => el.setAttribute('placeholder', T[el.dataset.tp]));
