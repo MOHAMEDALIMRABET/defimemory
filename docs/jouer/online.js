@@ -696,7 +696,8 @@
   }
   function renderHunt(g, tied, host) {
     if (!g.hunt) {
-      if (host) {
+      // L'hôte ou un joueur à égalité la prépare (une seule fois, grâce à la transaction) : elle ne dépend pas d'un seul téléphone
+      if (host || tied.includes(api.uid)) {
         const h = makeHunt();
         api.transaction(gPath(), x => (x && x.over && !x.hunt ? { ...x, hunt: { ...h, tied, start: api.now() + 10000 } } : undefined));   // 10 s pour lire les règles
       }

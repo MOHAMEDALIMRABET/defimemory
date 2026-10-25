@@ -950,7 +950,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 52;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 53;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.querySelectorAll('[data-tp]').forEach(el => el.setAttribute('placeholder', T[el.dataset.tp]));
@@ -1059,7 +1059,7 @@ function showHome() {
   if (reloadWhenHome) { location.reload(); return; }
   clearAll(); S = null;
   els.overlay.hidden = true; els.game.hidden = true; els.home.hidden = false; $('lobby').hidden = true;
-  $('unlockFx').hidden = true; $('champFx').hidden = true; $('invite').hidden = true;   // une animation interrompue ne doit pas rester à l'écran
+  $('unlockFx').hidden = true; $('champFx').hidden = true; $('invite').hidden = true; $('raceGo').hidden = true;   // une animation interrompue ne doit pas rester à l'écran
   $('league').hidden = true;
   $('restart').hidden = false;
   els.home.scrollTop = 0;
@@ -1468,6 +1468,16 @@ function playHunt(h, o) {
   tick = setInterval(huntTick, 100); huntTick();
 }
 
+// Grands « 3, 2, 1 » avant la mémorisation puis « GO ! » au départ, au même instant pour tous (heure commune)
+function huntGo(t) {
+  const el = $('raceGo');
+  let txt = '';
+  if (t < S.startAt && S.startAt - t <= 3000) txt = String(Math.ceil((S.startAt - t) / 1000));
+  else if (t >= S.playStart && t < S.playStart + 900) txt = T.raceStart;
+  el.hidden = !txt;
+  if (txt && txt !== S.goTxt) { el.textContent = txt; el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); if (txt !== T.raceStart) play('count'); }
+  S.goTxt = txt;
+}
 function huntTarget() { return S.h.targets[S.ti]; }
 function huntCount(sym) { return S.h.deck.filter(x => x === sym).length; }
 
@@ -1475,6 +1485,7 @@ function huntTick() {
   if (!S || !S.hunt || S.over) return;
   const t = S.now(), st = $('status'), bar = $('bar');
   bar.style.transition = 'none';
+  huntGo(t);
   if (t < S.startAt) {
     st.className = 'status memo'; st.textContent = T.huntStartsIn(Math.ceil((S.startAt - t) / 1000)); bar.style.width = '0%';
     if (S.o.intro) $('rCountNum').textContent = Math.ceil((S.startAt - t) / 1000);
@@ -1532,7 +1543,7 @@ function huntClick(c) {
 
 function huntEnd() {
   if (S.over) return;
-  S.over = true; S.lock = true; clearInterval(tick);
+  S.over = true; S.lock = true; clearInterval(tick); $('raceGo').hidden = true;
   $('bar').style.width = '0%';
   const st = $('status'); st.className = 'status'; st.textContent = T.huntDone(S.found);
   const r = { found: S.found, ms: S.ms, done: true }, o = S.o;
