@@ -806,7 +806,7 @@ const I18N = {
     lostText: (f, p) => `Vous avez trouvé ${f} paires sur ${p}. Réessayez !`,
     unlocked: lv => `🔓 Niveau ${lv} débloqué !`, card: k => `Carte ${k}`,
     online: 'En ligne',
-    rulesOnline: 'De 2 à 4 joueurs, <b>chacun sur son téléphone</b>. Créez un salon et envoyez le code à vos amis, ou rejoignez un salon avec le code reçu. Chacun son tour, <b>10 secondes maximum</b> par tour. Une paire = 1 point et vous rejouez.',
+    rulesOnline: 'De 2 à 4 joueurs, <b>chacun sur son téléphone</b>. Créez un salon et envoyez le code à vos amis, ou rejoignez un salon avec le code reçu. Chacun son tour, <b>10 secondes maximum</b> par tour. En <b>Facile et Moyen</b> : course, chacun sur son plateau, <b>le plus rapide gagne</b>.',
     yourName: 'Votre pseudo', createRoom: 'Défier un ami', or: 'ou', join: 'Rejoindre', codeAria: 'Code du salon',
     leaveRoom: 'Quitter le salon', lobbyTitle: 'Salon', shareCode: 'Envoyez ce code à vos amis :', share: 'Partager l\'invitation',
     waitingOpp: 'En attente de vos amis…', readyToStart: 'Lancez la partie quand tout le monde est là.',
@@ -823,7 +823,8 @@ const I18N = {
     invText: c => `Salon ${c}. Choisissez le pseudo que les autres joueurs verront.`,
     invFrom: (n, c) => `${n} vous défie dans le salon ${c}. Choisissez le pseudo que les autres joueurs verront.`,
     emoAria: 'Réagir avec un emoji', shareTitle: 'Inviter vos amis', shareHint: 'Envoyez ce lien : il ouvre directement le salon.', shareSms: 'Messages', shareMail: 'E-mail', shareCopy: 'Copier le lien', copiedShort: 'Lien copié ✓', close: 'Fermer', needName: 'Choisissez un pseudo pour jouer en ligne.', badName: 'Ce pseudo n\'est pas accepté. Choisissez-en un autre.', namePh: 'Choisissez un pseudo', onSizeLabel: 'Niveau du salon que vous créez',
-    lvMemo: s => `👀 ${s} s pour mémoriser`, lvTurn: '⏱ 10 s par tour', lvTwins: '👯 symboles sosies', joined: n => `${n} a rejoint le salon !`, leftRoom: n => `${n} a quitté le salon.`, offline: 'absent',
+    lvMemo: s => `👀 ${s} s pour mémoriser`, lvTurn: '⏱ 10 s par tour', lvRace: '⚡ course : le plus rapide gagne',
+    raceGo: s => `⚡ Course ! ${s} s`, raceDone: s => `Terminé en ${s} s ! En attente des autres…`, raceTime: s => `toutes les paires · ${s} s`, racePairs: (n, p) => `${n}/${p} paires`, raceRule: 'Course : le plus rapide à trouver toutes les paires gagne.', lvTwins: '👯 symboles sosies', joined: n => `${n} a rejoint le salon !`, leftRoom: n => `${n} a quitté le salon.`, offline: 'absent',
     startsIn: s => `La partie commence dans ${s}…`, yourTurnOn: s => `À vous ! ${s} s`, oppTurn: (n, s) => `Au tour de ${n}… ${s} s`,
     you: 'vous', lostConn: (n, s) => `Connexion perdue avec ${n}… ${s} s`, youWin: 'Vous avez gagné !', youWinForfeit: 'Victoire par abandon',
     forfeitText: n => `${n} a quitté la partie.`, rematchWait: n => `En attente de ${n}…`, quit: 'Quitter',
@@ -897,7 +898,7 @@ const I18N = {
     lostText: (f, p) => `You found ${f} of the ${p} pairs. Try again!`,
     unlocked: lv => `🔓 ${lv} level unlocked!`, card: k => `Card ${k}`,
     online: 'Online',
-    rulesOnline: '2 to 4 players, <b>each on their own phone</b>. Create a room and send the code to your friends, or join a room with the code you received. Take turns, <b>10 seconds max</b> per turn. A pair = 1 point and you play again.',
+    rulesOnline: '2 to 4 players, <b>each on their own phone</b>. Create a room and send the code to your friends, or join a room with the code you received. Take turns, <b>10 seconds max</b> per turn. In <b>Easy and Medium</b>: a race, each on their own board, <b>the fastest wins</b>.',
     yourName: 'Your nickname', createRoom: 'Challenge a friend', or: 'or', join: 'Join', codeAria: 'Room code',
     leaveRoom: 'Leave the room', lobbyTitle: 'Room', shareCode: 'Send this code to your friends:', share: 'Share the invite',
     waitingOpp: 'Waiting for your friends…', readyToStart: 'Start the game when everyone is here.',
@@ -914,7 +915,8 @@ const I18N = {
     invText: c => `Room ${c}. Choose the nickname other players will see.`,
     invFrom: (n, c) => `${n} challenges you in room ${c}. Choose the nickname other players will see.`,
     emoAria: 'React with an emoji', shareTitle: 'Invite your friends', shareHint: 'Send this link: it opens the room directly.', shareSms: 'Messages', shareMail: 'Email', shareCopy: 'Copy the link', copiedShort: 'Link copied ✓', close: 'Close', needName: 'Choose a nickname to play online.', badName: 'This nickname is not allowed. Please choose another one.', namePh: 'Choose a nickname', onSizeLabel: 'Level of the room you create',
-    lvMemo: s => `👀 ${s} s to memorize`, lvTurn: '⏱ 10 s per turn', lvTwins: '👯 look-alike symbols', joined: n => `${n} joined the room!`, leftRoom: n => `${n} left the room.`, offline: 'away',
+    lvMemo: s => `👀 ${s} s to memorize`, lvTurn: '⏱ 10 s per turn', lvRace: '⚡ race: the fastest wins',
+    raceGo: s => `⚡ Race! ${s} s`, raceDone: s => `Done in ${s} s! Waiting for the others…`, raceTime: s => `all pairs · ${s} s`, racePairs: (n, p) => `${n}/${p} pairs`, raceRule: 'Race: the fastest to find all the pairs wins.', lvTwins: '👯 look-alike symbols', joined: n => `${n} joined the room!`, leftRoom: n => `${n} left the room.`, offline: 'away',
     startsIn: s => `Game starts in ${s}…`, yourTurnOn: s => `Your turn! ${s} s`, oppTurn: (n, s) => `${n}'s turn… ${s} s`,
     you: 'you', lostConn: (n, s) => `Lost connection with ${n}… ${s} s`, youWin: 'You win!', youWinForfeit: 'Win by forfeit',
     forfeitText: n => `${n} left the game.`, rematchWait: n => `Waiting for ${n}…`, quit: 'Leave',
@@ -945,7 +947,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 49;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 50;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.querySelectorAll('[data-tp]').forEach(el => el.setAttribute('placeholder', T[el.dataset.tp]));

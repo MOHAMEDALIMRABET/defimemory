@@ -13,6 +13,9 @@
   const TURN_MS = 10000;        // durée maximale d'un tour
   const FORFEIT_MS = 30000;     // délai pour revenir après une coupure
   const COUNTDOWN_MS = 3000;    // « La partie commence dans 3… »
+  // Facile et Moyen : « course » — chacun sur son propre plateau (le même pour tous), le plus rapide gagne
+  const RACE_MS = { facile: 60000, moyen: 90000 };   // durée maximale de la course
+  const isRace = lv => !!RACE_MS[lv.id];
   const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   // Lien d'invitation : ouvre l'application si elle est installée (Android App Links), le site sinon
   const SHARE_URL = 'https://defimemory.web.app/salon/';
@@ -324,6 +327,7 @@
       previewStart: t0, previewEnd: t0 + lv.preview, turnStart: t0 + lv.preview,
       scores: Object.fromEntries(order.map(id => [id, 0])), over: false,
     };
+    if (isRace(lv)) { g.mode = 'race'; g.raceEnd = g.previewEnd + RACE_MS[lv.id]; }
     await api.transaction(`rooms/${code}`, cur => {
       if (!cur || (cur.g && cur.g.n >= n) || (!byButton && !cur.g)) return undefined;
       return { ...cur, status: 'playing', g };
@@ -405,7 +409,7 @@
     if (g.over && endShown !== g.n) {
       // Égalité : prolongation « chasse au symbole », tous les joueurs à égalité en même temps
       const tied = matchWinners(g);
-      if (tied.length > 1 && g.ended === 'done' && !huntOver(g)) { renderHunt(g, tied, host); return; }
+      if (g.mode !== 'race' && tied.length > 1 && g.ended === 'done' && !huntOver(g)) { renderHunt(g, tied, host); return; }
       showEnd(g);
     }
     if (!g.over && !els.overlay.hidden) els.overlay.hidden = true;
@@ -447,7 +451,9 @@
     shownN = g.n; prev = null;
     $('lobby').hidden = true; els.home.hidden = true; els.overlay.hidden = true; els.game.hidden = false;
     emoMount(els.game.querySelector('.topbar'));
-    S = { online: true, lv, cards: [], lock: true, over: false, mp: null };
+    S = { online: true, lv, cards: [], lock: true, over: false, mp: null, open: [], mine: {} };
+    const me = (g.race || {})[api.uid];
+    if (g.mode === 'race' && me && me.m) S.mine = { ...me.m };   // reprise après rechargement
     $('gName').textContent = T.online;
     $('gMeta').textContent = `${lv.name} · ${T.pairs(lv.pairs)}`;
     document.querySelector('.stats').hidden = true;
@@ -464,6 +470,7 @@
   // Dessine l'état courant : cartes, scores, message, barre du temps de tour
   function paint() {
     if (!room || !room.g || !S || !S.online) return;
+    if (room.g.mode === 'race') { paintRace(); return; }
     const g = room.g, t = api.now(), order = arr(g.order), ps = order.map(playerById);
     const open = arr(g.open), res = g.res || null;
     const preview = t >= g.previewStart && t < g.previewEnd;
@@ -512,6 +519,80 @@
     }
   }
 
+  /* ---------- Course (Facile et Moyen) ---------- */
+  const raceOf = (g, id) => (g.race && g.race[id]) || { found: 0 };
+  const raceTime = (g, id) => { const r = raceOf(g, id); return r.done ? T.raceTime(secs(r.ms)) : T.racePairs(r.found || 0, g.deck.length / 2); };
+  function paintRace() {
+    const g = room.g, t = api.now(), ps = arr(g.order).map(playerById), me = raceOf(g, api.uid);
+    const preview = t >= g.previewStart && t < g.previewEnd;
+    S.cards.forEach((c, k) => {
+      const mine = !!S.mine[k];
+      c.classList.toggle('matched', mine);
+      if (mine) c.style.setProperty('--owner', colorOf(playerById(api.uid))); else c.style.removeProperty('--owner');
+      c.classList.toggle('up', preview || g.over || mine || S.open.includes(k));
+    });
+    const box = $('scores');
+    box.style.gridTemplateColumns = `repeat(${ps.length}, 1fr)`;
+    box.innerHTML = ps.map(p => {
+      const r = raceOf(g, p.id), off = outOf(g)[p.id] || p.online === false;
+      return `<div class="pscore${r.done ? ' active' : ''}${off ? ' off' : ''}" style="--pc:${colorOf(p)}">` +
+        `<span>${esc(p.name)}</span><b>${r.done ? '✓' : `${r.found || 0}/${g.deck.length / 2}`}</b><small${p.id === api.uid ? ' class="you"' : ''}>${r.done ? secs(r.ms) + ' s' : p.id === api.uid ? T.you : ''}</small></div>`;
+    }).join('');
+    const st = $('status'), bar = $('bar');
+    st.style.setProperty('--pc', colorOf(playerById(api.uid)));
+    bar.style.transition = 'none';
+    if (g.over) { st.className = 'status'; st.textContent = ''; bar.style.width = '0%'; S.lock = true; return; }
+    if (t < g.previewStart) { st.className = 'status memo'; st.textContent = T.startsIn(Math.ceil((g.previewStart - t) / 1000)); bar.style.width = '0%'; S.lock = true; return; }
+    if (preview) {
+      st.className = 'status memo'; st.textContent = T.memorize(Math.ceil((g.previewEnd - t) / 1000));
+      bar.style.background = ''; bar.style.width = `${100 * (g.previewEnd - t) / (g.previewEnd - g.previewStart)}%`; S.lock = true; return;
+    }
+    st.className = 'status turn';
+    st.textContent = me.done ? T.raceDone(secs(me.ms)) : T.raceGo(secs(t - g.previewEnd));
+    bar.style.background = colorOf(playerById(api.uid));
+    bar.style.width = `${100 * Math.max(0, g.raceEnd - t) / (g.raceEnd - g.previewEnd)}%`;
+    if (me.done) S.lock = true;
+    else if (S.lock && !S.busy) S.lock = false;
+  }
+  // Toucher une carte en course : tout se passe sur le téléphone, seul le résultat est envoyé
+  function raceClick(c) {
+    const g = room.g, k = +c.dataset.k, t = api.now();
+    if (S.lock || S.busy || g.over || t < g.previewEnd || S.mine[k] || S.open.includes(k) || raceOf(g, api.uid).done) return;
+    S.open.push(k); play('flip'); paintRace();
+    if (S.open.length < 2) return;
+    const [a, b] = S.open, same = g.deck[a] === g.deck[b];
+    S.busy = true; S.lock = true;
+    if (same) {
+      S.mine[a] = S.mine[b] = true; S.open = [];
+      const found = Object.keys(S.mine).length / 2, done = found >= g.deck.length / 2;
+      play('match');
+      const upd = { [`race/${api.uid}`]: { found, m: S.mine, ...(done ? { done: true, ms: t - g.previewEnd } : {}) }, [`scores/${api.uid}`]: found };
+      api.update(gPath(), upd).catch(() => {});
+      setTimeout(() => { S.busy = false; if (!done) S.lock = false; paintRace(); }, 250);
+    } else {
+      setTimeout(() => { S.cards[a].classList.add('wrong'); S.cards[b].classList.add('wrong'); play('miss'); }, 250);
+      setTimeout(() => { S.cards[a].classList.remove('wrong'); S.cards[b].classList.remove('wrong'); S.open = []; S.busy = false; S.lock = false; paintRace(); }, 250 + S.lv.miss);
+    }
+  }
+  // Fin de la course : tous les joueurs encore là ont fini, ou le temps est écoulé
+  function raceCheck(g, t) {
+    const live = arr(g.order).filter(id => !outOf(g)[id] && (room.players[id] || {}).online !== false);
+    if (!(t > g.raceEnd + 1500 || (live.length && live.every(id => raceOf(g, id).done)))) return;
+    api.transaction(gPath(), x => (x && !x.over && x.n === g.n ? { ...x, over: true, ended: 'done' } : undefined));
+  }
+  // Gagnants : le plus rapide à tout trouver ; si personne n'a fini, le plus de paires
+  function raceWinners(g, stay) {
+    const fin = stay.filter(p => raceOf(g, p.id).done);
+    if (fin.length) { const best = Math.min(...fin.map(p => raceOf(g, p.id).ms)); return fin.filter(p => raceOf(g, p.id).ms === best); }
+    const top = Math.max(...stay.map(p => raceOf(g, p.id).found || 0));
+    return stay.filter(p => (raceOf(g, p.id).found || 0) === top);
+  }
+  const raceBetter = g => (a, b) => {
+    const x = raceOf(g, a.id), y = raceOf(g, b.id);
+    if (!!x.done !== !!y.done) return x.done ? -1 : 1;
+    return x.done ? x.ms - y.ms : (y.found || 0) - (x.found || 0);
+  };
+
   // Toutes les 200 ms : temps affiché, et règlement des tours (paire, erreur, temps écoulé, joueur parti)
   function tickLoop() {
     if (!room || !room.g) return;
@@ -519,6 +600,15 @@
     const g = room.g, t = api.now();
     if (g.over && g.hunt && endShown !== g.n && huntOver(g)) render();
     if (g.over) return;
+    if (g.mode === 'race') {
+      raceCheck(g, t);
+      arr(g.order).forEach(id => {
+        if (id === api.uid || outOf(g)[id]) return;
+        const p = room.players && room.players[id];
+        if (!p || p.left || (p.online === false && p.seen && t - p.seen > FORFEIT_MS)) api.transaction(gPath(), x => knockOut(x, id));
+      });
+      return;
+    }
     if (g.res && t >= g.res.at) resolve(g.res.at);
     else if (!g.res && t >= g.previewEnd && t - g.turnStart > TURN_MS + 400) timeout(g.turnStart);
     arr(g.order).forEach(id => {
@@ -531,6 +621,7 @@
   const gPath = () => `rooms/${code}/g`;
 
   function click(c) {
+    if (room && room.g && room.g.mode === 'race') { raceClick(c); return; }
     if (!room || !room.g || S.lock) return;
     const k = +c.dataset.k;
     api.transaction(gPath(), g => {
@@ -647,7 +738,15 @@
     let ranked = ps.slice().sort((a, b) => (!!outOf(g)[a.id] - !!outOf(g)[b.id]) || sc(b.id) - sc(a.id));
     let detail = p => T.pairs(sc(p.id)), posOf = p => 1 + stay.filter(q => sc(q.id) > sc(p.id)).length;
     const h = g.hunt;
-    if (h && winners.length > 1) {
+    if (g.mode === 'race') {
+      // Course : le plus rapide à tout trouver gagne
+      winners = raceWinners(g, stay);
+      const by = raceBetter(g);
+      ranked = stay.slice().sort(by).concat(gone);
+      detail = p => raceTime(g, p.id);
+      posOf = p => 1 + stay.filter(q => by(q, p) < 0).length;
+      if (!text) text = T.raceRule;
+    } else if (h && winners.length > 1) {
       // Prolongation : classement des joueurs à égalité selon la chasse au symbole
       const res = h.res || {}, rOf = p => res[p.id] || { found: 0 };
       const tied = winners.slice().sort((a, b) => huntBetter(rOf(a), rOf(b)));
@@ -711,7 +810,7 @@
 
   // Niveau du salon, tel qu'il sera joué en ligne
   const levelTag = lv => `<b>🎯 ${lv.name} · ${T.pairs(lv.pairs)}</b>` +
-    `<small>${T.lvMemo(lv.preview / 1000)} · ${T.lvTurn}${lv.twins ? ' · ' + T.lvTwins : ''}</small>`;
+    `<small>${T.lvMemo(lv.preview / 1000)} · ${isRace(lv) ? T.lvRace : T.lvTurn}${lv.twins ? ' · ' + T.lvTwins : ''}</small>`;
 
   // Ouverture par un lien d'invitation
   function openInvite(c) {
