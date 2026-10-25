@@ -248,12 +248,32 @@
     const url = SHARE_URL + code, text = T.inviteText(code, url);
     const P = (window.Capacitor && window.Capacitor.Plugins) || {};
     try {
-      if (P.Share) { await P.Share.share({ title: 'DefiMemory', text, dialogTitle: T.share }); return; }
-      if (navigator.share) { await navigator.share({ title: 'DefiMemory', text }); return; }
-    } catch (e) { if (e && e.name === 'AbortError') return; }
-    try { await navigator.clipboard.writeText(text); setLobbyStatus(T.copied, true); }
-    catch (e) { const sel = getSelection(), r = document.createRange(); r.selectNodeContents($('roomCode')); sel.removeAllRanges(); sel.addRange(r); }
+      if (P.Share) { await P.Share.share({ title: 'DefiMemory', text: T.inviteText(code, '').trim(), url, dialogTitle: T.share }); return; }
+      // Menu de partage du téléphone (WhatsApp, Messages, Messenger…)
+      if (navigator.share) { await navigator.share({ title: 'DefiMemory', text: T.inviteText(code, '').trim(), url }); return; }
+    } catch (e) { if (e && e.name === 'AbortError') return; console.warn(e); }
+    openShareSheet(text, url);
   };
+  // Navigateur sans menu de partage (ordinateur, navigateur intégré à Messenger/Facebook…) : nos propres boutons
+  function openShareSheet(text, url) {
+    const t = encodeURIComponent(text), ua = navigator.userAgent, mobile = /Android|iPhone|iPad/i.test(ua);
+    $('shareLinks').innerHTML = [
+      ['whatsapp', '🟢', 'WhatsApp', 'https://wa.me/?text=' + t],
+      mobile && ['sms', '💬', T.shareSms, (/iPhone|iPad/i.test(ua) ? 'sms:&body=' : 'sms:?body=') + t],
+      mobile && ['messenger', '🔵', 'Messenger', 'fb-messenger://share/?link=' + encodeURIComponent(url)],
+      ['mail', '✉️', T.shareMail, 'mailto:?subject=DefiMemory&body=' + t],
+    ].filter(Boolean).map(([k, i, label, href]) => `<a class="btn share-${k}" href="${href}" target="_blank" rel="noopener"><span>${i}</span>${label}</a>`).join('');
+    $('shareUrl').textContent = url;
+    $('shareCopy').textContent = T.shareCopy;
+    $('shareCopy').onclick = async () => {
+      try { await navigator.clipboard.writeText(text); }
+      catch (e) { const sel = getSelection(), r = document.createRange(); r.selectNodeContents($('shareUrl')); sel.removeAllRanges(); sel.addRange(r); try { document.execCommand('copy'); } catch (er) {} }
+      $('shareCopy').textContent = T.copiedShort;
+    };
+    $('shareSheet').hidden = false;
+  }
+  $('shareClose').onclick = () => { $('shareSheet').hidden = true; };
+  $('shareSheet').onclick = e => { if (e.target === $('shareSheet')) $('shareSheet').hidden = true; };
   $('lobbyBack').onclick = $('onLeave').onclick = () => showHome();
   $('onStart').onclick = () => { if (room && room.host === api.uid) { audio(); startGame(room, true); } };
 
@@ -262,7 +282,7 @@
     if (!code) return;
     const c = code, me = api.uid, r = room;
     code = null; room = null;
-    emoMount(null); $('emoFx').innerHTML = '';
+    emoMount(null); $('emoFx').innerHTML = ''; $('shareSheet').hidden = true;
     clearInterval(loop); loop = null;
     if (unsub) unsub(); unsub = null;
     if (stopPresence) stopPresence(); stopPresence = null;
@@ -665,7 +685,7 @@
 
   function endWith(text) {
     const c = code; code = null;
-    emoMount(null); $('emoFx').innerHTML = '';
+    emoMount(null); $('emoFx').innerHTML = ''; $('shareSheet').hidden = true;
     clearInterval(loop); loop = null;
     if (unsub) unsub(); unsub = null;
     if (stopPresence) stopPresence(); stopPresence = null;
