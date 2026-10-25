@@ -1,8 +1,8 @@
 // DefiMemory : fonctionne hors ligne et se met à jour tout seul.
-// Stratégie : la page du jeu est toujours demandée au réseau d'abord (dernière version
+// Stratégie : la page du jeu et online.js sont toujours demandés au réseau d'abord (dernière version
 // dès qu'il y a Internet), avec la copie en cache si on est hors ligne. Les autres fichiers
 // (polices, icônes) viennent du cache et sont rafraîchis en arrière-plan.
-const CACHE = 'defimemory-v4';
+const CACHE = 'defimemory-v5';
 const FILES = [
   './', 'index.html', 'online.js', 'manifest.webmanifest',
   'vendor/firebase-app-compat.js', 'vendor/firebase-auth-compat.js', 'vendor/firebase-database-compat.js',
@@ -27,6 +27,13 @@ self.addEventListener('fetch', e => {
     e.respondWith(caches.open(CACHE).then(cache => fetch(e.request, { cache: 'no-store' })
       .then(res => { if (res.ok) cache.put('index.html', res.clone()); return res; })
       .catch(async () => (await cache.match('index.html')) || cache.match('./'))));
+    return;
+  }
+  // Code du jeu en ligne : réseau d'abord aussi, pour rester de la même version que la page
+  if (/\/online\.js$/.test(new URL(e.request.url).pathname)) {
+    e.respondWith(caches.open(CACHE).then(cache => fetch(e.request, { cache: 'no-store' })
+      .then(res => { if (res.ok) cache.put('online.js', res.clone()); return res; })
+      .catch(() => cache.match('online.js'))));
     return;
   }
   e.respondWith(caches.open(CACHE).then(async cache => {

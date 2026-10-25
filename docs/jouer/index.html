@@ -898,7 +898,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 45;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 46;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.querySelectorAll('[data-tp]').forEach(el => el.setAttribute('placeholder', T[el.dataset.tp]));
@@ -1654,6 +1654,25 @@ if (!isNative && 'serviceWorker' in navigator && (location.protocol === 'https:'
     if (!hadController) return;
     if (S) reloadWhenHome = true; else location.reload();
   });
+}
+// Un onglet resté ouvert (téléphone) n'est jamais rechargé : à chaque retour sur le jeu,
+// on regarde si une version plus récente est en ligne, et on recharge à l'accueil.
+if (!isNative && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  let lastCheck = 0;
+  const checkVersion = async () => {
+    if (document.hidden || Date.now() - lastCheck < 60000) return;
+    lastCheck = Date.now();
+    try {
+      const html = await (await fetch('index.html?v=' + Date.now(), { cache: 'no-store' })).text();
+      const m = /APP_BUILD = (\d+)/.exec(html);
+      if (!m || +m[1] <= APP_BUILD) return;
+      if (!S && !(window.Online && Online.active) && !els.home.hidden) location.reload();
+      else reloadWhenHome = true;
+    } catch (e) {}
+  };
+  document.addEventListener('visibilitychange', checkVersion);
+  addEventListener('focus', checkVersion);
+  setInterval(checkVersion, 10 * 60000);
 }
 
 renderLevels();
