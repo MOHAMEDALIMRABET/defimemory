@@ -138,6 +138,17 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 #multiPanel, #onlinePanel { gap: 16px; }
 #multiPanel .rules, #onlinePanel .rules { font-size: 14px; line-height: 1.45; }
 #multiPanel .label, #onlinePanel .label { margin-bottom: -8px; }
+@media (max-height: 600px) {   /* écrans très bas : on garde l'essentiel */
+  .tagline { display: none; }
+  .home { gap: 10px; }
+  #multiPanel, #onlinePanel { gap: 10px; }
+  #multiPanel .rules, #onlinePanel .rules { font-size: 12.5px; }
+}
+@media (max-width: 340px) {   /* très petits téléphones */
+  h1 { font-size: 27px !important; }
+  .tab { font-size: 13px; padding-inline: 2px; }
+  .count .chip { font-size: 13px; }
+}
 @media (max-height: 780px) {
   .home { gap: 14px; }
   h1 { font-size: 32px; }
@@ -545,7 +556,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
     </div>
 
     <div class="panel" id="soloPanel" role="tabpanel" aria-labelledby="tabSolo">
-      <p class="rules" data-t="rulesSolo">Au début, toutes les cartes sont <b>visibles quelques secondes</b>, puis elles se retournent. Touchez deux cartes à la fois : si elles sont identiques, elles restent ouvertes. Trouvez <b>toutes les paires</b> en un minimum de coups. Gagnez un niveau pour <b>débloquer le suivant</b>.</p>
+      <p class="rules" data-t="rulesSolo">Mémorisez les cartes, puis retrouvez <b>toutes les paires</b> avant la fin du temps. Gagnez un niveau pour <b>débloquer le suivant</b>.</p>
       <p class="label" data-t="chooseLevel">Choisissez un niveau</p>
       <div class="levels" id="levels"></div>
     </div>
@@ -753,7 +764,7 @@ const I18N = {
   fr: {
     tagline: 'Retenez les cartes, puis retrouvez les paires.',
     gameMode: 'Mode de jeu', solo: 'Solo', multi: 'À plusieurs',
-    rulesSolo: 'Au début, toutes les cartes sont <b>visibles quelques secondes</b>, puis elles se retournent. Touchez deux cartes à la fois : si elles sont identiques, elles restent ouvertes. Trouvez <b>toutes les paires</b> en un minimum de coups. Gagnez un niveau pour <b>débloquer le suivant</b>.',
+    rulesSolo: 'Mémorisez les cartes, puis retrouvez <b>toutes les paires</b> avant la fin du temps. Gagnez un niveau pour <b>débloquer le suivant</b>.',
     chooseLevel: 'Choisissez un niveau',
     rulesMulti: 'De 2 à 4 joueurs sur le même téléphone. Chacun son tour, retournez deux cartes. <b>Une paire = 1 point, et vous rejouez.</b> Sinon, passez le téléphone au joueur suivant. Le premier joueur est tiré au sort.',
     nbPlayers: 'Nombre de joueurs', boardSize: 'Taille du plateau', startGame: 'Commencer la partie',
@@ -844,7 +855,7 @@ const I18N = {
   en: {
     tagline: 'Memorize the cards, then find the pairs.',
     gameMode: 'Game mode', solo: 'Solo', multi: 'Multiplayer',
-    rulesSolo: 'At the start, all the cards are <b>shown for a few seconds</b>, then they flip over. Tap two cards at a time: if they match, they stay face up. Find <b>all the pairs</b> in as few moves as possible. Win a level to <b>unlock the next one</b>.',
+    rulesSolo: 'Memorize the cards, then find <b>all the pairs</b> before time runs out. Win a level to <b>unlock the next one</b>.',
     chooseLevel: 'Choose a level',
     rulesMulti: '2 to 4 players on the same phone. Take turns flipping two cards. <b>A pair = 1 point, and you play again.</b> Otherwise, pass the phone to the next player. The first player is drawn at random.',
     nbPlayers: 'Number of players', boardSize: 'Board size', startGame: 'Start the game',
@@ -934,7 +945,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 48;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 49;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.querySelectorAll('[data-tp]').forEach(el => el.setAttribute('placeholder', T[el.dataset.tp]));
