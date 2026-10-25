@@ -535,7 +535,7 @@
     let txt = '';
     if (!g.over && t < g.previewStart) txt = String(Math.ceil((g.previewStart - t) / 1000));
     else if (!g.over && t >= g.previewEnd && t < g.previewEnd + 900) txt = T.raceStart;
-    el.hidden = !txt;
+    el.hidden = !txt; el.classList.toggle('num', /^\d$/.test(txt));
     if (txt && txt !== goShown) { el.textContent = txt; el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); play(txt === T.raceStart ? 'pick' : 'count'); }
     goShown = txt;
   }
