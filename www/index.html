@@ -338,7 +338,10 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 .progress { height: 4px; border-radius: 4px; background: var(--line); overflow: hidden; }
 .progress i { display: block; height: 100%; width: 0; background: var(--back-2); }
 
-.board-wrap { flex: 1; min-height: 0; display: grid; place-items: center; }
+.board-wrap { flex: 1; min-height: 0; display: grid; place-items: center; position: relative; }
+/* Course en ligne : départ commun */
+.race-go { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; font-family: var(--font-display); font-weight: 800; font-size: clamp(72px, 26vw, 140px); color: var(--back-2); text-shadow: 0 4px 0 var(--surface), 0 8px 24px rgb(10 12 30 / .25); }
+.race-go.pop { animation: count .9s cubic-bezier(.2,.8,.3,1); }
 .board { display: grid; gap: 8px; perspective: 900px; }
 .card { aspect-ratio: 3/4; border: 0; padding: 0; background: none; position: relative; border-radius: 10px; touch-action: manipulation; }
 .card .inner { position: absolute; inset: 0; transition: transform .38s cubic-bezier(.3,.7,.3,1.15); transform-style: preserve-3d; }
@@ -648,7 +651,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
     <div class="scores" id="scores" hidden></div>
     <div class="status" id="status" aria-live="polite"></div>
     <div class="progress" aria-hidden="true"><i id="bar"></i></div>
-    <div class="board-wrap" id="boardWrap"><div class="board" id="board"></div></div>
+    <div class="board-wrap" id="boardWrap"><div class="board" id="board"></div><div class="race-go" id="raceGo" hidden aria-live="assertive"></div></div>
   </section>
 </div>
 
@@ -823,8 +826,8 @@ const I18N = {
     invText: c => `Salon ${c}. Choisissez le pseudo que les autres joueurs verront.`,
     invFrom: (n, c) => `${n} vous défie dans le salon ${c}. Choisissez le pseudo que les autres joueurs verront.`,
     emoAria: 'Réagir avec un emoji', shareTitle: 'Inviter vos amis', shareHint: 'Envoyez ce lien : il ouvre directement le salon.', shareSms: 'Messages', shareMail: 'E-mail', shareCopy: 'Copier le lien', copiedShort: 'Lien copié ✓', close: 'Fermer', needName: 'Choisissez un pseudo pour jouer en ligne.', badName: 'Ce pseudo n\'est pas accepté. Choisissez-en un autre.', namePh: 'Choisissez un pseudo', onSizeLabel: 'Niveau du salon que vous créez',
-    lvMemo: s => `👀 ${s} s pour mémoriser`, lvTurn: '⏱ 10 s par tour', lvRace: '⚡ course : le plus rapide gagne',
-    raceGo: s => `⚡ Course ! ${s} s`, raceDone: s => `Terminé en ${s} s ! En attente des autres…`, raceTime: s => `toutes les paires · ${s} s`, racePairs: (n, p) => `${n}/${p} paires`, raceRule: 'Course : le plus rapide à trouver toutes les paires gagne.', lvTwins: '👯 symboles sosies', joined: n => `${n} a rejoint le salon !`, leftRoom: n => `${n} a quitté le salon.`, offline: 'absent',
+    lvMemo: s => `👀 ${s} s pour mémoriser`, lvTurn: '⏱ 10 s par tour', lvRace: '⚡ course : le plus rapide gagne', raceStart: 'GO !', oldVersion: n => `${n} doit mettre à jour le jeu (ancienne version) avant de jouer.`,
+    raceGo: s => `⚡ Course ! ${s} s`, raceDone: s => `Terminé en ${s} s ! En attente des autres…`, raceTime: s => `toutes les paires · ${s} s`, racePairs: (n, p) => `${n}/${p} paires`, raceRule: 'Course : le plus rapide à trouver toutes les paires gagne. Égalité : prolongation.', lvTwins: '👯 symboles sosies', joined: n => `${n} a rejoint le salon !`, leftRoom: n => `${n} a quitté le salon.`, offline: 'absent',
     startsIn: s => `La partie commence dans ${s}…`, yourTurnOn: s => `À vous ! ${s} s`, oppTurn: (n, s) => `Au tour de ${n}… ${s} s`,
     you: 'vous', lostConn: (n, s) => `Connexion perdue avec ${n}… ${s} s`, youWin: 'Vous avez gagné !', youWinForfeit: 'Victoire par abandon',
     forfeitText: n => `${n} a quitté la partie.`, rematchWait: n => `En attente de ${n}…`, quit: 'Quitter',
@@ -915,8 +918,8 @@ const I18N = {
     invText: c => `Room ${c}. Choose the nickname other players will see.`,
     invFrom: (n, c) => `${n} challenges you in room ${c}. Choose the nickname other players will see.`,
     emoAria: 'React with an emoji', shareTitle: 'Invite your friends', shareHint: 'Send this link: it opens the room directly.', shareSms: 'Messages', shareMail: 'Email', shareCopy: 'Copy the link', copiedShort: 'Link copied ✓', close: 'Close', needName: 'Choose a nickname to play online.', badName: 'This nickname is not allowed. Please choose another one.', namePh: 'Choose a nickname', onSizeLabel: 'Level of the room you create',
-    lvMemo: s => `👀 ${s} s to memorize`, lvTurn: '⏱ 10 s per turn', lvRace: '⚡ race: the fastest wins',
-    raceGo: s => `⚡ Race! ${s} s`, raceDone: s => `Done in ${s} s! Waiting for the others…`, raceTime: s => `all pairs · ${s} s`, racePairs: (n, p) => `${n}/${p} pairs`, raceRule: 'Race: the fastest to find all the pairs wins.', lvTwins: '👯 look-alike symbols', joined: n => `${n} joined the room!`, leftRoom: n => `${n} left the room.`, offline: 'away',
+    lvMemo: s => `👀 ${s} s to memorize`, lvTurn: '⏱ 10 s per turn', lvRace: '⚡ race: the fastest wins', raceStart: 'GO!', oldVersion: n => `${n} must update the game (old version) before playing.`,
+    raceGo: s => `⚡ Race! ${s} s`, raceDone: s => `Done in ${s} s! Waiting for the others…`, raceTime: s => `all pairs · ${s} s`, racePairs: (n, p) => `${n}/${p} pairs`, raceRule: 'Race: the fastest to find all the pairs wins. Tie: overtime.', lvTwins: '👯 look-alike symbols', joined: n => `${n} joined the room!`, leftRoom: n => `${n} left the room.`, offline: 'away',
     startsIn: s => `Game starts in ${s}…`, yourTurnOn: s => `Your turn! ${s} s`, oppTurn: (n, s) => `${n}'s turn… ${s} s`,
     you: 'you', lostConn: (n, s) => `Lost connection with ${n}… ${s} s`, youWin: 'You win!', youWinForfeit: 'Win by forfeit',
     forfeitText: n => `${n} left the game.`, rematchWait: n => `Waiting for ${n}…`, quit: 'Leave',
@@ -947,7 +950,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 51;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 52;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.querySelectorAll('[data-tp]').forEach(el => el.setAttribute('placeholder', T[el.dataset.tp]));

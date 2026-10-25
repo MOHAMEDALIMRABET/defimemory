@@ -16,6 +16,9 @@
   // Facile et Moyen : « course » — chacun sur son propre plateau (le même pour tous), le plus rapide gagne
   const RACE_MS = { facile: 60000, moyen: 90000 };   // durée maximale de la course
   const isRace = lv => !!RACE_MS[lv.id];
+  const RACE_TIE_MS = 100;      // écart en dessous duquel deux temps sont égaux (affichés au dixième) : prolongation
+  // Version minimale pour jouer ensemble (les règles du jeu en ligne ont changé avec la course)
+  const MIN_BUILD = 52;
   const CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   // Lien d'invitation : ouvre l'application si elle est installée (Android App Links), le site sinon
   const SHARE_URL = 'https://defimemory.web.app/salon/';
@@ -190,7 +193,7 @@
       const c = Array.from({ length: 4 }, () => CHARS[Math.random() * CHARS.length | 0]).join('');
       const made = await api.transaction('rooms/' + c, cur => (cur ? undefined : {
         created: api.now(), host: api.uid, size, status: 'waiting',
-        players: { [api.uid]: { name: myName(), slot: 0, online: true } },
+        players: { [api.uid]: { name: myName(), slot: 0, online: true, v: APP_BUILD } },
       }));
       if (made) { msg(''); return enter(c); }
     }
@@ -218,12 +221,12 @@
           if (Object.keys(cur).length >= MAX) return undefined;
           const used = Object.values(cur).map(p => p.slot);
           const slot = [0, 1, 2, 3].find(i => !used.includes(i));
-          cur[api.uid] = { name: myName(), slot, online: true };
+          cur[api.uid] = { name: myName(), slot, online: true, v: APP_BUILD };
           return cur;
         });
         if (!ok) { msg(T.roomFull); return; }
       } else {
-        await api.update(`rooms/${c}/players/${api.uid}`, { left: null, online: true });
+        await api.update(`rooms/${c}/players/${api.uid}`, { left: null, online: true, v: APP_BUILD });
       }
       msg(''); enter(c);
     });
@@ -408,8 +411,8 @@
     if (g.n !== shownN) buildBoard(g, lv);
     if (g.over && endShown !== g.n) {
       // Égalité : prolongation « chasse au symbole », tous les joueurs à égalité en même temps
-      const tied = matchWinners(g);
-      if (g.mode !== 'race' && tied.length > 1 && g.ended === 'done' && !huntOver(g)) { renderHunt(g, tied, host); return; }
+      const tied = g.mode === 'race' ? raceWinners(g, arr(g.order).filter(id => !outOf(g)[id]).map(playerById)).map(p => p.id) : matchWinners(g);
+      if (tied.length > 1 && g.ended === 'done' && !huntOver(g)) { renderHunt(g, tied, host); return; }
       showEnd(g);
     }
     if (!g.over && !els.overlay.hidden) els.overlay.hidden = true;
@@ -441,14 +444,17 @@
     }
     $('onStart').hidden = !host;
     const ready = here.filter(p => p.online !== false).length;
-    $('onStart').disabled = ready < 2;
-    if (notice && Date.now() < notice.until) setLobbyStatus(notice.text, false);
+    // Un joueur avec une ancienne version ne joue pas avec les mêmes règles : il doit mettre à jour le jeu
+    const old = here.filter(p => !(p.v >= MIN_BUILD));
+    $('onStart').disabled = ready < 2 || old.length > 0;
+    if (old.length) setLobbyStatus(T.oldVersion(joinNames(old.map(p => p.name))), false);
+    else if (notice && Date.now() < notice.until) setLobbyStatus(notice.text, false);
     else if (host) setLobbyStatus(ready < 2 ? T.waitingOpp : T.readyToStart, ready >= 2);
     else setLobbyStatus(T.waitHost(hostP ? hostP.name : ''), false);
   }
 
   function buildBoard(g, lv) {
-    shownN = g.n; prev = null;
+    shownN = g.n; prev = null; $('raceGo').hidden = true;
     $('lobby').hidden = true; els.home.hidden = true; els.overlay.hidden = true; els.game.hidden = false;
     emoMount(els.game.querySelector('.topbar'));
     S = { online: true, lv, cards: [], lock: true, over: false, mp: null, open: [], mine: {} };
@@ -522,9 +528,21 @@
   /* ---------- Course (Facile et Moyen) ---------- */
   const raceOf = (g, id) => (g.race && g.race[id]) || { found: 0 };
   const raceTime = (g, id) => { const r = raceOf(g, id); return r.done ? T.raceTime(secs(r.ms)) : T.racePairs(r.found || 0, g.deck.length / 2); };
+  // Grand compte à rebours, au même instant chez tous les joueurs (heure du serveur) : 3, 2, 1… puis « GO ! » au départ
+  let goShown = '';
+  function raceGo(g, t) {
+    const el = $('raceGo');
+    let txt = '';
+    if (!g.over && t < g.previewStart) txt = String(Math.ceil((g.previewStart - t) / 1000));
+    else if (!g.over && t >= g.previewEnd && t < g.previewEnd + 900) txt = T.raceStart;
+    el.hidden = !txt;
+    if (txt && txt !== goShown) { el.textContent = txt; el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); play(txt === T.raceStart ? 'pick' : 'count'); }
+    goShown = txt;
+  }
   function paintRace() {
     const g = room.g, t = api.now(), ps = arr(g.order).map(playerById), me = raceOf(g, api.uid);
     const preview = t >= g.previewStart && t < g.previewEnd;
+    raceGo(g, t);
     S.cards.forEach((c, k) => {
       const mine = !!S.mine[k];
       c.classList.toggle('matched', mine);
@@ -583,7 +601,7 @@
   // Gagnants : le plus rapide à tout trouver ; si personne n'a fini, le plus de paires
   function raceWinners(g, stay) {
     const fin = stay.filter(p => raceOf(g, p.id).done);
-    if (fin.length) { const best = Math.min(...fin.map(p => raceOf(g, p.id).ms)); return fin.filter(p => raceOf(g, p.id).ms === best); }
+    if (fin.length) { const best = Math.min(...fin.map(p => raceOf(g, p.id).ms)); return fin.filter(p => raceOf(g, p.id).ms - best < RACE_TIE_MS); }
     const top = Math.max(...stay.map(p => raceOf(g, p.id).found || 0));
     return stay.filter(p => (raceOf(g, p.id).found || 0) === top);
   }
@@ -746,15 +764,18 @@
       detail = p => raceTime(g, p.id);
       posOf = p => 1 + stay.filter(q => by(q, p) < 0).length;
       if (!text) text = T.raceRule;
-    } else if (h && winners.length > 1) {
+    }
+    if (h && winners.length > 1) {
       // Prolongation : classement des joueurs à égalité selon la chasse au symbole
       const res = h.res || {}, rOf = p => res[p.id] || { found: 0 };
       const tied = winners.slice().sort((a, b) => huntBetter(rOf(a), rOf(b)));
       winners = tied.filter(p => huntBetter(rOf(p), rOf(tied[0])) === 0);
       text = tied.map(p => `${p.name} : ${T.huntLine(rOf(p))}`).join(' · ');
       ranked = tied.concat(ranked.filter(p => !tied.includes(p)));
-      detail = p => (tied.includes(p) ? T.huntLine(rOf(p)) : T.pairs(sc(p.id)));
-      posOf = p => (tied.includes(p) ? 1 + tied.filter(q => huntBetter(rOf(q), rOf(p)) < 0).length : tied.length + 1 + stay.filter(q => !tied.includes(q) && sc(q.id) > sc(p.id)).length);
+      const base = detail;
+      detail = p => (tied.includes(p) ? T.huntLine(rOf(p)) : base(p));
+      const basePos = posOf;
+      posOf = p => (tied.includes(p) ? 1 + tied.filter(q => huntBetter(rOf(q), rOf(p)) < 0).length : basePos(p));
     }
     const iWin = winners.some(p => p.id === api.uid), tie = winners.length > 1;
     claim(g, iWin && !tie && g.ended === 'done');
