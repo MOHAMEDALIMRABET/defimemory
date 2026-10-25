@@ -131,7 +131,24 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
 .sizes { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; }
 .sizes .chip { padding-inline: 2px; }
 .sizes .chip small { font-size: 10px; }
-.players { display: grid; gap: 8px; }
+.players { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }   /* 2 colonnes : tout tient sans défiler */
+.players .player { padding-left: 10px; gap: 6px; min-width: 0; }
+.players .clear { width: 30px; height: 30px; }
+/* À plusieurs et En ligne : plus compacts, pour tenir sur un écran sans défiler */
+#multiPanel, #onlinePanel { gap: 16px; }
+#multiPanel .rules, #onlinePanel .rules { font-size: 14px; line-height: 1.45; }
+#multiPanel .label, #onlinePanel .label { margin-bottom: -8px; }
+@media (max-height: 780px) {
+  .home { gap: 14px; }
+  h1 { font-size: 32px; }
+  .tagline { font-size: 13px; }
+  .brand-cards { transform: scale(.85); }
+  #multiPanel, #onlinePanel { gap: 12px; }
+  #multiPanel .rules, #onlinePanel .rules { font-size: 13px; line-height: 1.4; }
+  .chip { min-height: 40px; padding-block: 4px; }
+  .player input { padding-block: 8px; }
+  #onCode, .join .btn { height: 44px; min-height: 44px; }
+}
 .player { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px; padding: 4px 6px 4px 12px; }
 .player i { width: 14px; height: 14px; border-radius: 50%; background: var(--pc); flex: none; }
 .player input {
@@ -917,7 +934,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 47;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 48;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.querySelectorAll('[data-tp]').forEach(el => el.setAttribute('placeholder', T[el.dataset.tp]));
