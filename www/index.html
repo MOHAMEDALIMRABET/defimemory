@@ -375,6 +375,10 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
   font-weight: 700; font-size: 15px;
 }
 .btn.primary { background: var(--back); border-color: var(--back); color: #fff; }
+/* Revanche proposée par un autre joueur en ligne */
+.r-ask { margin: 0; padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 18%, var(--surface)); color: var(--ink) !important; font-weight: 800; animation: rise .3s ease; }
+.btn.ask { animation: askPulse 1.2s ease-in-out infinite; }
+@keyframes askPulse { 50% { transform: scale(1.04); } }
 
 /* ---------- Déblocage d'un niveau : le cadenas s'ouvre ---------- */
 .unlock-fx {
@@ -743,6 +747,7 @@ h1 { font-family: var(--font-display); font-weight: 800; font-size: 40px; line-h
     <p id="rText"></p>
     <ol class="hunt-steps" id="rHelp" hidden></ol>
     <ol class="rank" id="rRank" hidden></ol>
+    <p class="r-ask" id="rAsk" hidden aria-live="assertive"></p>
     <div class="result-grid" id="rGrid">
       <div><small data-t="moves">Coups</small><b id="rMoves">0</b></div>
       <div><small data-t="time">Temps</small><b id="rTime">0:00</b></div>
@@ -803,7 +808,7 @@ const I18N = {
     singleText: (p, total, t) => `${p} sur ${total}, en ${t}.`,
     tieBreak: (p, n, won) => `Égalité à ${p} : ${n} l'emporte grâce à ${won}.`,
     totalText: (p, r) => `${p} au total sur ${r} manches.`,
-    newMatch: 'Nouveau match', rematch: 'Revanche', changePlayers: 'Changer les joueurs',
+    newMatch: 'Nouveau match', rematch: 'Revanche', rematchAsk: n => `🔁 ${n} veut une revanche !`, rematchAccept: 'Accepter la revanche', changePlayers: 'Changer les joueurs',
     perfect: 'Mémoire parfaite !', bravo: 'Bravo !', timeUp: 'Temps écoulé',
     wonText: (p, lv) => `Vous avez trouvé les ${p} paires du niveau ${lv}.`,
     lostText: (f, p) => `Vous avez trouvé ${f} paires sur ${p}. Réessayez !`,
@@ -895,7 +900,7 @@ const I18N = {
     singleText: (p, total, t) => `${p} out of ${total}, in ${t}.`,
     tieBreak: (p, n, won) => `Tied at ${p}: ${n} wins with ${won}.`,
     totalText: (p, r) => `${p} in total over ${r} rounds.`,
-    newMatch: 'New match', rematch: 'Rematch', changePlayers: 'Change players',
+    newMatch: 'New match', rematch: 'Rematch', rematchAsk: n => `🔁 ${n} wants a rematch!`, rematchAccept: 'Accept the rematch', changePlayers: 'Change players',
     perfect: 'Perfect memory!', bravo: 'Well done!', timeUp: 'Time\'s up',
     wonText: (p, lv) => `You found all ${p} pairs of the ${lv} level.`,
     lostText: (f, p) => `You found ${f} of the ${p} pairs. Try again!`,
@@ -950,7 +955,7 @@ const I18N = {
   },
 };
 const T = I18N[LANG];
-const APP_VERSION = '1.0.0', APP_BUILD = 55;   // augmenter APP_BUILD à chaque mise à jour
+const APP_VERSION = '1.0.0', APP_BUILD = 56;   // augmenter APP_BUILD à chaque mise à jour
 document.querySelectorAll('[data-t]').forEach(el => { el.innerHTML = T[el.dataset.t]; });
 document.querySelectorAll('[data-ta]').forEach(el => el.setAttribute('aria-label', T[el.dataset.ta]));
 document.querySelectorAll('[data-tp]').forEach(el => el.setAttribute('placeholder', T[el.dataset.tp]));
@@ -1352,7 +1357,7 @@ function finishMulti() {
     $('rHome').textContent = T.stopMatch;
     againAction = () => { match.round++; start(S.i, true); };
     // La manche suivante démarre toute seule : bilan, puis 5… 4… 3… 2… 1…
-    $('rAgain').hidden = true;
+    $('rAgain').hidden = true; resetAsk();
     const box = $('rCount'), num = $('rCountNum');
     box.style.setProperty('--pc', next.color);
     $('rCountLabel').textContent = T.nextRoundIn(match.round + 1, next.name);
@@ -1392,7 +1397,7 @@ function finishMulti() {
   }
   $('rRank').hidden = false; $('rGrid').hidden = true; $('rStars').hidden = true;
   $('rRecord').hidden = true; $('rUnlock').hidden = true; $('rNext').hidden = true;
-  if (last) { $('rCount').hidden = true; $('rAgain').hidden = false; }
+  if (last) { $('rCount').hidden = true; $('rAgain').hidden = false; resetAsk(); }
   els.overlay.hidden = false; (last ? $('rAgain') : $('rHome')).focus();
 }
 
@@ -1427,7 +1432,7 @@ function finish(won) {
   if (unlocked) $('rUnlock').textContent = T.unlocked(next.name);
   $('rNext').hidden = !(won && next);
   $('rRank').hidden = true; $('rGrid').hidden = false;
-  $('rCount').hidden = true; $('rAgain').hidden = false;
+  $('rCount').hidden = true; $('rAgain').hidden = false; resetAsk();
   $('rAgain').textContent = T.replay;
   $('rHome').textContent = T.chooseLevelBtn;
   againAction = () => start(S.i);
@@ -1575,7 +1580,7 @@ function prolongLocal(tied, ranked, multiRound) {
     huntHelp();
     $('rRank').innerHTML = tied.map((q, k) => `<li style="--pc:${q.color}"><i></i><span>${esc(q.name)}</span><em>${results[k] && !results[k].live ? T.huntLine(results[k]) : ''}</em></li>`).join('');
     $('rRank').hidden = i === 0; $('rGrid').hidden = true; $('rStars').hidden = true; $('rRecord').hidden = true;
-    $('rUnlock').hidden = true; $('rNext').hidden = true; $('rAgain').hidden = true;
+    $('rUnlock').hidden = true; $('rNext').hidden = true; $('rAgain').hidden = true; resetAsk();
     $('rHome').textContent = T.stopMatch;
     const box = $('rCount'), num = $('rCountNum');
     box.style.setProperty('--pc', p.color);
@@ -1602,7 +1607,7 @@ function prolongLocal(tied, ranked, multiRound) {
       const cup = win ? `<b class="trophy" role="img" aria-label="${T.winnerCup}">🏆</b>` : '';
       return `<li class="${win ? 'first' : ''}" style="--pc:${x.p.color}"><i></i><span>${pos}. ${esc(x.p.name)}</span>${cup}<em>${T.huntLine(x.r)}</em></li>`;
     }).join('') + others.map((p, k) => `<li style="--pc:${p.color}"><i></i><span>${tied.length + 1 + k}. ${esc(p.name)}</span><em>${T.pairs(p.total)}</em></li>`).join('');
-    $('rRank').hidden = false; $('rCount').hidden = true; $('rAgain').hidden = false;
+    $('rRank').hidden = false; $('rCount').hidden = true; $('rAgain').hidden = false; resetAsk();
     $('rAgain').textContent = multiRound ? T.newMatch : T.rematch;
     $('rHome').textContent = T.changePlayers;
     againAction = () => { newMatch(); start(lvIndex, true); };
@@ -1656,6 +1661,8 @@ function playChampion(first, done) {
 
 $('rNext').onclick = () => start(S.i + 1);
 $('rAgain').onclick = () => againAction && againAction();
+// Bandeau « X veut une revanche » : seulement en ligne
+function resetAsk() { $('rAsk').hidden = true; $('rAgain').classList.remove('ask', 'primary'); }
 $('rCount').hidden = true;
 $('rHome').onclick = showHome;
 $('back').onclick = showHome;

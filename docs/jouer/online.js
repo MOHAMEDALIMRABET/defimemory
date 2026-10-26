@@ -122,7 +122,7 @@
   /* ---------- État local ---------- */
   const MAX = 4;
   let code = null, room = null, unsub = null, stopPresence = null, loop = null;
-  let huntN = 0, shownN = 0, prev = null, endShown = 0, known = new Set(), lastNames = {}, starting = 0, notice = null;
+  let huntN = 0, shownN = 0, prev = null, endShown = 0, known = new Set(), lastNames = {}, starting = 0, notice = null, askSeen = '';
   let size = 1;
   try { size = +(localStorage.getItem('dm-online-size') ?? 1); } catch (e) {}
   const msg = (text, ok) => { const m = $('onMsg'); m.textContent = text || ''; m.className = 'on-msg' + (ok ? ' ok' : ''); };
@@ -718,7 +718,7 @@
         $('rText').textContent = T.huntWho(joinNames(names));
         huntHelp();
         $('rRank').hidden = true; $('rGrid').hidden = true; $('rStars').hidden = true; $('rRecord').hidden = true;
-        $('rUnlock').hidden = true; $('rNext').hidden = true; $('rAgain').hidden = true;
+        $('rUnlock').hidden = true; $('rNext').hidden = true; $('rAgain').hidden = true; resetAsk();
         $('rHome').textContent = T.quit;
         $('rCount').style.setProperty('--pc', 'var(--accent)'); $('rCountLabel').textContent = T.huntStartsLabel;
         $('rCount').hidden = false; els.overlay.hidden = false;
@@ -731,7 +731,7 @@
       huntHelp();
       $('rRank').innerHTML = arr(h.tied).map(id => { const p = playerById(id); return `<li style="--pc:${colorOf(p)}"><i></i><span>${esc(p.name)}</span><em>${res[id] ? T.huntLine(res[id]) : '…'}</em></li>`; }).join('');
       $('rRank').hidden = false; $('rGrid').hidden = true; $('rStars').hidden = true; $('rCount').hidden = true;
-      $('rRecord').hidden = true; $('rUnlock').hidden = true; $('rNext').hidden = true; $('rAgain').hidden = true;
+      $('rRecord').hidden = true; $('rUnlock').hidden = true; $('rNext').hidden = true; $('rAgain').hidden = true; resetAsk();
       $('rHome').textContent = T.quit;
       els.overlay.hidden = false;
     }
@@ -799,9 +799,20 @@
   function updateEndButtons(g, here) {
     const me = room.players[api.uid] || {}, again = $('rAgain');
     const others = here.filter(p => p.id !== api.uid), waiting = others.filter(p => p.rematch !== g.n);
+    // Un autre joueur propose la revanche : on le montre bien (bandeau, bouton mis en avant, son)
+    const asking = others.filter(p => p.rematch === g.n), ask = $('rAsk');
+    const showAsk = asking.length > 0 && me.rematch !== g.n;
+    ask.hidden = !showAsk;
+    again.classList.toggle('primary', showAsk);
+    again.classList.toggle('ask', showAsk);
+    if (showAsk) {
+      ask.textContent = T.rematchAsk(joinNames(asking.map(p => p.name)));
+      const key = g.n + ':' + asking.map(p => p.id).join(',');
+      if (askSeen !== key) { askSeen = key; play('pick'); haptic('click'); }
+    }
     if (!others.length) { again.disabled = true; again.textContent = T.alone; }
     else if (me.rematch === g.n) { again.disabled = true; again.textContent = T.rematchWait(waiting.map(p => p.name).join(', ') || '…'); }
-    else { again.disabled = false; again.textContent = T.rematch; }
+    else { again.disabled = false; again.textContent = showAsk ? T.rematchAccept : T.rematch; }
   }
 
   function endWith(text) {
